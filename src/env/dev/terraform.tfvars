@@ -15,3 +15,6 @@ cidr_subnet_appgateway = ["10.1.128.0/24"]
 # https://www.davidc.net/sites/default/subnets/subnets.html?network=10.230.7.0&mask=24&division=7.31
 cidr_vnet_integration = ["10.230.7.0/24"] # ask to SIA
 cidr_subnet_apim      = ["10.230.7.0/26"]
+
+external_domain = "pagopa.it"
+dns_zone_prefix = "dev.platform"
