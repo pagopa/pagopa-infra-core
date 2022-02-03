@@ -16,20 +16,12 @@
       <base />
       <set-backend-service base-url="{{pagopa-appservice-proxy-url}}" />
       <rate-limit-by-key calls="150" renewal-period="10" counter-key="@(context.Request.Headers.GetValueOrDefault("X-Forwarded-For"))" />
+       <!-- Handle X-Client-Id - pagopa-proxy multi channel -->
+      <set-header name="X-Client-Id" exists-action="override">
+        <value>CLIENT_CHECKOUT</value>
+      </set-header>
     </inbound>
     <outbound>
-        <!-- Handle API-key - channel binding -->
-        <when condition="@(context.Request.HeadersGetValueOrDefault("Ocp-Apim-Subscription-Key","").Equals({{io-backend-api-key}}))">
-          <set-header name="X-Client-Id" exists-action="override">
-            <value>CLIENT_IO</value>
-          </set-header>
-        </when>
-        <otherwise>
-          <set-header name="X-Client-Id" exists-action="override">
-            <value>CLIENT_CHECKOUT</value>
-          </set-header>
-        </otherwise>
-
         <set-header name="cache-control" exists-action="override">
             <value>no-store</value>
         </set-header>
