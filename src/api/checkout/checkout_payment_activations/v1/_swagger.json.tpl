@@ -44,6 +44,12 @@
               "$ref": "#/definitions/ProblemJson"
             }
           },
+          "424": {
+            "description": "PagoPA service error. The requests cannot be handled by PagoPa services.",
+            "schema": {
+              "$ref": "#/definitions/ProblemJson"
+            }
+          },
           "500": {
             "description": "PagoPA services are not available or request is rejected by PagoPa",
             "schema": {
@@ -90,6 +96,12 @@
           },
           "400": {
             "description": "Invalid input or PagoPA response",
+            "schema": {
+              "$ref": "#/definitions/ProblemJson"
+            }
+          },
+          "424": {
+            "description": "PagoPA service error. The requests cannot be handled by PagoPa services.",
             "schema": {
               "$ref": "#/definitions/ProblemJson"
             }
