@@ -59,4 +59,4 @@ afm_marketplace_cosmos_db_params = {
 
 }
 
-cidr_subnet_afm_cosmosdb = ["10.1.149.0/24"]
+cidr_subnet_afm_marketplace_cosmosdb = ["10.1.151.0/24"]
