@@ -1,10 +1,10 @@
 {
     "openapi": "3.0.1",
     "info": {
-        "title": "PagoPA API Spontaneous Payment",
-        "description": "Calculator microservice for pagoPA AFM",
+        "title": "PagoPA API Calculator Logic",
+        "description": "Calculator Logic microservice for pagoPA AFM",
         "termsOfService": "https://www.pagopa.gov.it/",
-        "version": "0.0.1"
+        "version": "0.0.1-4"
     },
     "servers": [
         {
@@ -32,101 +32,6 @@
                 "operationId": "getConfiguration",
                 "responses": {
                     "200": {
-                        "description": "Created",
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "This header identifies the call",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Configuration"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "This header identifies the call",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ProblemJson"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "This header identifies the call",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "429": {
-                        "description": "Too many requests",
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "This header identifies the call",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Service unavailable",
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "This header identifies the call",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ProblemJson"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Configuration"
-                ],
-                "summary": "Save calculator configuration",
-                "operationId": "configure",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Configuration"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "201": {
                         "description": "Created",
                         "headers": {
                             "X-Request-Id": {
@@ -595,6 +500,7 @@
                     "paymentMethod": {
                         "type": "string",
                         "enum": [
+                            "ANY",
                             "PPAL",
                             "BPAY",
                             "PAYBP",
@@ -609,6 +515,7 @@
                     "touchpoint": {
                         "type": "string",
                         "enum": [
+                            "ANY",
                             "IO",
                             "WISP",
                             "CHECKOUT"
@@ -661,6 +568,20 @@
                     }
                 }
             },
+            "AppInfo": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "environment": {
+                        "type": "string"
+                    }
+                }
+            },
             "Bundle": {
                 "type": "object",
                 "properties": {
@@ -668,6 +589,12 @@
                         "type": "string"
                     },
                     "idPsp": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string"
                     },
                     "paymentAmount": {
@@ -685,6 +612,7 @@
                     "paymentMethod": {
                         "type": "string",
                         "enum": [
+                            "ANY",
                             "PPAL",
                             "BPAY",
                             "PAYBP",
@@ -699,6 +627,7 @@
                     "touchpoint": {
                         "type": "string",
                         "enum": [
+                            "ANY",
                             "IO",
                             "WISP",
                             "CHECKOUT"
@@ -787,20 +716,6 @@
                         "format": "int64"
                     },
                     "name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "AppInfo": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "version": {
-                        "type": "string"
-                    },
-                    "environment": {
                         "type": "string"
                     }
                 }
