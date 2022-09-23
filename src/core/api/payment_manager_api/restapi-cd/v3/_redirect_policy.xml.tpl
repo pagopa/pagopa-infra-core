@@ -5,7 +5,7 @@
           <return-response>
             <set-status code="307" />
             <set-header name="location" exists-action="override">
-              <value>@($"https://${host}https://api.uat.platform.pagopa.it{context.Request.OriginalUrl.Path}{context.Request.OriginalUrl.QueryString}")</value>
+              <value>@($"https://${host}{context.Request.OriginalUrl.Path}{context.Request.OriginalUrl.QueryString}")</value>
             </set-header>
           </return-response>
         </when>
