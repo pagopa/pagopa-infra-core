@@ -38,8 +38,11 @@ fi
 
 source "./secret/$localenv/secret.ini"
 
+echo "az keyvault key show --name $prefix-$env_short-$domain-sops-key --vault-name $prefix-$env_short-$domain-kv --query key.kid"
 
 if echo "d a s n e" | grep -w $action > /dev/null; then
+
+
 
   azurekvurl=`az keyvault key show --name $prefix-$env_short-$domain-sops-key --vault-name $prefix-$env_short-$domain-kv --query key.kid | sed 's/"//g'`
 
