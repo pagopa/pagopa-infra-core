@@ -3,8 +3,8 @@ locals {
   project_legacy = "${var.prefix}-${var.env_short}"
   product        = "${var.prefix}-${var.env_short}"
 
-
-
+  pagopa_apim_name = "${local.product}-apim"
+  pagopa_apim_rg   = "${local.product}-api-rg"
   apim_subnet_name = "${var.prefix}-${var.env_short}-apim-snet"
 
   vnet_resource_group_name = "${var.prefix}-${var.env_short}-vnet-rg"

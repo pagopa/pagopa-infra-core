@@ -68,8 +68,6 @@ variable "monitor_resource_group_name" {
   type        = string
   description = "Monitor resource group name"
 }
-
-
 variable "mock_ec_enabled" {
   type        = bool
   description = "Mock EC enabled"
@@ -147,3 +145,4 @@ variable "dns_zone_prefix" {
   default     = null
   description = "The dns subdomain."
 }
+
