@@ -1,8 +1,8 @@
 <policies>
     <inbound>
-    <base />
+        <base />
         <choose>
-            <when condition="@("true".Equals("{{enable-pm-ecommerce-io}}"))">
+            <when condition="@("true".Equals("{{enable-pm-ecommerce-io}}") || !"{{pay-wallet-family-friends-user-ids}}".Contains(((string)context.Variables["sessionTokenUserId"])) )">
                 <set-variable name="walletId" value="@{
                     string walletIdUUID = (string)context.Request.MatchedParameters["walletId"];
                     string walletIdHex = walletIdUUID.Substring(walletIdUUID.Length-17 , 17).Replace("-" , "");
@@ -17,19 +17,30 @@
                     </set-header>
                 </send-request>
                 <choose>
+                    <when condition="@(((IResponse)context.Variables["pmWalletResponse"]).StatusCode == 401)">
+                        <return-response>
+                            <set-status code="401" reason="Bad Gateway" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-body>{
+                                "title": "Unauthorized",
+                                "status": 401,
+                                "detail": "Unauthorized"
+                                }</set-body>
+                        </return-response>
+                    </when>
                     <when condition="@(((IResponse)context.Variables["pmWalletResponse"]).StatusCode != 200)">
                         <return-response>
                             <set-status code="502" reason="Bad Gateway" />
                             <set-header name="Content-Type" exists-action="override">
                                 <value>application/json</value>
                             </set-header>
-                            <set-body>
-                                {
+                            <set-body>{
                                 "title": "Error retrieving user wallet data",
                                 "status": 502,
                                 "detail": "There was an error retrieving user wallet data"
-                                }
-                            </set-body>
+                                }</set-body>
                         </return-response>
                     </when>
                 </choose>
@@ -42,13 +53,11 @@
                             <set-header name="Content-Type" exists-action="override">
                                 <value>application/json</value>
                             </set-header>
-                            <set-body>
-                                {
+                            <set-body>{
                                 "title": "Wallet not found",
                                 "status": 404,
                                 "detail": "No wallet found for input wallet token"
-                                }
-                            </set-body>
+                                }</set-body>
                         </return-response>
                     </when>
                 </choose>
@@ -64,29 +73,21 @@
                 <choose>
                     <when condition="@(((IResponse)context.Variables["paymentMethodsResponse"]).StatusCode != 200)">
                         <return-response>
-                        <set-status code="502" reason="Bad Gateway" />
-                        <set-header name="Content-Type" exists-action="override">
-                            <value>application/json</value>
-                        </set-header>
-                        <set-body>
-                            {
+                            <set-status code="502" reason="Bad Gateway" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-body>{
                                 "title": "Error retrieving eCommerce payment methods",
                                 "status": 502,
                                 "detail": "There was an error retrieving eCommerce payment methods"
-                            }
-                        </set-body>
+                            }</set-body>
                         </return-response>
                     </when>
                 </choose>
                 <set-variable name="paymentMethodsResponseBody" value="@(((IResponse)context.Variables["paymentMethodsResponse"]).Body.As<JObject>())" />
                 <!-- END get payment methods -->
-                <return-response>
-                    <set-status code="200" />
-                    <set-header name="Content-Type" exists-action="override">
-                        <value>application/json</value>
-                    </set-header>
-                    <set-body>
-                        @{
+                <set-variable name="walletResponseBody" value="@{
                             JObject pmWalletResponse = (JObject)context.Variables["pmUserWalletResponseBody"];
                             var walletApplications = new List<String>{"PAGOPA"};
                             var eCommerceWalletTypes = new Dictionary<string, string>
@@ -178,12 +179,33 @@
             
                                     return result;
             
-                                }).Single();
-            
-                            return walletResult.ToString();
-                        }
-                    </set-body>
-                </return-response>
+                                }).SingleOrDefault();
+                                return walletResult;
+                        }" />
+                <choose>
+                    <when condition="@((context.Variables["walletResponseBody"]) != null)">
+                        <return-response>
+                            <set-status code="200" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-body>@(((JObject)context.Variables["walletResponseBody"]).ToString())</set-body>
+                        </return-response>
+                    </when>
+                    <otherwise>
+                        <return-response>
+                            <set-status code="404" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-body>{
+                                "title": "Wallet not found",
+                                "status": 404,
+                                "detail": "Wallet not found"
+                            }</set-body>
+                        </return-response>
+                    </otherwise>
+                </choose>
             </when>
         </choose>
     </inbound>
