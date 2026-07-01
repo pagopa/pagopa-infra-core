@@ -11,7 +11,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_rn_agent"></a> [rn\_agent](#module\_rn\_agent) | git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac | infra |
+| <a name="module_rn_agent"></a> [rn\_agent](#module\_rn\_agent) | git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac | 70471e04eda7dc7a860d4bb6c8effb47a16de657 |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 
 ## Resources
