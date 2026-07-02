@@ -1,6 +1,6 @@
 module "rn_agent" {
   #https://github.com/pagopa/payment-release-notes-agent/releases/tag/v0.0.4
-  source = "git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac?ref=70471e04eda7dc7a860d4bb6c8effb47a16de657"
+  source = "git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac?ref=feat/document-generator"
 
   # General
   prefix   = var.prefix
@@ -13,7 +13,6 @@ module "rn_agent" {
   idh_app_service_resource_tier     = "basic"
   idh_storage_account_resource_tier = "basic_public"
 
-
   # Network
   vnet_name          = data.azurerm_virtual_network.network_tools_vnet.name
   vnet_rg            = data.azurerm_virtual_network.network_tools_vnet.resource_group_name
@@ -24,9 +23,8 @@ module "rn_agent" {
   internal_dns_zone_resource_group_name = "${local.product}-vnet-rg"
 
   # General App
-  docker_image_tag = "v0.0.4"
+  docker_image_tag = "sha-4373c67"
   department_name  = "Dipartimento Pagamenti"
-  responsible_team = "@payments-cloud-admin"
 
   # APIM
   api_management_name = "${var.prefix}-${var.env_short}-apim"
