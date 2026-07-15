@@ -1,0 +1,61 @@
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'src/release-notes-agent/rn-agent-core'
+      - 'src/release-notes-agent/rn-agent-secrets'
+    exclude:
+      - '**/*.lock.hcl'
+      - '**/*.md'
+
+parameters:
+  - name: 'DEV'
+    displayName: 'Run on DEV environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/heads/feat-tf-debug
+      endpoint: "io-azure-devops-github-ro"
+
+variables:
+  TIME_OUT: 15
+  # working dir
+  WORKING_DIR: 'src/release-notes-agent/rn-agent-core'
+  WORKING_DIR_SECRET: 'src/release-notes-agent/rn-agent-secrets'
+  REGION_SHORT: "weu"
+
+stages:
+  #DEV
+  - ${{ if eq(parameters['DEV'], true) }}:
+      - template: './base-code-review-pipelines.yml'
+        parameters:
+          ENV: "dev"
+          ENV_FOLDER: "dev"
+          WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
+          WORKING_DIR_SECRET: ${{ variables.WORKING_DIR_SECRET }}
+          SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_DEV)'
+          POOL_NAME: '$(TF_POOL_NAME_DEV)'
+          TIME_OUT: ${{ variables.TIME_OUT }}
+          TF_SUMMARIZE: true
+          SECRET_USE_AKS: false
+
+
+
+
+
