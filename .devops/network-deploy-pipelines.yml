@@ -42,8 +42,8 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/network'
-  WORKING_DIR_SECRET: 'src/network-secrets'
+  WORKING_DIR: 'src/network/network-common'
+  WORKING_DIR_SECRET: 'src/network/network-secrets'
   DOMAIN_NAME: network
 
 stages:

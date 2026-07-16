@@ -4,7 +4,7 @@ moved {
 }
 
 module "vpn_snet" {
-  source               = "./.terraform/modules/__v4__/subnet"
+  source               = ".terraform/modules/__v4__/subnet"
   name                 = "GatewaySubnet"
   address_prefixes     = var.cidr_subnet_vpn
   virtual_network_name = module.vnet.name
@@ -29,7 +29,7 @@ moved {
 
 
 module "vpn" {
-  source = "./.terraform/modules/__v4__/vpn_gateway"
+  source = ".terraform/modules/__v4__/vpn_gateway"
 
   name                  = "${local.product}-vpn"
   location              = var.location
@@ -64,7 +64,7 @@ module "vpn" {
 ## DNS Forwarder
 module "dns_forwarder_snet" {
   count  = var.env_short != "d" ? 1 : 0
-  source = "./.terraform/modules/__v4__/subnet"
+  source = ".terraform/modules/__v4__/subnet"
 
   name                              = "${local.product}-dns-forwarder-snet"
   address_prefixes                  = var.cidr_subnet_dns_forwarder
@@ -88,7 +88,7 @@ resource "random_id" "dns_forwarder_hash" {
 
 module "dns_forwarder" {
   count  = var.env_short != "d" ? 1 : 0
-  source = "./.terraform/modules/__v4__/dns_forwarder_deprecated"
+  source = ".terraform/modules/__v4__/dns_forwarder_deprecated"
 
   name                = "${local.product}-${random_id.dns_forwarder_hash[count.index].hex}-dns-forwarder"
   location            = azurerm_resource_group.rg_vnet.location
