@@ -159,20 +159,26 @@ def evaluate_test_results(test_results: dict) -> str:
     watched_tests = list(filter(is_test_to_watch, test_results.get("tests", [])))
     print(f"watched tests: {watched_tests}")
     # get nexi tests
-    nexi_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgres", watched_tests))
-    nexi_success = list(filter(is_success, nexi_tests))
+    nexi_private_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgres", watched_tests))
+    nexi_private_success = list(filter(is_success, nexi_private_tests))
     # get pagopa tests
     pagopa_tests = list(filter(lambda test: test.get("type", "") == "appgw" or test.get("type", "") == "pagoPa", watched_tests))
     pagopa_success = list(filter(is_success, pagopa_tests))
+    # get nexi public tests
+    nexi_public_tests = list(filter(lambda test: test.get("type", "") == "nexiPublic", watched_tests))
+    nexi_public_success = list(filter(is_success, nexi_public_tests))
 
-    nexi_ok = len(nexi_success) == len(nexi_tests)
+    nexi_private_ok = len(nexi_private_success) == len(nexi_private_tests)
+    nexi_public_ok = len(nexi_public_success) == len(nexi_public_tests)
     pagopa_ok = len(pagopa_success) == len(pagopa_tests)
-    print(f"Nexi ok: {len(nexi_success)}, Nexi ko: {len(nexi_tests) - len(nexi_success)}, Pagopa ok: {len(pagopa_success)}, Pagopa ko: {len(pagopa_tests) - len(pagopa_success)}")
-    if nexi_ok and pagopa_ok:
+
+    print(f"Nexi ok: {len(nexi_private_success)}, Nexi ko: {len(nexi_private_tests) - len(nexi_private_success)}, Pagopa ok: {len(pagopa_success)}, Pagopa ko: {len(pagopa_tests) - len(pagopa_success)}")
+
+    if nexi_private_ok and pagopa_ok:
       switch_suggestion = NO_SWITCH
-    elif nexi_ok and not pagopa_ok and len(pagopa_success) == 0:
+    elif nexi_private_ok and not pagopa_ok and len(pagopa_success) == 0:
       switch_suggestion = SWITCH_TO_NEXI
-    elif pagopa_ok and not nexi_ok and len(nexi_success) == 0:
+    elif pagopa_ok and not nexi_private_ok and len(nexi_private_success) == 0:
       switch_suggestion = SWITCH_TO_PAGOPA
     else:
       switch_suggestion = UNCLEAR_SWITCH
