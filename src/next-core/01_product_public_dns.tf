@@ -113,18 +113,18 @@ locals {
         ]
       }
     },
-    "dipartimentopagamenti" = {
+    "internal-apps.platform" = {
       dev_delegation_records = [
-        "ns1-07.azure-dns.com.",
-        "ns2-07.azure-dns.net.",
-        "ns3-07.azure-dns.org.",
-        "ns4-07.azure-dns.info."
+        "ns1-03.azure-dns.com.",
+        "ns2-03.azure-dns.net.",
+        "ns3-03.azure-dns.org.",
+        "ns4-03.azure-dns.info."
       ]
       uat_delegation_records = [
-        "ns1-09.azure-dns.com.",
-        "ns2-09.azure-dns.net.",
-        "ns3-09.azure-dns.org.",
-        "ns4-09.azure-dns.info."
+        "ns1-06.azure-dns.com.",
+        "ns2-06.azure-dns.net.",
+        "ns3-06.azure-dns.org.",
+        "ns4-06.azure-dns.info."
       ]
       aws_ses_settings = {}
     },

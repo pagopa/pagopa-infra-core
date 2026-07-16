@@ -56,6 +56,22 @@ resource "azurerm_dns_ns_record" "uat_pagopa_it_ns" {
   tags = module.tag_config.tags
 }
 
+# Prod ONLY record to internal-apps public DNS delegation
+resource "azurerm_dns_ns_record" "internal_apps_platform_pagopa_it_ns" {
+  count               = var.env_short == "p" ? 1 : 0
+  name                = "internal-apps"
+  zone_name           = azurerm_dns_zone.public[0].name
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  records = [
+    "ns1-02.azure-dns.com.",
+    "ns2-02.azure-dns.net.",
+    "ns3-02.azure-dns.org.",
+    "ns4-02.azure-dns.info."
+  ]
+  ttl  = var.dns_default_ttl_sec
+  tags = module.tag_config.tags
+}
+
 # Prod ONLY record to PRF public DNS delegation
 resource "azurerm_dns_ns_record" "prf_pagopa_it_ns" {
   count               = var.env_short == "p" ? 1 : 0
@@ -228,7 +244,7 @@ resource "azurerm_dns_txt_record" "dns-txt-www-acc-recon-platform-pagopa-it-digi
 # ⚠️TMP DIGIGCERT requires both forwarder and www.forwarder records for validation, even if they have the same value
 # https://pagopa.atlassian.net/wiki/pages/resumedraft.action?draftId=2645983363
 
-# Node Forwarder DCV TXT record 
+# Node Forwarder DCV TXT record
 resource "azurerm_dns_txt_record" "dns-txt-forwarder-platform-pagopa-it-digicert" {
   count               = var.env_short == "p" ? 1 : 0
   name                = "forwarder"
