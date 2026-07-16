@@ -112,7 +112,12 @@ locals {
           },
         ]
       }
-    }
+    },
+    "dipartimentopagamenti" = {
+      dev_delegation_records = []
+      uat_delegation_records = []
+      aws_ses_settings       = {}
+    },
   }
 }
 
