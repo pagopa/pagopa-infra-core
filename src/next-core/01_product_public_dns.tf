@@ -126,7 +126,7 @@ locals {
         "ns3-09.azure-dns.org.",
         "ns4-09.azure-dns.info."
       ]
-      aws_ses_settings       = {}
+      aws_ses_settings = {}
     },
   }
 }
