@@ -41,7 +41,7 @@ resources:
 variables:
   TIME_OUT: 30
   # working dir
-  WORKING_DIR: 'src/db-security'
+  WORKING_DIR: 'src/db-security/db-security-common'
   DOMAIN_NAME: "db-security"
 
 stages:

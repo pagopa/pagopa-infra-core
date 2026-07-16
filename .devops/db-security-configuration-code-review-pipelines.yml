@@ -5,7 +5,7 @@ pr:
       - main
   paths:
     include:
-      - 'src/db-security-configuration'
+      - 'src/db-security/db-security-configuration'
     exclude:
       - '**/*.lock.hcl'
       - '**/*.md'
@@ -42,7 +42,7 @@ resources:
 variables:
   TIME_OUT: 30
   # working dir
-  WORKING_DIR: 'src/db-security-configuration'
+  WORKING_DIR: 'src/db-security/db-security-configuration'
 
 stages:
   #DEV

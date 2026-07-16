@@ -5,8 +5,8 @@ pr:
       - main
   paths:
     include:
-      - 'src/network'
-      - 'src/network-secrets'
+      - 'src/network/network-common'
+      - 'src/network/network-secrets'
     exclude:
       - '**/*.lock.hcl'
       - '**/*.md'
@@ -50,8 +50,8 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/network'
-  WORKING_DIR_SECRET: 'src/network-secrets'
+  WORKING_DIR: 'src/network/network-common'
+  WORKING_DIR_SECRET: 'src/network/network-secrets'
 
 stages:
   #DEV
