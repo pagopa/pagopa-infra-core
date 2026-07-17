@@ -175,12 +175,26 @@ def evaluate_test_results(test_results: dict) -> str:
 
     print(f"Nexi ok: {len(nexi_private_success)}, Nexi ko: {len(nexi_private_tests) - len(nexi_private_success)}, Pagopa ok: {len(pagopa_success)}, Pagopa ko: {len(pagopa_tests) - len(pagopa_success)}")
 
+    # Determine switch suggestion based on system health
+    nexi_private_fully_failed = not nexi_private_ok and len(nexi_private_success) == 0
+    pagopa_fully_failed = not pagopa_ok and len(pagopa_success) == 0
+
+    # Case 1: Both systems are healthy
     if nexi_private_ok and pagopa_ok:
       switch_suggestion = NO_SWITCH
-    elif nexi_private_ok and not pagopa_ok and len(pagopa_success) == 0:
+
+    # Case 2: Only Nexi private is healthy, PagoPa completely down
+    elif nexi_private_ok and pagopa_fully_failed:
       switch_suggestion = SWITCH_TO_NEXI
-    elif pagopa_ok and not nexi_private_ok and len(nexi_private_success) == 0:
+
+    # Case 3: Nexi private completely down, check fallback options
+    elif nexi_private_fully_failed and nexi_public_ok:
+      switch_suggestion = SWITCH_TO_NEXI_PUBLIC
+
+    elif nexi_private_fully_failed and pagopa_ok:
       switch_suggestion = SWITCH_TO_PAGOPA
+
+    # Case 4: Partial failures or unclear situation
     else:
       switch_suggestion = UNCLEAR_SWITCH
 
