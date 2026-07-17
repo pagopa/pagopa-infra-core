@@ -22,12 +22,13 @@ from slack_sdk.errors import SlackApiError
 SYNTHETICS_INBOUND_QUEUE_NAME = "inbound-queue"
 SYNTHETICS_OUTBOUND_QUEUE_NAME = "outbound-queue"
 STORAGE_ACCOUNT_NAME = f"pagopa{os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd')}weusynthmon"
-TEST_ID_TO_WATCH = ["nodo_checkPosition_pagoPa", "nodo_checkPosition_nexiPostgres", "nodo_verifyPaymentNoticeOnPartner_pagoPa", "nodo_verifyPaymentNoticeOnPartner_nexiPostgres"]
+TEST_ID_TO_WATCH = ["nodo_checkPosition_pagoPa", "nodo_checkPosition_nexiPostgres", "nodo_checkPosition_nexiPostgresPublic", "nodo_verifyPaymentNoticeOnPartner_pagoPa", "nodo_verifyPaymentNoticeOnPartner_nexiPostgres", "nodo_verifyPaymentNoticeOnPartner_nexiPostgresPublic"]
 
 TESTS_TO_RUN = 3
 WAIT_BETWEEN_TESTS = 60
 WAIT_BEFORE_RESPONSE = 30
 SWITCH_TO_NEXI = "toNexi"
+SWITCH_TO_NEXI_PUBLIC = "toNexiPublic"
 SWITCH_TO_PAGOPA = "toPagopa"
 NO_SWITCH = "noSwitch"
 UNCLEAR_SWITCH = "unclear"
@@ -159,21 +160,41 @@ def evaluate_test_results(test_results: dict) -> str:
     watched_tests = list(filter(is_test_to_watch, test_results.get("tests", [])))
     print(f"watched tests: {watched_tests}")
     # get nexi tests
-    nexi_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgres", watched_tests))
-    nexi_success = list(filter(is_success, nexi_tests))
+    nexi_private_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgres", watched_tests))
+    nexi_private_success = list(filter(is_success, nexi_private_tests))
     # get pagopa tests
-    pagopa_tests = list(filter(lambda test: test.get("type", "") == "appgw" or test.get("type", "") == "pagoPa", watched_tests))
+    pagopa_tests = list(filter(lambda test: test.get("type", "") == "pagoPa", watched_tests))
     pagopa_success = list(filter(is_success, pagopa_tests))
+    # get nexi public tests
+    nexi_public_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgresPublic", watched_tests))
+    nexi_public_success = list(filter(is_success, nexi_public_tests))
 
-    nexi_ok = len(nexi_success) == len(nexi_tests)
+    nexi_private_ok = len(nexi_private_success) == len(nexi_private_tests)
+    nexi_public_ok = len(nexi_public_success) == len(nexi_public_tests)
     pagopa_ok = len(pagopa_success) == len(pagopa_tests)
-    print(f"Nexi ok: {len(nexi_success)}, Nexi ko: {len(nexi_tests) - len(nexi_success)}, Pagopa ok: {len(pagopa_success)}, Pagopa ko: {len(pagopa_tests) - len(pagopa_success)}")
-    if nexi_ok and pagopa_ok:
+
+    print(f"Nexi ok: {len(nexi_private_success)}, Nexi ko: {len(nexi_private_tests) - len(nexi_private_success)}, Pagopa ok: {len(pagopa_success)}, Pagopa ko: {len(pagopa_tests) - len(pagopa_success)}")
+
+    # Determine switch suggestion based on system health
+    nexi_private_fully_failed = not nexi_private_ok and len(nexi_private_success) == 0
+    pagopa_fully_failed = not pagopa_ok and len(pagopa_success) == 0
+
+    # Case 1: Both systems are healthy
+    if nexi_private_ok and pagopa_ok:
       switch_suggestion = NO_SWITCH
-    elif nexi_ok and not pagopa_ok and len(pagopa_success) == 0:
+
+    # Case 2: Only Nexi private is healthy, PagoPa completely down
+    elif nexi_private_ok and pagopa_fully_failed:
       switch_suggestion = SWITCH_TO_NEXI
-    elif pagopa_ok and not nexi_ok and len(nexi_success) == 0:
+
+    # Case 3: Nexi private completely down, check fallback options
+    elif nexi_private_fully_failed and nexi_public_ok:
+      switch_suggestion = SWITCH_TO_NEXI_PUBLIC
+
+    elif nexi_private_fully_failed and pagopa_ok:
       switch_suggestion = SWITCH_TO_PAGOPA
+
+    # Case 4: Partial failures or unclear situation
     else:
       switch_suggestion = UNCLEAR_SWITCH
 

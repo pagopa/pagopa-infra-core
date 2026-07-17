@@ -22,10 +22,11 @@ APIM_RG_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT')}-api-rg"
 APIM_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT')}-apim"
 
 SWITCH_TO_NEXI = "toNexi"
+SWITCH_TO_NEXI_PUBLIC = "toNexiPublic"
 SWITCH_TO_PAGOPA = "toPagopa"
 NO_SWITCH = None
 
-NEXI_PUBLIC_CONFIGURATION = {
+NEXI_PRIVATE_CONFIGURATION = {
   "dev": {
     "node_id": "NDP004IT",
     "address": "https://10.79.20.63"
@@ -38,6 +39,23 @@ NEXI_PUBLIC_CONFIGURATION = {
   "prod": {
     "node_id": "NDP004PROD",
     "address": "https://10.79.20.25"
+
+  }
+}
+
+NEXI_PUBLIC_CONFIGURATION = {
+  "dev": {
+    "node_id": "NDP004IT",
+    "address": "https://test.nexi.ndp.pagopa.it"
+  },
+  "uat": {
+    "node_id": "NDP004UAT",
+    "address": "https://test.nexi.ndp.pagopa.it"
+
+  },
+  "prod": {
+    "node_id": "NDP004PROD",
+    "address": "https://nexi.ndp.pagopa.it"
 
   }
 }
@@ -61,16 +79,25 @@ PAGOPA_PUBLIC_CONFIGURATION = {
 
 
 SWITCH = {
-  "toNexi" : {
+  SWITCH_TO_NEXI : {
+    "enable-nm3-decoupler-switch": False,
+    "enable-routing-decoupler-switch": False,
+    "default-nodo-id": NEXI_PRIVATE_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("node_id"),
+    "default-nodo-backend": NEXI_PRIVATE_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address"),
+    "schema-ip-nexi": NEXI_PRIVATE_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address"), # same as default-nodo-backend
+    # added only in uat environment
+    **({"default-nodo-backend-prf": NEXI_PRIVATE_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address")} if os.environ.get("CLOUDO_ENVIRONMENT").lower() == "uat" else {})  # same as default-nodo-backend
+  },
+  SWITCH_TO_NEXI_PUBLIC : {
     "enable-nm3-decoupler-switch": False,
     "enable-routing-decoupler-switch": False,
     "default-nodo-id": NEXI_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("node_id"),
     "default-nodo-backend": NEXI_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address"),
     "schema-ip-nexi": NEXI_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address"), # same as default-nodo-backend
     # added only in uat environment
-    **({"default-nodo-backend-prf": NEXI_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address")} if os.environ.get("CLOUDO_ENVIRONMENT").lower() ==  "uat" else {})  # same as default-nodo-backend
+    **({"default-nodo-backend-prf": NEXI_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("address")} if os.environ.get("CLOUDO_ENVIRONMENT").lower() == "uat" else {})  # same as default-nodo-backend
   },
-  "toPagopa": {
+  SWITCH_TO_PAGOPA : {
     "enable-nm3-decoupler-switch": False,
     "enable-routing-decoupler-switch": False,
     "default-nodo-id": PAGOPA_PUBLIC_CONFIGURATION.get(os.environ.get("CLOUDO_ENVIRONMENT").lower()).get("node_id"),
