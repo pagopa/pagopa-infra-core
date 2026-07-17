@@ -1090,13 +1090,13 @@ product_dns_records = {
     }
     txt_records = [
       {
-        "r_name"  = "bounce.uat.internal-apps.platform.pagopa.it"
+        "r_name"  = "bounce"
         "r_value" = "v=spf1 include:amazonses.com ~all"
       }
     ]
     mx_records = [
       {
-        "r_name"  = "bounce.uat.internal-apps.platform.pagopa.it"
+        "r_name"  = "bounce"
         "r_value" = "feedback-smtp.eu-south-1.amazonses.com"
       }
     ]
