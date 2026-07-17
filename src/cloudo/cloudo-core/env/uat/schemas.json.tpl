@@ -40,7 +40,7 @@
         "tags": "checkout,azure"
       },
       {
-        "id": "availability-nodo-checkPosition-appgw",
+        "id": "availability-nodo-checkPosition-pagoPa",
         "name": "NDP DR - Check status",
         "description": "NDP DR - Check status",
         "runbook": "ndp/ndp-check.py",
@@ -64,7 +64,19 @@
         "tags": "nodo,synthetic"
       },
       {
-        "id": "availability-nodo-verifyPaymentNoticeOnPartner-appgw",
+        "id": "availability-nodo-checkPosition-nexiPostgresPublic",
+        "name": "NDP DR - Check status",
+        "description": "NDP DR - Check status",
+        "runbook": "ndp/ndp-check.py",
+        "run_args": "",
+        "worker": "generic",
+        "oncall": true,
+        "require_approval": false,
+        "group": "ndp-dr-check",
+        "tags": "nodo,synthetic"
+      },
+      {
+        "id": "availability-nodo-verifyPaymentNoticeOnPartner-pagoPa",
         "name": "NDP DR - Check status",
         "description": "NDP DR - Check status",
         "runbook": "ndp/ndp-check.py",
@@ -77,6 +89,18 @@
       },
       {
         "id": "availability-nodo-verifyPaymentNoticeOnPartner-nexiPostgres",
+        "name": "NDP DR - Check status",
+        "description": "NDP DR - Check status",
+        "runbook": "ndp/ndp-check.py",
+        "run_args": "",
+        "worker": "generic",
+        "oncall": true,
+        "require_approval": false,
+        "group": "ndp-dr-check",
+        "tags": "nodo,synthetic"
+      },
+      {
+        "id": "availability-nodo-verifyPaymentNoticeOnPartner-nexiPostgresPublic",
         "name": "NDP DR - Check status",
         "description": "NDP DR - Check status",
         "runbook": "ndp/ndp-check.py",
