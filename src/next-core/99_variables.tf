@@ -1087,3 +1087,32 @@ variable "dns_default_ttl_sec_short" {
   description = "Short dns ttl for email records, in seconds"
   default     = 60
 }
+
+
+variable "product_dns_records" {
+  type = map(object({
+    email_settings = optional(object({
+      amazonses_record = optional(string, null)
+      mx_record        = optional(string, null)
+      spf_record       = optional(string, null)
+      bimi_record      = optional(string, null)
+      dmarc_record     = optional(string, null)
+      dkim_records = optional(list(object({
+        r_name  = string
+        r_value = string
+      })), [])
+    }), null)
+    txt_records = optional(list(object({
+      r_name  = string
+      r_value = string
+    })), [])
+    mx_records = optional(list(object({
+      r_name  = string
+      r_value = string
+    })), [])
+    })
+  )
+
+  description = "Map of product dns records"
+  default     = {}
+}

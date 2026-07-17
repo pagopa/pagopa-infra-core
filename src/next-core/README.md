@@ -140,6 +140,7 @@
 | [azurerm_dns_caa_record.wisp2_pagopa_it](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_caa_record) | resource |
 | [azurerm_dns_cname_record.dkim_aws_ses_dns_cname_record](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_cname_record) | resource |
 | [azurerm_dns_cname_record.statuspage_platform_pagopa_it_cname](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_cname_record) | resource |
+| [azurerm_dns_mx_record.additional_mx_record](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_mx_record) | resource |
 | [azurerm_dns_mx_record.email_dns_mx_record](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_mx_record) | resource |
 | [azurerm_dns_ns_record.dev_pagopa_it_ns](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_ns_record) | resource |
 | [azurerm_dns_ns_record.dev_product_dns_zone_delegation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_ns_record) | resource |
@@ -149,6 +150,7 @@
 | [azurerm_dns_ns_record.uat_pagopa_it_ns](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_ns_record) | resource |
 | [azurerm_dns_ns_record.uat_product_dns_zone_delegation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_ns_record) | resource |
 | [azurerm_dns_ns_record.uat_wisp2](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_ns_record) | resource |
+| [azurerm_dns_txt_record.additional_txt_record](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_txt_record) | resource |
 | [azurerm_dns_txt_record.aws_ses_dns_txt_record](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_txt_record) | resource |
 | [azurerm_dns_txt_record.dns-txt-acc-recon-platform-pagopa-it-digicert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_txt_record) | resource |
 | [azurerm_dns_txt_record.dns-txt-forwarder-platform-pagopa-it-digicert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_txt_record) | resource |
@@ -507,6 +509,7 @@
 | <a name="input_platform_private_dns_zone_records"></a> [platform\_private\_dns\_zone\_records](#input\_platform\_private\_dns\_zone\_records) | List of records to add into the platform.pagopa.it dns private | `list(string)` | <pre>[<br/>  "api",<br/>  "portal",<br/>  "management"<br/>]</pre> | no |
 | <a name="input_prefix"></a> [prefix](#input\_prefix) | n/a | `string` | n/a | yes |
 | <a name="input_private_dns_zone_db_nodo_pagamenti"></a> [private\_dns\_zone\_db\_nodo\_pagamenti](#input\_private\_dns\_zone\_db\_nodo\_pagamenti) | n/a | `string` | `"dev.db-nodo-pagamenti.com"` | no |
+| <a name="input_product_dns_records"></a> [product\_dns\_records](#input\_product\_dns\_records) | Map of product dns records | <pre>map(object({<br/>    email_settings = optional(object({<br/>      amazonses_record = optional(string, null)<br/>      mx_record        = optional(string, null)<br/>      spf_record       = optional(string, null)<br/>      bimi_record      = optional(string, null)<br/>      dmarc_record     = optional(string, null)<br/>      dkim_records = optional(list(object({<br/>        r_name  = string<br/>        r_value = string<br/>      })), [])<br/>    }), null)<br/>    txt_records = optional(list(object({<br/>      r_name  = string<br/>      r_value = string<br/>    })), [])<br/>    mx_records = optional(list(object({<br/>      r_name  = string<br/>      r_value = string<br/>    })), [])<br/>    })<br/>  )</pre> | `{}` | no |
 | <a name="input_redis_cache_enabled"></a> [redis\_cache\_enabled](#input\_redis\_cache\_enabled) | redis cache enabled | `bool` | `false` | no |
 | <a name="input_redis_cache_params"></a> [redis\_cache\_params](#input\_redis\_cache\_params) | # Redis cache | <pre>object({<br/>    public_access = bool<br/>    capacity      = number<br/>    sku_name      = string<br/>    family        = string<br/>    zones         = optional(list(string), [])<br/>  })</pre> | <pre>{<br/>  "capacity": 1,<br/>  "family": "C",<br/>  "public_access": false,<br/>  "sku_name": "Basic",<br/>  "zones": []<br/>}</pre> | no |
 | <a name="input_redis_version"></a> [redis\_version](#input\_redis\_version) | The version of Redis to use: 4 (deprecated) or 6 | `string` | `"6"` | no |
@@ -521,5 +524,7 @@
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_test"></a> [test](#output\_test) | n/a |
 <!-- END_TF_DOCS -->
