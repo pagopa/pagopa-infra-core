@@ -33,3 +33,5 @@ verify_payment_internal_expected_outcome = "KO"
 nexi_node_ip_postgres                    = "10.79.20.63"
 nexi_ndp_host_postgres                   = "test.nexi.ndp.pagopa.it"
 nexi_ndphost_header                      = "nodo-p-uat.nexigroup.com"
+
+synthetic_alerts_enabled = false
