@@ -22,7 +22,7 @@ from slack_sdk.errors import SlackApiError
 SYNTHETICS_INBOUND_QUEUE_NAME = "inbound-queue"
 SYNTHETICS_OUTBOUND_QUEUE_NAME = "outbound-queue"
 STORAGE_ACCOUNT_NAME = f"pagopa{os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd')}weusynthmon"
-TEST_ID_TO_WATCH = ["nodo_checkPosition_pagoPa", "nodo_checkPosition_nexiPostgres", "nodo_verifyPaymentNoticeOnPartner_pagoPa", "nodo_verifyPaymentNoticeOnPartner_nexiPostgres"]
+TEST_ID_TO_WATCH = ["nodo_checkPosition_pagoPa", "nodo_checkPosition_nexiPostgres", "nodo_checkPosition_nexiPostgresPublic", "nodo_verifyPaymentNoticeOnPartner_pagoPa", "nodo_verifyPaymentNoticeOnPartner_nexiPostgres", "nodo_verifyPaymentNoticeOnPartner_nexiPostgresPublic"]
 
 TESTS_TO_RUN = 3
 WAIT_BETWEEN_TESTS = 60
@@ -163,10 +163,10 @@ def evaluate_test_results(test_results: dict) -> str:
     nexi_private_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgres", watched_tests))
     nexi_private_success = list(filter(is_success, nexi_private_tests))
     # get pagopa tests
-    pagopa_tests = list(filter(lambda test: test.get("type", "") == "appgw" or test.get("type", "") == "pagoPa", watched_tests))
+    pagopa_tests = list(filter(lambda test: test.get("type", "") == "pagoPa", watched_tests))
     pagopa_success = list(filter(is_success, pagopa_tests))
     # get nexi public tests
-    nexi_public_tests = list(filter(lambda test: test.get("type", "") == "nexiPublic", watched_tests))
+    nexi_public_tests = list(filter(lambda test: test.get("type", "") == "nexiPostgresPublic", watched_tests))
     nexi_public_success = list(filter(is_success, nexi_public_tests))
 
     nexi_private_ok = len(nexi_private_success) == len(nexi_private_tests)
