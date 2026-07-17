@@ -911,8 +911,8 @@ product_dns_records = {
     },
     txt_records = [
       {
-        name  = "@"
-        value = "google-site-verification=7ipZkSB5jBjIoib3L-V7PfJKnJ1zUPqirJ1n12BAs2I"
+        r_name  = "@"
+        r_value = "google-site-verification=7ipZkSB5jBjIoib3L-V7PfJKnJ1zUPqirJ1n12BAs2I"
       }
     ]
   }
