@@ -908,6 +908,12 @@ product_dns_records = {
           "r_value" = "6jdsxdvu4gytfwy7tpg7i3ymngihs3hm.dkim.eu-south-1.amazonses.com"
         },
       ]
-    }
+    },
+    txt_records = [
+      {
+        name  = "@"
+        value = "google-site-verification=7ipZkSB5jBjIoib3L-V7PfJKnJ1zUPqirJ1n12BAs2I"
+      }
+    ]
   }
 }
