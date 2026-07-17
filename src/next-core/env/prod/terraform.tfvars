@@ -884,3 +884,30 @@ route_tools = [
     next_hop_in_ip_address = "10.230.10.150"
   }
 ]
+
+
+product_dns_records = {
+  "ricevute" = {
+    email_settings = {
+      amazonses_record = "ktEBl7wiK/gHr+30DkyhCC9EyLo4ANeHM2P9o/Og/eo="
+      mx_record        = "feedback-smtp.eu-south-1.amazonses.com"
+      spf_record       = "v=spf1 include:amazonses.com -all"
+      bimi_record      = "v=BIMI1; l=https://assets.cdn.platform.pagopa.it/bimi/mc-dc1kuvp8h8c.svg; a=https://assets.cdn.platform.pagopa.it/bimi/pagoPA-VMC-full-bundle.pem"
+      dmarc_record     = "v=DMARC1; p=reject; pct=100; rua=mailto:dmarc@0f1qy7b5.uriports.com; aspf=r; adkim=s"
+      dkim_records = [
+        {
+          "r_name"  = "s4gfmqvqljfuychrhvz63mvt3lndb72b._domainkey"
+          "r_value" = "s4gfmqvqljfuychrhvz63mvt3lndb72b.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "k5oplutx2zfzgojbbirymyzn5eqiiuef._domainkey"
+          "r_value" = "k5oplutx2zfzgojbbirymyzn5eqiiuef.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "6jdsxdvu4gytfwy7tpg7i3ymngihs3hm._domainkey"
+          "r_value" = "6jdsxdvu4gytfwy7tpg7i3ymngihs3hm.dkim.eu-south-1.amazonses.com"
+        },
+      ]
+    }
+  }
+}

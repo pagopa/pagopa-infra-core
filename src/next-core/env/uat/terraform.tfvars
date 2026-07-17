@@ -1065,3 +1065,40 @@ eventhubs_prf = [
     ]
   }
 ]
+
+
+product_dns_records = {
+  "internal-apps.platform" = {
+    email_settings = {
+      amazonses_record = "ktEBl7wiK/gHr+30DkyhCC9EyLo4ANeHM2P9o/Og/eo="
+      mx_record        = "feedback-smtp.eu-south-1.amazonses.com"
+      dmarc_record     = "v=DMARC1; p=none;"
+      dkim_records = [
+        {
+          "r_name"  = "jsxt5twfeyehijofjbvcigx6gqhcp3vi._domainkey"
+          "r_value" = "jsxt5twfeyehijofjbvcigx6gqhcp3vi.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "3uhfgujkk2folhmd4lri5wqxjias3gck._domainkey"
+          "r_value" = "3uhfgujkk2folhmd4lri5wqxjias3gck.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "65fbmiwmk6hshgd7qfkgapwt4cloc34j._domainkey"
+          "r_value" = "65fbmiwmk6hshgd7qfkgapwt4cloc34j.dkim.eu-south-1.amazonses.com"
+        },
+      ]
+    }
+    txt_records = [
+      {
+        "r_name"  = "bounce.uat.internal-apps.platform.pagopa.it"
+        "r_value" = "v=spf1 include:amazonses.com ~all"
+      }
+    ]
+    mx_records = [
+      {
+        "r_name"  = "bounce.uat.internal-apps.platform.pagopa.it"
+        "r_value" = "feedback-smtp.eu-south-1.amazonses.com"
+      }
+    ]
+  }
+}
