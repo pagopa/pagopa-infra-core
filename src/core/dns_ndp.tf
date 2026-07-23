@@ -28,28 +28,6 @@ resource "azurerm_dns_a_record" "dns_a_testnexi_at" {
   tags                = module.tag_config.tags
 }
 
-resource "azurerm_dns_caa_record" "ndp_pagopa_it" {
-  count               = var.env_short == "p" ? 1 : 0
-  name                = "@"
-  zone_name           = azurerm_dns_zone.ndp_public[0].name
-  resource_group_name = data.azurerm_resource_group.rg_vnet.name
-  ttl                 = var.dns_default_ttl_sec
-
-  record {
-    flags = 0
-    tag   = "issue"
-    value = "letsencrypt.org"
-  }
-
-  record {
-    flags = 0
-    tag   = "iodef"
-    value = "mailto:security+caa@pagopa.it"
-  }
-
-  tags = module.tag_config.tags
-}
-
 # ⚠️TMP DIGICERT requires test.nexi records for validation, even if they have the same value
 # https://pagopa.atlassian.net/wiki/pages/resumedraft.action?draftId=2645983363
 

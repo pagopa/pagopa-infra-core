@@ -1,15 +1,3 @@
-variable "location_short" {
-  type = string
-  validation {
-    condition = (
-      length(var.location_short) == 3
-    )
-    error_message = "Length must be 3 chars."
-  }
-  description = "One of wue, neu"
-  default     = "weu"
-}
-
 variable "prefix" {
   type    = string
   default = "pagopa"
@@ -71,33 +59,11 @@ variable "dns_zone_prefix" {
   description = "The dns subdomain."
 }
 
-variable "dns_zone_prefix_prf" {
-  type        = string
-  default     = "" # null
-  description = "The dns subdomain."
-}
 
-
-# nodoInviaFlussoRendicontazione
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/node-for-psp/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/nodo-per-psp/v1
-# https://api.<ENV>.platform.pagopa.it/nodo/nodo-per-psp/v1
-
-# nodoChiediFlussoRendicontazione && nodoChiediElencoFlussiRendicontazione
-# https://api.<ENV>.platform.pagopa.it/fdr-legacy/v1
-# https://api.<ENV>.platform.pagopa.it/nodo/nodo-per-pa/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/nodo-per-pa/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/node-for-pa/v1
 
 
 ## Database server postgresl
 
-
-variable "cidr_subnet_postgresql" {
-  type        = list(string)
-  description = "Address prefixes subnet postgresql"
-  default     = null
-}
 
 
 variable "postgres_private_endpoint_enabled" {

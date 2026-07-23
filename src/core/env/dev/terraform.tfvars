@@ -11,7 +11,6 @@ enabled_features = {
 # main vnet
 
 # common
-cidr_subnet_postgresql = ["10.1.129.0/24"]
 
 
 # specific
