@@ -78,16 +78,6 @@ variable "dns_zone_prefix_prf" {
 }
 
 
-# nodoInviaFlussoRendicontazione
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/node-for-psp/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/nodo-per-psp/v1
-# https://api.<ENV>.platform.pagopa.it/nodo/nodo-per-psp/v1
-
-# nodoChiediFlussoRendicontazione && nodoChiediElencoFlussiRendicontazione
-# https://api.<ENV>.platform.pagopa.it/fdr-legacy/v1
-# https://api.<ENV>.platform.pagopa.it/nodo/nodo-per-pa/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/nodo-per-pa/v1
-# https://api.<ENV>.platform.pagopa.it/nodo-auth/node-for-pa/v1
 
 
 ## Database server postgresl
