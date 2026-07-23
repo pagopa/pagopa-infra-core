@@ -21,10 +21,6 @@ module "apim_payment_manager_product" {
 }
 
 
-data "azurerm_key_vault_secret" "pm_restapi_ip" {
-  name         = "pm-restapi-ip"
-  key_vault_id = data.azurerm_key_vault.key_vault.id
-}
 
 ######################
 ## API PM per Nodo  ##

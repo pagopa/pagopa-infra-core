@@ -1,7 +1,7 @@
 # MX record for sub domain ndp
 resource "azurerm_dns_mx_record" "dns-mx-ndp-platform-pagopa-it" {
   count               = var.env_short == "p" ? 1 : 0
-  name                = "ndp"                                # ndp.platform.pagopa.it
+  name                = "ndp"                           # ndp.platform.pagopa.it
   zone_name           = azurerm_dns_zone.public[0].name # platform.pagopa.it
   resource_group_name = azurerm_resource_group.rg_vnet.name
   ttl                 = var.dns_default_ttl_sec
@@ -17,7 +17,7 @@ resource "azurerm_dns_mx_record" "dns-mx-ndp-platform-pagopa-it" {
 # TXT record
 resource "azurerm_dns_txt_record" "dns-txt-ndp-platform-pagopa-it-aws-ses-txt" {
   count               = var.env_short == "p" ? 1 : 0
-  name                = "ndp"                                # ndp.platform.pagopa.it
+  name                = "ndp"                           # ndp.platform.pagopa.it
   zone_name           = azurerm_dns_zone.public[0].name # platform.pagopa.it
   resource_group_name = azurerm_resource_group.rg_vnet.name
   ttl                 = var.dns_default_ttl_sec

@@ -26,26 +26,7 @@ variable "env" {
 }
 
 
-#
-# Feature Flag
-#
-variable "enabled_features" {
-  type = object({
-    vnet_ita = bool
-  })
-  default = {
-    vnet_ita = false
-  }
-  description = "Features enabled in this domain"
-}
 
-
-# DNS
-variable "dns_default_ttl_sec" {
-  type        = number
-  description = "value"
-  default     = 3600
-}
 
 variable "external_domain" {
   type        = string
@@ -63,15 +44,6 @@ variable "dns_zone_prefix" {
 
 
 ## Database server postgresl
-
-
-
-variable "postgres_private_endpoint_enabled" {
-  type        = bool
-  default     = false
-  description = "Private endpoint database enable?"
-}
-
 variable "ecommerce_ingress_hostname" {
   type        = string
   description = "ecommerce ingress hostname"
