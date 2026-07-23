@@ -9,10 +9,8 @@ enabled_features = {
 # networking
 
 # common
-cidr_subnet_postgresql = ["10.1.129.0/24"]
-external_domain        = "pagopa.it"
-dns_zone_prefix        = "uat.platform"
-dns_zone_prefix_prf    = "prf.platform"
+external_domain = "pagopa.it"
+dns_zone_prefix = "uat.platform"
 
 
 # postgresql

@@ -1,15 +1,3 @@
-variable "location_short" {
-  type = string
-  validation {
-    condition = (
-      length(var.location_short) == 3
-    )
-    error_message = "Length must be 3 chars."
-  }
-  description = "One of wue, neu"
-  default     = "weu"
-}
-
 variable "prefix" {
   type    = string
   default = "pagopa"
@@ -71,23 +59,11 @@ variable "dns_zone_prefix" {
   description = "The dns subdomain."
 }
 
-variable "dns_zone_prefix_prf" {
-  type        = string
-  default     = "" # null
-  description = "The dns subdomain."
-}
-
 
 
 
 ## Database server postgresl
 
-
-variable "cidr_subnet_postgresql" {
-  type        = list(string)
-  description = "Address prefixes subnet postgresql"
-  default     = null
-}
 
 
 variable "postgres_private_endpoint_enabled" {
