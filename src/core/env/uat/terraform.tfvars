@@ -1,9 +1,6 @@
 # general
 env_short = "u"
 env       = "uat"
-enabled_features = {
-  vnet_ita = false
-}
 
 
 # networking
@@ -14,7 +11,6 @@ dns_zone_prefix = "uat.platform"
 
 
 # postgresql
-postgres_private_endpoint_enabled = false
 
 # ecommerce ingress hostname
 ecommerce_ingress_hostname = "weuuat.ecommerce.internal.uat.platform.pagopa.it"
