@@ -5,8 +5,8 @@ pr:
       - main
   paths:
     include:
-      - 'src/core-itn'
-      - 'src/core-itn-secrets'
+      - 'src/core-itn/core-itn-common'
+      - 'src/core-itn/core-itn-secrets'
     exclude:
       - '**/*.lock.hcl'
       - '**/*.md'
@@ -50,8 +50,8 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/core-itn'
-  WORKING_DIR_SECRET: 'src/core-itn-secrets'
+  WORKING_DIR: 'src/core-itn/core-itn-common'
+  WORKING_DIR_SECRET: 'src/core-itn/core-itn-secrets'
 
 stages:
   #DEV

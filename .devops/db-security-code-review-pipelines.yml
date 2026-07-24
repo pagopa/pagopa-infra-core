@@ -5,7 +5,7 @@ pr:
       - main
   paths:
     include:
-      - 'src/db-security'
+      - 'src/db-security/db-security-common'
     exclude:
       - '**/*.lock.hcl'
       - '**/*.md'

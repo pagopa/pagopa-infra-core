@@ -22,7 +22,7 @@ array=(
     'src/next-aks::weu-dev'
     'src/next-core/next-core-common::dev'
     'src/next-core/next-core-secrets::dev'
-    'src/network/network-core::dev'
+    'src/network/network-common::dev'
     'src/network/network-secrets::dev'
     'src/tf-audit::weu-prod'
     'src/packer::dev'
