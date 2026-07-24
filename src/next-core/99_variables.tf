@@ -1065,7 +1065,6 @@ variable "vpn_random_specials_char" {
   description = "Enable random special characters in VPN gateway's pip name"
 }
 
-
 variable "enable_node_forwarder_debug_instance" {
   type        = bool
   default     = false
@@ -1115,4 +1114,10 @@ variable "product_dns_records" {
 
   description = "Map of product dns records"
   default     = {}
+}
+
+variable "enable_low_availability_alert" {
+  type        = bool
+  default     = true
+  description = "Enable availability alert for SA"
 }

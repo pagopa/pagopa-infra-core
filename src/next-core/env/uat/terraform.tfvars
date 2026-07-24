@@ -1102,3 +1102,6 @@ product_dns_records = {
     ]
   }
 }
+
+backup_storage_replication_type = "LRS"
+enable_low_availability_alert   = false

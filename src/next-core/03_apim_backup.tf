@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "data" {
 
 # Storage account to store backups: mainly api management
 module "backupstorage" {
-  count  = var.env_short == "p" ? 1 : 0
+  count  = var.env_short != "d" ? 1 : 0
   source = "./.terraform/modules/__v4__/storage_account"
 
   name                            = replace(format("%s-backupstorage", local.product), "-", "")
@@ -21,13 +21,13 @@ module "backupstorage" {
   location                        = var.location
   allow_nested_items_to_be_public = false
   public_network_access_enabled   = true
-
+  enable_low_availability_alert   = var.enable_low_availability_alert
 
   tags = module.tag_config.tags
 }
 
 resource "azurerm_private_endpoint" "backup_blob_private_endpoint" {
-  count = var.env_short == "p" ? 1 : 0
+  count = var.env_short != "d" ? 1 : 0
 
   name                = format("%s-backup-blob-private-endpoint", local.product)
   location            = var.location
@@ -54,14 +54,14 @@ resource "azurerm_private_endpoint" "backup_blob_private_endpoint" {
 }
 
 resource "azurerm_storage_container" "apim_backup" {
-  count                 = var.env_short == "p" ? 1 : 0
+  count                 = var.env_short != "d" ? 1 : 0
   name                  = "apim"
   storage_account_name  = module.backupstorage[0].name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_management_policy" "backups" {
-  count              = var.env_short == "p" ? 1 : 0
+  count              = var.env_short != "d" ? 1 : 0
   storage_account_id = module.backupstorage[0].id
 
   rule {
