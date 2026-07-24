@@ -42,9 +42,9 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/core-itn'
-  WORKING_DIR_SECRET: 'src/core-itn-secrets'
-  DOMAIN_NAME: core-itn
+  WORKING_DIR: 'src/core-itn/core-itn-common'
+  WORKING_DIR_SECRET: 'src/core-itn/core-itn-secrets'
+  DOMAIN_NAME: core-itn-common
 
 stages:
   #DEV

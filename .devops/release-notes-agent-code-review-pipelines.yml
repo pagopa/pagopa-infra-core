@@ -5,7 +5,7 @@ pr:
       - main
   paths:
     include:
-      - 'src/release-notes-agent/rn-agent-core'
+      - 'src/release-notes-agent/rn-agent-common'
       - 'src/release-notes-agent/rn-agent-secrets'
     exclude:
       - '**/*.lock.hcl'
@@ -36,7 +36,7 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/release-notes-agent/rn-agent-core'
+  WORKING_DIR: 'src/release-notes-agent/rn-agent-common'
   WORKING_DIR_SECRET: 'src/release-notes-agent/rn-agent-secrets'
   REGION_SHORT: "weu"
 

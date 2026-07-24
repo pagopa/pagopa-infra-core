@@ -1,1 +1,1 @@
-../../scripts/terrasops.sh
+../../../scripts/terrasops.sh

@@ -43,7 +43,7 @@ module "elastic_agent" {
 
 
 ## PROMETHUES MANAGED ON AKS
-# Refer: Resource created on core-itn 70_monitoring.tf
+# Refer: Resource created on core-itn-common 70_monitoring.tf
 data "azurerm_monitor_workspace" "workspace" {
   name                = "pagopa-${var.env_short}-${var.location}-monitor-workspace"
   resource_group_name = "pagopa-${var.env_short}-monitor-rg"
