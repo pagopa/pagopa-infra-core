@@ -481,6 +481,7 @@
 | <a name="input_ehns_public_network_access"></a> [ehns\_public\_network\_access](#input\_ehns\_public\_network\_access) | (Required) enables public network access to the event hubs | `bool` | n/a | yes |
 | <a name="input_ehns_sku_name"></a> [ehns\_sku\_name](#input\_ehns\_sku\_name) | Defines which tier to use. | `string` | `"Standard"` | no |
 | <a name="input_enable_logos_backup"></a> [enable\_logos\_backup](#input\_enable\_logos\_backup) | (Optional) Enables nodo sftp storage account backup | `bool` | `true` | no |
+| <a name="input_enable_low_availability_alert"></a> [enable\_low\_availability\_alert](#input\_enable\_low\_availability\_alert) | Enable availability alert for SA | `bool` | `true` | no |
 | <a name="input_enable_node_forwarder_debug_instance"></a> [enable\_node\_forwarder\_debug\_instance](#input\_enable\_node\_forwarder\_debug\_instance) | Enable the creation of a separate 'debug' instance of node forwarder | `bool` | `false` | no |
 | <a name="input_env"></a> [env](#input\_env) | n/a | `string` | n/a | yes |
 | <a name="input_env_short"></a> [env\_short](#input\_env\_short) | n/a | `string` | n/a | yes |
