@@ -132,6 +132,30 @@ module "assets_cdn_platform_frontdoor" {
         name   = "Access-Control-Allow-Origin"
         value  = "*"
       }]
+    },
+    {
+      name              = "AllowNpgSdkCORS"
+      order             = 5
+      behavior_on_match = "Continue"
+
+      # The NPG SDK is self-hosted here and consumed cross-origin by checkout-fe,
+      # wallet-fe and ecommerce-fe with Subresource Integrity (crossorigin="anonymous").
+      # Both hfsdk.js (the SRI <script>) and hfsdk.integrity.json (a runtime fetch())
+      # need an Access-Control-Allow-Origin header, otherwise the browser blocks them
+      # and, fail-closed, the SDK never loads. Scoped to the /npg-*/ folders so CORS
+      # is not opened on the rest of the shared platform CDN.
+      url_path_conditions = [{
+        operator         = "BeginsWith"
+        match_values     = ["/npg-uat/", "/npg-prod/"]
+        negate_condition = false
+        transforms       = ["Lowercase"]
+      }]
+
+      modify_response_header_actions = [{
+        action = "Overwrite"
+        name   = "Access-Control-Allow-Origin"
+        value  = "*"
+      }]
     }
   ]
 
