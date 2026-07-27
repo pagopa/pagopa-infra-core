@@ -115,7 +115,7 @@ No outputs.
 | <a name="module_domain_key_vault_secrets_query"></a> [domain\_key\_vault\_secrets\_query](#module\_domain\_key\_vault\_secrets\_query) | ./.terraform/modules/__v4__/key_vault_secrets_query | n/a |
 | <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault) | ./.terraform/modules/__v4__/key_vault | n/a |
 | <a name="module_spoke_subnet_container_app"></a> [spoke\_subnet\_container\_app](#module\_spoke\_subnet\_container\_app) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
-| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../tag_config | n/a |
+| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 | <a name="module_vnet_cstar_integration_to_vnet_ita_peering"></a> [vnet\_cstar\_integration\_to\_vnet\_ita\_peering](#module\_vnet\_cstar\_integration\_to\_vnet\_ita\_peering) | ./.terraform/modules/__v4__/virtual_network_peering | n/a |
 | <a name="module_vnet_cstar_integration_to_vnet_weu_peering"></a> [vnet\_cstar\_integration\_to\_vnet\_weu\_peering](#module\_vnet\_cstar\_integration\_to\_vnet\_weu\_peering) | ./.terraform/modules/__v4__/virtual_network_peering | n/a |
 | <a name="module_vnet_integration_cstar"></a> [vnet\_integration\_cstar](#module\_vnet\_integration\_cstar) | ./.terraform/modules/__v4__/virtual_network | n/a |

@@ -55,7 +55,7 @@
 | <a name="module_redis_snet"></a> [redis\_snet](#module\_redis\_snet) | ./.terraform/modules/__v4__/subnet | n/a |
 | <a name="module_route_table_peering_nexi"></a> [route\_table\_peering\_nexi](#module\_route\_table\_peering\_nexi) | ./.terraform/modules/__v4__/route_table | n/a |
 | <a name="module_route_table_peering_sia"></a> [route\_table\_peering\_sia](#module\_route\_table\_peering\_sia) | ./.terraform/modules/__v4__/route_table | n/a |
-| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../tag_config | n/a |
+| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 | <a name="module_vnet"></a> [vnet](#module\_vnet) | ./.terraform/modules/__v4__/virtual_network | n/a |
 | <a name="module_vnet_core_peering"></a> [vnet\_core\_peering](#module\_vnet\_core\_peering) | ./.terraform/modules/__v4__/virtual_network_peering | n/a |
 | <a name="module_vnet_integration"></a> [vnet\_integration](#module\_vnet\_integration) | ./.terraform/modules/__v4__/virtual_network | n/a |
