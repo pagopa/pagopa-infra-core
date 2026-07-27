@@ -5,6 +5,7 @@ domain             = "core"
 location           = "westeurope"
 location_short     = "weu"
 location_short_ita = "itn"
+location_ita       = "italynorth"
 is_feature_enabled = {
   vnet_ita                  = false,
   container_app_tools_cae   = true,
