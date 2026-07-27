@@ -43,7 +43,7 @@ After creating the VM, login as admin user and follow these instructions:
 | <a name="module_route_table_app_service_snet"></a> [route\_table\_app\_service\_snet](#module\_route\_table\_app\_service\_snet) | ./.terraform/modules/__v4__/route_table | n/a |
 | <a name="module_secret_core"></a> [secret\_core](#module\_secret\_core) | ./.terraform/modules/__v4__/key_vault_secrets_query | n/a |
 | <a name="module_secret_core_itn"></a> [secret\_core\_itn](#module\_secret\_core\_itn) | ./.terraform/modules/__v4__/key_vault_secrets_query | n/a |
-| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../tag_config | n/a |
+| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 
 ## Resources
 
