@@ -5,8 +5,8 @@ pr:
       - main
   paths:
     include:
-      - 'src/next-core/next-core-common'
-      - 'src/next-core/next-core-secrets'
+      - 'src/network/network-common'
+      - 'src/network/network-secrets'
     exclude:
       - '**/*.lock.hcl'
       - '**/*.md'
@@ -50,9 +50,8 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/next-core/next-core-common'
-  WORKING_DIR_SECRET: 'src/next-core/next-core-secrets'
-  REGION_SHORT: "weu"
+  WORKING_DIR: 'src/network/network-common'
+  WORKING_DIR_SECRET: 'src/network/network-secrets'
 
 stages:
   #DEV
@@ -66,10 +65,6 @@ stages:
           SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_DEV)'
           POOL_NAME: '$(TF_POOL_NAME_DEV)'
           TIME_OUT: ${{ variables.TIME_OUT }}
-          AKS_APISERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
-          AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-          AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-          AKS_NAME: '$(TF_AKS_DEV_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
 
@@ -84,10 +79,6 @@ stages:
           SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_UAT)'
           POOL_NAME: '$(TF_POOL_NAME_UAT)'
           TIME_OUT: ${{ variables.TIME_OUT }}
-          AKS_APISERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
-          AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-          AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-          AKS_NAME: '$(TF_AKS_UAT_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
 
@@ -104,10 +95,6 @@ stages:
           SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_PROD)'
           POOL_NAME: '$(TF_POOL_NAME_PROD)'
           TIME_OUT: ${{ variables.TIME_OUT }}
-          AKS_APISERVER_URL: '$(TF_PROD_AKS_APISERVER_URL)'
-          AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_PROD_AKS_AZURE_DEVOPS_SA_CACRT)'
-          AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)'
-          AKS_NAME: '$(TF_AKS_PROD_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
 
