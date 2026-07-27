@@ -15,8 +15,8 @@
 |------|--------|---------|
 | <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | da30369e66508e38252f34aa7209c645ba208546 |
 | <a name="module_load_balancer_observ_egress"></a> [load\_balancer\_observ\_egress](#module\_load\_balancer\_observ\_egress) | ./.terraform/modules/__v4__/load_balancer | n/a |
-| <a name="module_network_security_group"></a> [network\_security\_group](#module\_network\_security\_group) | .terraform/modules/__v4__/network_security_group | n/a |
-| <a name="module_network_watcher_storage_account"></a> [network\_watcher\_storage\_account](#module\_network\_watcher\_storage\_account) | .terraform/modules/__v4__/IDH/storage_account | n/a |
+| <a name="module_network_security_group"></a> [network\_security\_group](#module\_network\_security\_group) | ./.terraform/modules/__v4__/network_security_group | n/a |
+| <a name="module_network_watcher_storage_account"></a> [network\_watcher\_storage\_account](#module\_network\_watcher\_storage\_account) | ./.terraform/modules/__v4__/IDH/storage_account | n/a |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 | <a name="module_vmss_pls_snet"></a> [vmss\_pls\_snet](#module\_vmss\_pls\_snet) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
 | <a name="module_vmss_snet"></a> [vmss\_snet](#module\_vmss\_snet) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
