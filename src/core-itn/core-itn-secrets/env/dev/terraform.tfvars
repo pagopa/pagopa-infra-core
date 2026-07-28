@@ -5,7 +5,7 @@ domain         = "core-itn"
 location_short = "itn"
 
 
-input_file = "./secret/itn-dev/configs.json"
+input_file = "./secret/dev/configs.json"
 
 
 
