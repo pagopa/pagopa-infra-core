@@ -108,7 +108,7 @@ No outputs.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 372bf173e82d7ff1e705a37c1d4309e2f96ec4b6 |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 57b376b1894a8cf1320ebef1605eacba429b7709 |
 | <a name="module_acr_backup_sync"></a> [acr\_backup\_sync](#module\_acr\_backup\_sync) | ./.terraform/modules/__v4__/acr_backup_sync | n/a |
 | <a name="module_common_private_endpoint_snet"></a> [common\_private\_endpoint\_snet](#module\_common\_private\_endpoint\_snet) | ./.terraform/modules/__v4__/subnet | n/a |
 | <a name="module_container_registry_ita"></a> [container\_registry\_ita](#module\_container\_registry\_ita) | ./.terraform/modules/__v4__/container_registry | n/a |
