@@ -108,7 +108,8 @@ No outputs.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 91f7e70706ce328dc819a908d6e953f0b7b0fed3 |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 372bf173e82d7ff1e705a37c1d4309e2f96ec4b6 |
+| <a name="module_acr_backup_sync"></a> [acr\_backup\_sync](#module\_acr\_backup\_sync) | ./.terraform/modules/__v4__/acr_backup_sync | n/a |
 | <a name="module_common_private_endpoint_snet"></a> [common\_private\_endpoint\_snet](#module\_common\_private\_endpoint\_snet) | ./.terraform/modules/__v4__/subnet | n/a |
 | <a name="module_container_registry_ita"></a> [container\_registry\_ita](#module\_container\_registry\_ita) | ./.terraform/modules/__v4__/container_registry | n/a |
 | <a name="module_cstar_integration_private_endpoint_snet"></a> [cstar\_integration\_private\_endpoint\_snet](#module\_cstar\_integration\_private\_endpoint\_snet) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
