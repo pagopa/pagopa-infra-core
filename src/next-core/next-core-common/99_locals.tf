@@ -5,6 +5,7 @@ locals {
   project        = "${var.prefix}-${var.env_short}-${var.location_short}-${var.domain}"
   project_ita    = "${var.prefix}-${var.env_short}-${var.location_short_ita}-${var.domain}"
 
+  location_acr_backup       = "germanywestcentral"
   dns_forwarder_backup_name = "${local.product}-dns-forwarder-backup-vmss"
 
   soap_basepath_nodo_postgres_pagopa = "nodo"

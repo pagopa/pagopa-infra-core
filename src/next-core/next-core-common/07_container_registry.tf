@@ -28,3 +28,4 @@ module "container_registry" {
 
   tags = module.tag_config.tags
 }
+
