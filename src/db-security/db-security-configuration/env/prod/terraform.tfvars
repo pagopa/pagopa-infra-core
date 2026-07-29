@@ -74,6 +74,16 @@ databases = {
     password_secret_kv_rg   = "pagopa-p-itn-core-sec-rg"
     password_secret_key     = "metabase-reader-password"
   }
+  FDR3Storico = {
+    type                    = "postgresql"
+    host                    = "fdr-archive-db.p.internal.postgresql.pagopa.it"
+    db_name                 = "fdr3"
+    username                = "metabase"
+    password_required       = true
+    password_secret_kv_name = "pagopa-p-itn-core-kv"
+    password_secret_kv_rg   = "pagopa-p-itn-core-sec-rg"
+    password_secret_key     = "metabase-reader-password"
+  }
   NodoOnline = {
     type              = "nexi"
     host              = "10.1.131.14"
