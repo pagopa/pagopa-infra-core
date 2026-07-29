@@ -77,6 +77,7 @@ databases = {
   FDR3Storico = {
     type                    = "postgresql"
     host                    = "fdr-archive-db.p.internal.postgresql.pagopa.it"
+    port                    = "5432"
     db_name                 = "fdr3"
     username                = "metabase"
     password_required       = true
