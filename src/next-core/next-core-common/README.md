@@ -14,7 +14,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | 372bf173e82d7ff1e705a37c1d4309e2f96ec4b6 |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | d8c2d0600cf552a15d011859e2bd3ca448b84374 |
 | <a name="module_acr_backup_sync"></a> [acr\_backup\_sync](#module\_acr\_backup\_sync) | ./.terraform/modules/__v4__/acr_backup_sync | n/a |
 | <a name="module_apim"></a> [apim](#module\_apim) | ./.terraform/modules/__v4__/api_management | n/a |
 | <a name="module_apim_monitor"></a> [apim\_monitor](#module\_apim\_monitor) | ./.terraform/modules/__v4__/api_management_api | n/a |
