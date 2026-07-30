@@ -3,6 +3,7 @@ locals {
   product_ita = "${var.prefix}-${var.env_short}-${var.location_short}"
   project     = "${var.prefix}-${var.env_short}-${var.location_short}-${var.domain}"
 
+  location_acr_backup = "germanywestcentral"
   # peerings
   vnet_core_name                = "${local.product}-vnet"
   vnet_core_resource_group_name = "${local.product}-vnet-rg"
