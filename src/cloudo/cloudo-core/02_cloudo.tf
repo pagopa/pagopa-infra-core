@@ -67,6 +67,10 @@ module "cloudo" {
       name           = "pagopa-${var.env_short}-${var.location_short_ita}-cloudo-kv"
       resource_group = "pagopa-${var.env_short}-${var.location_short_ita}-cloudo-sec-rg"
     }
+    "pagopa-${var.env_short}-fdr-kv" = {
+      name           = "pagopa-${var.env_short}-fdr-kv"
+      resource_group = "pagopa-${var.env_short}-fdr-sec-rg"
+    }
   }
 
   approval_runbook = {
