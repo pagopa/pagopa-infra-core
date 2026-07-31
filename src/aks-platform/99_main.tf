@@ -53,6 +53,6 @@ provider "helm" {
 }
 
 module "__v4__" {
-  # https://github.com/pagopa/terraform-azurerm-v4/releases/tag/v10.10.0
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=PAYMCLOUD-1112-aks-v-4-module-ama-logs-reduction-and-filters"
+  # https://github.com/pagopa/terraform-azurerm-v4/releases/tag/v10.23.0
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=5a4d411fbc05d8666b741bb529c9aada16bf51ca"
 }
