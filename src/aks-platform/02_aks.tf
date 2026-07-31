@@ -94,6 +94,11 @@ module "aks" {
   alerts_enabled     = var.aks_alerts_enabled
   custom_logs_alerts = local.aks_logs_alerts
 
+  ama_log_collection_settings = {
+    enable_log_collection_cm = var.env_short != "p" ? true : false
+    enable_stdout_logs       = false
+  }
+
   # takes a list and replaces any elements that are lists with a
   # flattened sequence of the list contents.
   # In this case, we enable OpsGenie only on prod env
