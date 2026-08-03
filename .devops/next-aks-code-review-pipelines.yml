@@ -69,6 +69,7 @@ stages:
           AKS_NAME: '$(TF_AKS_DEV_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
+          MODULE_USE_AKS: true
 
   #UAT
   - ${{ if eq(parameters['UAT'], true) }}:
@@ -86,7 +87,7 @@ stages:
           AKS_NAME: '$(TF_AKS_UAT_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
-
+          MODULE_USE_AKS: true
 
 
   #PROD
@@ -105,6 +106,7 @@ stages:
           AKS_NAME: '$(TF_AKS_PROD_NAME)'
           TF_SUMMARIZE: true
           SECRET_USE_AKS: false
+          MODULE_USE_AKS: true
 
 
 
