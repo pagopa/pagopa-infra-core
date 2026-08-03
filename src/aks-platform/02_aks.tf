@@ -95,7 +95,7 @@ module "aks" {
   custom_logs_alerts = local.aks_logs_alerts
 
   ama_log_collection_settings = {
-    enable_log_collection_cm = var.env_short != "p" ? true : false
+    enable_log_collection_cm = true
     enable_stdout_logs       = false
   }
 
