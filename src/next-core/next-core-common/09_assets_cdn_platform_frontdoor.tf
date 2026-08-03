@@ -1,3 +1,54 @@
+locals {
+  # Origin allowlist for the self-hosted NPG SDK served from this CDN.
+  #
+  # Front Door cannot echo the incoming Origin back: the
+  # Access-Control-Allow-Origin action value is a static string, so every allowed
+  # origin needs its own rule.
+  #
+  # dev and uat frontends read /npg-uat/, prod reads /npg-prod/: see
+  # npg_sdk_url in the .devops/pagopa-deploy-pipelines.yml of the three FEs.
+  npg_sdk_cors_origins = [
+    { order = 5, name = "AllowNpgSdkCORSCheckoutProd", path = "/npg-prod/", origin = "https://checkout.pagopa.it" },
+    { order = 6, name = "AllowNpgSdkCORSEcommerceProd", path = "/npg-prod/", origin = "https://ecommerce.pagopa.it" },
+    { order = 7, name = "AllowNpgSdkCORSWalletProd", path = "/npg-prod/", origin = "https://payment-wallet.pagopa.it" },
+    { order = 8, name = "AllowNpgSdkCORSCheckoutUat", path = "/npg-uat/", origin = "https://uat.checkout.pagopa.it" },
+    { order = 9, name = "AllowNpgSdkCORSEcommerceUat", path = "/npg-uat/", origin = "https://uat.ecommerce.pagopa.it" },
+    { order = 10, name = "AllowNpgSdkCORSWalletUat", path = "/npg-uat/", origin = "https://uat.payment-wallet.pagopa.it" },
+    { order = 11, name = "AllowNpgSdkCORSCheckoutDev", path = "/npg-uat/", origin = "https://dev.checkout.pagopa.it" },
+    { order = 12, name = "AllowNpgSdkCORSEcommerceDev", path = "/npg-uat/", origin = "https://dev.ecommerce.pagopa.it" },
+    { order = 13, name = "AllowNpgSdkCORSWalletDev", path = "/npg-uat/", origin = "https://dev.payment-wallet.pagopa.it" },
+  ]
+
+  npg_sdk_cors_rules = [
+    for o in local.npg_sdk_cors_origins : {
+      name              = o.name
+      order             = o.order
+      behavior_on_match = "Continue"
+
+      url_path_conditions = [{
+        operator         = "BeginsWith"
+        match_values     = [o.path]
+        negate_condition = false
+        transforms       = ["Lowercase"]
+      }]
+
+      request_header_conditions = [{
+        selector         = "Origin"
+        operator         = "Equal"
+        match_values     = [o.origin]
+        negate_condition = false
+        transforms       = []
+      }]
+
+      modify_response_header_actions = [{
+        action = "Overwrite"
+        name   = "Access-Control-Allow-Origin"
+        value  = o.origin
+      }]
+    }
+  ]
+}
+
 /**
  * Platform assets resource group
  **/
@@ -114,26 +165,37 @@ module "assets_cdn_platform_frontdoor" {
     }
   ]
 
-  delivery_custom_rules = [
-    {
-      name              = "AllowFontCORS"
-      order             = 4
-      behavior_on_match = "Continue"
+  delivery_custom_rules = concat(
+    [
+      {
+        name              = "AllowFontCORS"
+        order             = 4
+        behavior_on_match = "Continue"
 
-      url_file_extension_conditions = [{
-        operator         = "Equal"
-        match_values     = ["woff", "woff2", "ttf"]
-        negate_condition = false
-        transforms       = ["Lowercase"]
-      }]
+        url_file_extension_conditions = [{
+          operator         = "Equal"
+          match_values     = ["woff", "woff2", "ttf"]
+          negate_condition = false
+          transforms       = ["Lowercase"]
+        }]
 
-      modify_response_header_actions = [{
-        action = "Overwrite"
-        name   = "Access-Control-Allow-Origin"
-        value  = "*"
-      }]
-    }
-  ]
+        modify_response_header_actions = [{
+          action = "Overwrite"
+          name   = "Access-Control-Allow-Origin"
+          value  = "*"
+        }]
+      }
+    ],
+    # The NPG SDK is self-hosted here and consumed cross-origin by checkout-fe,
+    # wallet-fe and ecommerce-fe with Subresource Integrity (crossorigin="anonymous").
+    # Both hfsdk.js (the SRI <script>) and hfsdk.integrity.json (a runtime fetch())
+    # need an Access-Control-Allow-Origin header, otherwise the browser blocks them
+    # and, fail-closed, the SDK never loads. Unlike the fonts above, the consumers
+    # are a known and closed set, so the header is restricted to their origins
+    # instead of using a wildcard. Also scoped to the /npg-*/ folders, so the rest
+    # of this shared CDN is left untouched. See local.npg_sdk_cors_origins.
+    local.npg_sdk_cors_rules
+  )
 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
 
