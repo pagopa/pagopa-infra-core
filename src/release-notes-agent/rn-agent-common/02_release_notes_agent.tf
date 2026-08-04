@@ -1,6 +1,6 @@
 module "rn_agent" {
   #https://github.com/pagopa/payment-release-notes-agent/releases/tag/v0.0.7
-  source = "git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac?ref=1b64dfd05db51832ea3c6ece98f9d3896d0bee24"
+  source = "git::https://github.com/pagopa/payment-release-notes-agent.git//infrastructure/iac?ref=a9ed34f54d24a6d4312403307ae2681cbea614fc"
 
   # General
   prefix   = var.prefix
@@ -23,7 +23,7 @@ module "rn_agent" {
   internal_dns_zone_resource_group_name = "${local.product}-vnet-rg"
 
   # General App
-  docker_image_tag = "v0.0.7"
+  docker_image_tag = "v0.0.8"
   department_name  = "Dipartimento Pagamenti"
 
   # APIM
