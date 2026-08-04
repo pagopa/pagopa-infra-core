@@ -42,8 +42,8 @@ resources:
 variables:
   TIME_OUT: 15
   # working dir
-  WORKING_DIR: 'src/aks-platform'
-  DOMAIN_NAME: aks-platform
+  WORKING_DIR: 'src/aks-leonardo'
+  DOMAIN_NAME: aks-leonardo
 
 stages:
   #DEV
@@ -51,7 +51,7 @@ stages:
     - template: './base-deploy-pipelines.yml'
       parameters:
         ENV: 'dev'
-        ENV_FOLDER: 'weu-dev'
+        ENV_FOLDER: 'itn-dev'
         WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
         DOMAIN_NAME: ${{ variables.DOMAIN_NAME }}
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_DEV)'
@@ -69,7 +69,7 @@ stages:
     - template: './base-deploy-pipelines.yml'
       parameters:
         ENV: 'uat'
-        ENV_FOLDER: 'weu-uat'
+        ENV_FOLDER: 'itn-uat'
         WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
         DOMAIN_NAME: ${{ variables.DOMAIN_NAME }}
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_UAT)'
@@ -87,7 +87,7 @@ stages:
     - template: './base-deploy-pipelines.yml'
       parameters:
         ENV: 'prod'
-        ENV_FOLDER: 'weu-prod'
+        ENV_FOLDER: 'itn-prod'
         WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
         DOMAIN_NAME: ${{ variables.DOMAIN_NAME }}
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_PROD)'

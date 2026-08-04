@@ -40,4 +40,8 @@ locals {
   kv_italy_rg_name = "pagopa-${var.env_short}-itn-core-sec-rg"
 
   aks_logs_alerts = {}
+
+  system_namespace     = "kube-system"
+  devops_admin_sa_name = "azure-devops-admin"
+  aks_api_url          = var.env_short == "d" ? module.aks_leonardo.fqdn : module.aks_leonardo.private_fqdn
 }
