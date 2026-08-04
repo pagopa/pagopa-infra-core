@@ -951,7 +951,7 @@ product_dns_records = {
       },
       {
         "r_name"  = "bounce.euc1"
-        "r_value" = "feedback-smtp.eu-south-1.amazonses.com"
+        "r_value" = "feedback-smtp.eu-central-1.amazonses.com"
       }
     ]
   }
