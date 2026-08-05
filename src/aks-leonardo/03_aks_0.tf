@@ -5,6 +5,14 @@ resource "azurerm_resource_group" "rg_aks" {
   tags     = module.tag_config.tags
 }
 
+locals {
+  stdout_excluded_namespaces = setsubtract(
+    toset(data.kubernetes_all_namespaces.all_ns.namespaces),
+    toset(var.aks_stdout_logs_namespace_whitelist)
+  )
+}
+
+
 module "aks_leonardo" {
   source = "./.terraform/modules/__v4__//kubernetes_cluster"
 
@@ -74,7 +82,10 @@ module "aks_leonardo" {
 
   ama_log_collection_settings = {
     enable_log_collection_cm = true
-    enable_stdout_logs       = false
+    enable_stdout_logs       = true
+    stdout_exclude_namespaces = sort(
+      tolist(local.stdout_excluded_namespaces)
+    )
   }
 
   action = flatten([
