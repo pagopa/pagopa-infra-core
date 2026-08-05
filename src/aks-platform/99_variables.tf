@@ -86,6 +86,12 @@ variable "aks_alerts_enabled" {
   description = "AKS alerts enabled?"
 }
 
+variable "aks_stdout_logs_namespace_whitelist" {
+  type        = list(string)
+  default     = []
+  description = "List of namespaces to keep included in stdout log collection. All other namespaces are excluded."
+}
+
 variable "k8s_kube_config_path_prefix" {
   type    = string
   default = "~/.kube"

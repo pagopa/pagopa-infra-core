@@ -17,6 +17,7 @@ monitor_italy_resource_group_name                 = "pagopa-u-itn-core-monitor-r
 log_analytics_italy_workspace_name                = "pagopa-u-itn-core-law"
 log_analytics_italy_workspace_resource_group_name = "pagopa-u-itn-core-monitor-rg"
 monitor_appinsights_italy_name                    = "pagopa-u-itn-core-appinsights"
+aks_stdout_logs_namespace_whitelist               = []
 
 monitor_resource_group_name                 = "pagopa-u-monitor-rg"
 log_analytics_workspace_name                = "pagopa-u-law"

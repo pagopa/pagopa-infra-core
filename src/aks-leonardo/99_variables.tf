@@ -87,6 +87,12 @@ variable "aks_alerts_enabled" {
   description = "Aks alert enabled?"
 }
 
+variable "aks_stdout_logs_namespace_whitelist" {
+  type        = list(string)
+  default     = []
+  description = "List of namespaces to keep included in stdout log collection. All other namespaces are excluded."
+}
+
 variable "aks_system_node_pool" {
   type = object({
     name                         = string,
