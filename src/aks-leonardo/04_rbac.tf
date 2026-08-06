@@ -322,3 +322,130 @@ resource "kubernetes_cluster_role_binding" "cluster_deployer_admin_dev_binding" 
     module.aks_leonardo
   ]
 }
+
+
+resource "kubernetes_cluster_role" "azdo_cluster_admin" {
+  metadata {
+    name = "azdo-cluster-admin"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["namespaces", "services", "configmaps", "secrets", "serviceaccounts", "networkpolicies"]
+    verbs      = ["get", "list", "watch", ]
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["services", "configmaps", "secrets", "pods"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["namespaces"]
+    verbs      = ["get", "list", "watch", ]
+  }
+
+  rule {
+    api_groups = ["secrets-store.csi.x-k8s.io"]
+    resources  = ["secretproviderclasses"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["keda.sh"]
+    resources  = ["scaledobjects", "triggerauthentications"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["apps"]
+    resources  = ["replicasets", "daemonsets"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["extensions", "apps"]
+    resources  = ["deployments"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["networking.k8s.io"]
+    resources  = ["ingresses"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["rbac.authorization.k8s.io"]
+    resources  = ["rolebindings", "roles"]
+    verbs      = ["get", "list", "watch", ]
+  }
+
+  rule {
+    api_groups = ["batch"]
+    resources  = ["cronjobs", "jobs"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["monitoring.coreos.com"]
+    resources  = ["servicemonitors", "podmonitors"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups        = ["policy"]
+    non_resource_urls = []
+    resource_names    = []
+    resources         = ["poddisruptionbudgets"]
+    verbs             = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["opentelemetry.io"]
+    resources  = ["opentelemetrycollectors"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
+  rule {
+    api_groups = ["apiextensions.k8s.io"]
+    resources  = ["customresourcedefinitions"]
+    verbs      = ["*"]
+  }
+
+  rule {
+    api_groups = ["kafka.strimzi.io"]
+    resources  = ["kafkaconnects"]
+    verbs      = ["*"]
+  }
+
+  rule {
+    api_groups = ["kafka.strimzi.io"]
+    resources  = ["kafkaconnectors"]
+    verbs      = ["*"]
+  }
+
+  rule {
+    api_groups = ["networking.k8s.io"]
+    resources  = ["networkpolicies"]
+    verbs      = ["get"]
+  }
+
+  rule {
+    api_groups = ["rbac.authorization.k8s.io"]
+    resources  = ["rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs      = ["get", "list", "watch", ]
+  }
+
+  rule {
+    api_groups = ["storage.k8s.io"]
+    resources  = ["storageclasses"]
+    verbs      = ["get", "list", "watch", ]
+  }
+
+  depends_on = [
+    module.aks_leonardo
+  ]
+}
