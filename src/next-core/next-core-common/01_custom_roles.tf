@@ -16,7 +16,7 @@ resource "azurerm_role_definition" "iac_reader" {
       "Microsoft.Logic/workflows/triggers/listCallbackUrl/action", # read callback url from logic app triggers
       "Microsoft.ContainerService/*/read",                         # help to generate cluster credentials
       # "Microsoft.ContainerService/managedClusters/read",                                 # help to generate cluster credentials
-      "Microsoft.ContainerService/managedClusters/listClusterUserCredential/action",     # help to generate cluster credentials
+      "Microsoft.ContainerService/managedClusters/listClusterUserCredential/action", # help to generate cluster credentials
       # "Microsoft.ContainerService/managedClusters/accessProfiles/listCredential/action", # help to generate cluster credentials and read cluster roles
       "Microsoft.EventHub/namespaces/*/listKeys/action", #help to list key for event hub connection (mandatory for tf:azurerm_eventhub_authorization_rule)
       # "Microsoft.EventHub/namespaces/eventhubs/authorizationRules/listKeys/action",      #help to list key for event hub connection (mandatory for tf:azurerm_eventhub_authorization_rule)
