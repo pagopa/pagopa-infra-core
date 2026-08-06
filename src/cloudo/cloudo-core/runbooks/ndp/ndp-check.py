@@ -36,6 +36,7 @@ SLACK_WEBHOOK_URL = "ndp-dr-slack-webhook"
 GOOGLE_TOKEN_API = "dip-pagamenti-google-token-api"
 CALENDAR_ID = "dip-pagamenti-calendar-id"
 WAR_ROOM_ATTENDEES = "ndp-dr-war-room-attendee"
+WAR_ROOM_ENABLED = "ndp-dr-war-room-enabled"
 SWITCH_SCHEMA_ID = "ndp-switch-execution"
 CLOUDO_API_KEY = "ndp-dr-cloudo-api-key"
 NDP_SYNTHETIC_APP_NAMES = ["nodo"]
@@ -215,49 +216,51 @@ def get_runbook_secrets(azure_credentials):
      GOOGLE_TOKEN_API : kv_client.get_secret("dip-pagamenti-google-token-api").value,
      CALENDAR_ID : kv_client.get_secret("dip-pagamenti-calendar-id").value,
      WAR_ROOM_ATTENDEES : kv_client.get_secret("ndp-dr-war-room-attendee").value.split(","),
-     CLOUDO_API_KEY : kv_client.get_secret("ndp-dr-cloudo-api-key").value
+     CLOUDO_API_KEY : kv_client.get_secret("ndp-dr-cloudo-api-key").value,
+     WAR_ROOM_ENABLED : kv_client.get_secret("ndp-dr-war-room-enabled").value
     }
 
 def create_slack_message(suggested_switch: str, hangout_url: str):
-    return {
-        "blocks":
-            [
-                {
-                    "type" : "header",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "DR NdP - switch consigliato"
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"Il Nodo dei Pagamenti sta riscontrando problemi, si consiglia di eseguire lo switch *{suggested_switch}*"
-                    }
-                },
-                {
-                  "type": "divider"
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":phone: Nel calendario del dipartimento pagamenti trovi la war room dedicata"
-                  },
-                  "accessory": {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "Unisciti",
-                    },
-                    "value": "join_wr",
-                    "url": f"{hangout_url}",
-                    "action_id": "button-action"
-                  }
-                }
-            ]
+    blocks = [
+        {
+            "type" : "header",
+            "text": {
+                "type": "plain_text",
+                "text": "DR NdP - switch consigliato"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"Il Nodo dei Pagamenti sta riscontrando problemi, si consiglia di eseguire lo switch *{suggested_switch}*"
+            }
+        },
+        {
+          "type": "divider"
         }
+    ]
+
+    if hangout_url is not None:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":phone: Nel calendario del dipartimento pagamenti trovi la war room dedicata"
+            },
+            "accessory": {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Unisciti",
+                },
+                "value": "join_wr",
+                "url": f"{hangout_url}",
+                "action_id": "button-action"
+            }
+        })
+
+    return {"blocks": blocks}
 
 def send_slack_message(payload, webhook_url):
     client = WebhookClient(webhook_url)
@@ -327,6 +330,10 @@ def create_google_calendar_event(auth_token: str, switch: str, calendar_id: str,
     raise Exception(f"Failed to create Google Calendar event: {response.status_code} - {response.text}")
 
 def create_war_room(switch: str, secrets: dict):
+  if secrets.get(WAR_ROOM_ENABLED) != "true":
+    print("War room creation is disabled.")
+    return None
+
   token = get_google_token(secrets.get(GOOGLE_TOKEN_API))
   auth = google_oauth(token)
   event = create_google_calendar_event(auth, switch, secrets.get(CALENDAR_ID), secrets.get(WAR_ROOM_ATTENDEES))
