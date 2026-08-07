@@ -20,3 +20,6 @@ enabled_features = {
 }
 
 platform_dns_zone_prefix = "uat.platform"
+
+vmss_size = "Standard_D2ds_v5"
+vmss_disk_size = 30

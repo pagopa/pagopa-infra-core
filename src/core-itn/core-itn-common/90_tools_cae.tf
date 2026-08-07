@@ -34,6 +34,13 @@ resource "azurerm_container_app_environment" "spoke_cae" {
   internal_load_balancer_enabled = true
   public_network_access          = "Disabled"
 
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+    minimum_count = 0
+    maximum_count = 0
+  }
+
   tags = module.tag_config.tags
 
   lifecycle {

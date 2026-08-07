@@ -61,6 +61,7 @@ data "azurerm_key_vault_secret" "vmss_admin_password" {
   key_vault_id = data.azurerm_key_vault.kv_domain.id
 }
 
+
 resource "azurerm_linux_virtual_machine_scale_set" "vmss-egress" {
   name                            = format("%s-vmss", local.project)
   resource_group_name             = azurerm_resource_group.vmss_rg.name
@@ -82,7 +83,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss-egress" {
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
-    disk_size_gb         = 128
+    disk_size_gb         = var.vmss_disk_size
   }
 
   network_interface {

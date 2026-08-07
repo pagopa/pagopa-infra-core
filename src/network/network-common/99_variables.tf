@@ -92,6 +92,12 @@ variable "vmss_size" {
   default = "Standard_D4ds_v5"
 }
 
+variable "vmss_disk_size" {
+  type = number
+  default = 128
+  description = "Size of the VMSS disk in GB"
+}
+
 variable "external_database_connection" {
   type = map(object({
     connector_name       = string
