@@ -95,6 +95,7 @@
         "run_args": "",
         "worker": "generic",
         "oncall": true,
+        "enabled": true,
         "require_approval": true,
         "group": "ndp-dr-switch",
         "tags": "nodo"
