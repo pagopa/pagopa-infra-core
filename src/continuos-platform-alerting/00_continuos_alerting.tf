@@ -46,8 +46,8 @@ module "amba_alerts_core_platform" {
   # del provider corrente.
   resource_group_name = local.monitor_resource_group_name
 
-  # Solo i 4 namespace validati nella fase di analisi. Vuoto = tutti i
-  # 77 namespace disponibili nel dataset AMBA sincronizzato.
+  # Solo i namespace validati nella fase di analisi. Vuoto = tutti i
+  # namespace disponibili nel dataset AMBA sincronizzato.
   included_namespaces = [
     "Microsoft.ContainerService/managedClusters",  # AKS
     "Microsoft.ApiManagement/service",             # APIM
