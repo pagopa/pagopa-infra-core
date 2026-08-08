@@ -1,3 +1,5 @@
+# Recupero di tutte le risorse di tipo Action Group
+
 data "azurerm_resources" "all_ag" {
   type     = "microsoft.insights/actiongroups"
   resource_group_name = local.monitor_resource_group_name
@@ -5,12 +7,14 @@ data "azurerm_resources" "all_ag" {
 
 
 locals {
+
+# Mappa indicizzata su nome ag
   action_group_ids_by_name = {
     for name, ag in data.azurerm_resources.all_ag.resources : ag.name => ag.id
   }
 
 
-
+# Array di ag di default a cui associare tutti gli alert
   default_action_group_ids = {
     "default" = concat ([
      local.action_group_ids_by_name["PagoPA"],
@@ -19,12 +23,14 @@ locals {
     ], var.env_short == "p" ? [local.action_group_ids_by_name["InfraOpsgenie"]] : [])
   }
 
+# Array di ag custom per namespace da aggiungere ai default 
    action_group_overrides = {
    "Microsoft.Web/sites" = [
      local.action_group_ids_by_name["SlackPagoPANODO"],
    ]
   }
 
+# Array combinato ag di default + custom
 
   combined_action_group = distinct(flatten([
   values(local.default_action_group_ids),
