@@ -611,6 +611,42 @@
       "enabled" : ${alert_enabled}
     }
   },
+
+  {
+    "apiName" : "status",
+    "appName" : "paymentOptions",
+    "url" :  "https://payopt.itn.${internal_api_domain_suffix}/payment-options-service/info",
+    "type" : "aks",
+    "checkCertificate" : true,
+    "method" : "GET",
+    "expectedCodes" : ["200"],
+    "tags" : {
+      "description" : "pagopa ${env_name} payopt status endpoint"
+    },
+    "durationLimit" : 10000,
+    "alertConfiguration" : {
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${developers_action_group_ids}
+    }
+  },
+  {
+    "apiName" : "status",
+    "appName" : "paymentOptions",
+    "url" :  "https://${api_dot_env_name}.platform.pagopa.it/shared/statuspage/v1/info?product=paymentoptionsservice",
+    "type" : "apim",
+    "checkCertificate" : true,
+    "method" : "GET",
+    "expectedCodes" : ["200"],
+    "tags" : {
+      "description" : "pagopa ${env_name} payment-options status endpoint"
+    },
+    "durationLimit" : 10000,
+    "alertConfiguration" : {
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${developers_action_group_ids}
+    }
+  },
+
   {
     "apiName" : "checkPosition",
     "appName" : "nodo",
@@ -660,7 +696,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "checkPosition",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/checkPosition",
@@ -866,7 +902,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "verifyPaymentNoticeOnGPD",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/webservices/input",
@@ -1002,7 +1038,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "verifyPaymentNoticeOnPartner",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/webservices/input",

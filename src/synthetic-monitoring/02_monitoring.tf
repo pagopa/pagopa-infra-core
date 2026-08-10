@@ -1,4 +1,3 @@
-
 module "monitoring_function" {
   depends_on = [azurerm_application_insights.application_insights]
   source     = "./.terraform/modules/__v4__/monitoring_function"
@@ -78,5 +77,6 @@ module "monitoring_function" {
     cloudo_action_group_ids                  = jsonencode([data.azurerm_monitor_action_group.cloudo.id]),
     cloudo_ndp_switch                        = var.enabled_resource.cloudo_ndp_switch
     cloudo_checkout_cdn_switch               = var.enabled_resource.cloudo_checkout_cdn_switch
+    nexi_postgres_public_enabled             = var.nexi_postgres_public_enabled
   })
 }
