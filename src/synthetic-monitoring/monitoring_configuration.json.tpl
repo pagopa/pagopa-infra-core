@@ -615,6 +615,22 @@
   {
     "apiName" : "status",
     "appName" : "paymentOptions",
+    "url" :  "https://payopt.itn.${internal_api_domain_suffix}/payment-options-service/info",
+    "type" : "aks",
+    "checkCertificate" : true,
+    "method" : "GET",
+    "expectedCodes" : ["200"],
+    "tags" : {
+      "description" : "pagopa ${env_name} payopt status endpoint"
+    },
+    "durationLimit" : 10000,
+    "alertConfiguration" : {
+      "enabled" : ${alert_enabled}
+    }
+  },
+  {
+    "apiName" : "status",
+    "appName" : "paymentOptions",
     "url" :  "https://${api_dot_env_name}.platform.pagopa.it/shared/statuspage/v1/info?product=paymentoptionsservice",
     "type" : "apim",
     "checkCertificate" : true,
