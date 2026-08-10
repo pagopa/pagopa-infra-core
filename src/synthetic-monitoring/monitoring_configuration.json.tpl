@@ -625,7 +625,8 @@
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
-      "enabled" : ${alert_enabled}
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${developers_action_group_ids}
     }
   },
   {
@@ -641,7 +642,8 @@
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
-      "enabled" : ${alert_enabled}
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${developers_action_group_ids}
     }
   },
 
