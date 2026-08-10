@@ -696,7 +696,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "checkPosition",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/checkPosition",
@@ -902,7 +902,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "verifyPaymentNoticeOnGPD",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/webservices/input",
@@ -1038,7 +1038,7 @@
     }
   },
   {
-    "enabled" : ${nexi_postgres_enabled},
+    "enabled" : ${nexi_postgres_public_enabled},
     "apiName" : "verifyPaymentNoticeOnPartner",
     "appName" : "nodo",
     "url" : "https://${nexi_ndp_host_postgres}/webservices/input",
