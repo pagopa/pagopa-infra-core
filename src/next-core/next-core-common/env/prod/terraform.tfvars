@@ -916,4 +916,44 @@ product_dns_records = {
       }
     ]
   }
+  "internal-apps.platform" = {
+    email_settings = {
+      dmarc_record = "v=DMARC1; p=quarantine; adkim=s; aspf=s; fo=1; rua=mailto:dmarc@0f1qy7b5.uriports.com"
+      dkim_records = [
+        {
+          "r_name"  = "rq7tuhh2wqf6dsekt6zeuq5z6ppoexkt._domainkey"
+          "r_value" = "rq7tuhh2wqf6dsekt6zeuq5z6ppoexkt.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "2bv223ilwws27oxrujubiz3lntca7rkg._domainkey"
+          "r_value" = "2bv223ilwws27oxrujubiz3lntca7rkg.dkim.eu-south-1.amazonses.com"
+        },
+        {
+          "r_name"  = "o46nbfbhotbaoti4p2oaduw7gdmfhxes._domainkey"
+          "r_value" = "o46nbfbhotbaoti4p2oaduw7gdmfhxes.dkim.eu-south-1.amazonses.com"
+        },
+      ]
+    }
+    txt_records = [
+      {
+        "r_name"  = "bounce"
+        "r_value" = "v=spf1 include:amazonses.com ~all"
+      },
+      {
+        "r_name"  = "bounce.euc1"
+        "r_value" = "v=spf1 include:amazonses.com ~all"
+      }
+    ]
+    mx_records = [
+      {
+        "r_name"  = "bounce"
+        "r_value" = "feedback-smtp.eu-south-1.amazonses.com"
+      },
+      {
+        "r_name"  = "bounce.euc1"
+        "r_value" = "feedback-smtp.eu-central-1.amazonses.com"
+      }
+    ]
+  }
 }
+
