@@ -78,6 +78,16 @@ module "amba_alerts_core_platform" {
     "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
   }
 
+  action_group_metric_overrides = {
+    "Microsoft.ContainerService/managedClusters|etcd_database_usage_percentage" = [
+      local.action_group_ids_by_name["PagoPA"],
+    ]
+  }
+
+  severity_overrides = {
+    # (es. \"Microsoft.App/containerApps|RestartCount\"), valore = severity 0-4."
+  }
+
   tags = {
     ManagedBy = "terraform"
     Source    = "amba"
