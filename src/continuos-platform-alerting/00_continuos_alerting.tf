@@ -75,7 +75,7 @@ module "amba_alerts_core_platform" {
   # una soglia assoluta AMBA (500 MB) pensata come default generico,
   # da adattare al sizing reale delle vostre container apps.
   threshold_overrides = {
-    "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
+    # "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
   }
 
   action_group_metric_overrides = {
