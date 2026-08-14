@@ -133,7 +133,7 @@ variable "on_demand_polling_interval_seconds" {
 
 
 variable "nexi_postgres_public_enabled" {
-  type = bool
-  default = true
+  type        = bool
+  default     = true
   description = "(Required) if true enables the usage of public endpoint for nexi postgres test"
 }

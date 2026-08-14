@@ -14,7 +14,7 @@ locals {
     { action_group_name = "Opsgenie", resource_group_name = local.monitor_resource_group_name },
     { action_group_name = "PagoPA", resource_group_name = local.monitor_resource_group_name },
     { action_group_name = "SlackPagoPA", resource_group_name = local.monitor_resource_group_name }
-  ] : [
+    ] : [
     { action_group_name = "PagoPA", resource_group_name = local.monitor_resource_group_name },
     { action_group_name = "SlackPagoPA", resource_group_name = local.monitor_resource_group_name }
 
