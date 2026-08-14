@@ -24,17 +24,17 @@ locals {
   }
 
   # Array di ag custom per namespace da aggiungere ai default 
-  action_group_overrides = {
-    "Microsoft.Web/sites" = [
-      local.action_group_ids_by_name["SlackPagoPANODO"],
-    ]
+  action_group_add_by_namespace = {
+    # "Microsoft.Web/sites" = [
+    #   local.action_group_ids_by_name["SlackPagoPANODO"],
+    # ]
   }
 
   # Array combinato ag di default + custom
 
   combined_action_group = distinct(flatten([
     values(local.default_action_group_ids),
-    values(local.action_group_overrides),
+    values(local.action_group_add_by_namespace),
   ]))
 
 }
@@ -78,9 +78,9 @@ module "amba_alerts_core_platform" {
     # "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
   }
 
-  action_group_metric_overrides = {
-    "Microsoft.ContainerService/managedClusters|etcd_database_usage_percentage" = [
-      local.action_group_ids_by_name["PagoPA"],
+  action_group_metric_add_by_metric = {
+    "Microsoft.Web/sites|WorkflowTriggersFailureRate" = [
+      local.action_group_ids_by_name["SlackPagoPANODO"],
     ]
   }
 
@@ -88,10 +88,8 @@ module "amba_alerts_core_platform" {
     # (es. \"Microsoft.App/containerApps|RestartCount\"), valore = severity 0-4."
   }
 
-  tags = {
-    ManagedBy = "terraform"
-    Source    = "amba"
-  }
+  tags = module.tag_config.tags
+
 }
 
 

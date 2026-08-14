@@ -19,4 +19,15 @@ variable "location_short" {
   description = "One of wue, neu"
 }
 
-
+variable "env" {
+  type = string
+}
+variable "domain" {
+  type = string
+  validation {
+    condition = (
+      length(var.domain) <= 12
+    )
+    error_message = "Max length is 12 chars."
+  }
+}
