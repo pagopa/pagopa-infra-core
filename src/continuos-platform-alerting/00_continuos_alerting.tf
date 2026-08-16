@@ -37,6 +37,18 @@ locals {
     values(local.action_group_add_by_namespace),
   ]))
 
+  action_group_metric_add_by_metric = {
+    "Microsoft.Web/sites|WorkflowTriggersFailureRate" = [
+      local.action_group_ids_by_name["SlackPagoPANODO"],
+    ]
+  }
+  metric_threshold_overrides = {
+    # "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
+  }
+
+  metric_severity_overrides = {
+    # (es. \"Microsoft.App/containerApps|RestartCount\"), valore = severity 0-4."
+  }
 }
 
 module "amba_alerts_core_platform" {
@@ -58,7 +70,7 @@ module "amba_alerts_core_platform" {
     "Microsoft.DocumentDB/databaseAccounts",      # CosmosDb
     "Microsoft.Cache/Redis",                      # Azure for Redis
     "Microsoft.Cache/redisEnterprise",            # Managed Redis
-    "Microsoft.Web/sites",                        # App Service
+    "Microsoft.Web/sites",                        # App Service / Function
     "Microsoft.App/jobs",                         # Container Jon (non ancora in AMBA)
     "Microsoft.Cdn/profiles",                     # CDN
     "Microsoft.ContainerRegistry/registries",     # ACR
@@ -74,19 +86,11 @@ module "amba_alerts_core_platform" {
   # Esempio di override puntuale: WorkingSetBytes su Container Apps ha
   # una soglia assoluta AMBA (500 MB) pensata come default generico,
   # da adattare al sizing reale delle vostre container apps.
-  threshold_overrides = {
-    # "Microsoft.App/containerApps|WorkingSetBytes" = 900000000 # 900 MB, adattare a limits.memory reale
-  }
+  threshold_overrides = local.metric_threshold_overrides
 
-  action_group_metric_add_by_metric = {
-    "Microsoft.Web/sites|WorkflowTriggersFailureRate" = [
-      local.action_group_ids_by_name["SlackPagoPANODO"],
-    ]
-  }
+  action_group_metric_add_by_metric = local.action_group_metric_add_by_metric
 
-  severity_overrides = {
-    # (es. \"Microsoft.App/containerApps|RestartCount\"), valore = severity 0-4."
-  }
+  severity_overrides = local.metric_severity_overrides
 
   tags = module.tag_config.tags
 

@@ -13,7 +13,7 @@
 |------|--------|---------|
 | <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | PAYMCLOUD-928_refactor_amba_alert |
 | <a name="module_amba_alerts_core_platform"></a> [amba\_alerts\_core\_platform](#module\_amba\_alerts\_core\_platform) | ./.terraform/modules/__v4__/continuos_platform_alerting | n/a |
-| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ./../tag_config | n/a |
+| <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../tag_config | n/a |
 
 ## Resources
 
