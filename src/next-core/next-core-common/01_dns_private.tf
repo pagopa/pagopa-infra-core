@@ -87,6 +87,26 @@ moved {
   to   = azurerm_private_dns_zone_virtual_network_link.privatelink_redis_cache_windows_net_vnet
 }
 
+
+### 🔮 Private dns zone: Managed Redis
+
+resource "azurerm_private_dns_zone" "privatelink_redis_azure_net" {
+  name                = "privatelink.redis.azure.net"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+
+  tags = module.tag_config.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_redis_azure_net_vnet" {
+  name                  = module.vnet.name
+  resource_group_name   = azurerm_resource_group.rg_vnet.name
+  private_dns_zone_name = azurerm_private_dns_zone.privatelink_redis_azure_net.name
+  virtual_network_id    = module.vnet.id
+  registration_enabled  = false
+
+  tags = module.tag_config.tags
+}
+
 ### 🔮 Private dns zone: storage queue
 
 resource "azurerm_private_dns_zone" "privatelink_queue_core_windows_net" {
