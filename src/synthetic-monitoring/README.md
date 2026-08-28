@@ -62,6 +62,7 @@
 | <a name="input_nexi_ndp_host_postgres"></a> [nexi\_ndp\_host\_postgres](#input\_nexi\_ndp\_host\_postgres) | Nodo Pagamenti Nexi postgres hostname | `string` | n/a | yes |
 | <a name="input_nexi_ndphost_header"></a> [nexi\_ndphost\_header](#input\_nexi\_ndphost\_header) | Nodo Pagamenti Nexi postgres ndphost header value | `string` | n/a | yes |
 | <a name="input_nexi_node_ip_postgres"></a> [nexi\_node\_ip\_postgres](#input\_nexi\_node\_ip\_postgres) | Nodo Pagamenti Nexi postgres ip | `string` | n/a | yes |
+| <a name="input_nexi_postgres_public_enabled"></a> [nexi\_postgres\_public\_enabled](#input\_nexi\_postgres\_public\_enabled) | (Required) if true enables the usage of public endpoint for nexi postgres test | `bool` | `true` | no |
 | <a name="input_on_demand_polling_interval_seconds"></a> [on\_demand\_polling\_interval\_seconds](#input\_on\_demand\_polling\_interval\_seconds) | Polling interval in seconds for on-demand synthetic monitoring | `number` | `300` | no |
 | <a name="input_prefix"></a> [prefix](#input\_prefix) | n/a | `string` | n/a | yes |
 | <a name="input_self_alert_enabled"></a> [self\_alert\_enabled](#input\_self\_alert\_enabled) | (Optional) enables the alert on the function itself | `bool` | `true` | no |
