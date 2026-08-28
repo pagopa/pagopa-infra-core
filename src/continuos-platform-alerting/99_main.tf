@@ -30,5 +30,5 @@ data "azurerm_client_config" "current" {}
 
 module "__v4__" {
   # v8.1.3
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=PAYMCLOUD-928_refactor_amba_alert"
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=49d12bd64b144b516f104fb50683b432f1c798ef"
 }
