@@ -54,10 +54,6 @@ locals {
 module "amba_alerts_core_platform" {
   source = "./.terraform/modules/__v4__/continuos_platform_alerting"
 
-  # Scope: se omesso, la discovery avviene su tutta la subscription
-  # del provider corrente.
-  resource_group_name = local.monitor_resource_group_name
-
   # Solo i namespace validati nella fase di analisi. Vuoto = tutti i
   # namespace disponibili nel dataset AMBA sincronizzato.
   included_namespaces = [
