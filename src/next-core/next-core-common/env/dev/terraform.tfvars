@@ -43,8 +43,8 @@ vpn_random_specials_char     = false
 # Dns
 #
 external_domain                      = "pagopa.it"
-dns_a_reconds_dbnodo_ips             = ["10.70.67.18"]    # db onCloud
-dns_a_reconds_dbnodonexipostgres_ips = ["10.6.52.94"] # db onPrem PostgreSQL
+dns_a_reconds_dbnodo_ips             = ["10.70.67.18"] # db onCloud
+dns_a_reconds_dbnodonexipostgres_ips = ["10.6.52.94"]  # db onPrem PostgreSQL
 private_dns_zone_db_nodo_pagamenti   = "d.db-nodo-pagamenti.com"
 ### External resources
 redis_cache_enabled = true
