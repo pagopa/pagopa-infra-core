@@ -53,6 +53,11 @@ data "azurerm_private_dns_zone" "privatelink_redis_cache_windows_net" {
   resource_group_name = "pagopa-${var.env_short}-vnet-rg"
 }
 
+data "azurerm_private_dns_zone" "privatelink_redis_azure_net" {
+  name                = "privatelink.redis.azure.net"
+  resource_group_name = "pagopa-${var.env_short}-vnet-rg"
+}
+
 data "azurerm_private_dns_zone" "privatelink_servicebus_windows_net" {
   name                = "privatelink.servicebus.windows.net"
   resource_group_name = "pagopa-${var.env_short}-msg-rg"
