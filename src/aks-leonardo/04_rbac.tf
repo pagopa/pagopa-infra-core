@@ -109,6 +109,12 @@ resource "kubernetes_cluster_role" "cluster_deployer" {
     verbs      = ["*"]
   }
 
+  rule {
+    api_groups = ["batch"]
+    resources  = ["jobs"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
   depends_on = [
     module.aks_leonardo
   ]
