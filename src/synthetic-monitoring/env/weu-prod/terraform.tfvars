@@ -14,7 +14,7 @@ use_private_endpoint             = true
 enabled_resource = {
   test_nexi_postgres         = true,
   synthetic_on_demand        = true,
-  cloudo_ndp_switch          = false,
+  cloudo_ndp_switch          = true,
   cloudo_checkout_cdn_switch = false
 }
 synthetic_alerts_enabled = true
@@ -23,7 +23,7 @@ law_sku               = "CapacityReservation" # TODO verify why it is changed fr
 law_retention_in_days = 30
 law_daily_quota_gb    = -1
 
-on_demand_polling_interval_seconds = 120
+on_demand_polling_interval_seconds = 60
 
 #
 # monitoring template variables
@@ -36,4 +36,4 @@ verify_payment_internal_expected_outcome = "OK"
 nexi_node_ip_postgres                    = "10.79.20.25"
 nexi_ndp_host_postgres                   = "nexi.ndp.pagopa.it"
 nexi_ndphost_header                      = "nodo-p.nexigroup.com"
-nexi_postgres_public_enabled             = false
+nexi_postgres_public_enabled             = true

@@ -20,7 +20,7 @@ module "monitoring_function" {
   }
 
   job_settings = {
-    cron_scheduling              = "*/5 * * * *"
+    cron_scheduling              = "*/1 * * * *"
     container_app_environment_id = data.azurerm_container_app_environment.tools_cae.id
     http_client_timeout          = 30000
     workload_profile             = "None"
