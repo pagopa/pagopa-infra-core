@@ -14,7 +14,7 @@ use_private_endpoint             = true
 enabled_resource = {
   test_nexi_postgres         = true,
   synthetic_on_demand        = true,
-  cloudo_ndp_switch          = true,
+  cloudo_ndp_switch          = false,
   cloudo_checkout_cdn_switch = false
 }
 synthetic_alerts_enabled = true
@@ -23,7 +23,7 @@ law_sku               = "CapacityReservation" # TODO verify why it is changed fr
 law_retention_in_days = 30
 law_daily_quota_gb    = -1
 
-on_demand_polling_interval_seconds = 60
+on_demand_polling_interval_seconds = 120
 
 #
 # monitoring template variables
