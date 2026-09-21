@@ -21,7 +21,7 @@ module "azure_auditlogs" {
   log_analytics_workspace = {
     id            = data.azurerm_log_analytics_workspace.log_analytics.id,
     rg_name       = local.log_analytics_italy_workspace_resource_group_name
-    export_tables = ["ContainerLog"], # change to appropriate log analytics table
+    export_tables = ["ContainerLogV2"], # change to appropriate log analytics table
   }
 
 
@@ -43,7 +43,7 @@ module "azure_auditlogs" {
 }
 
 resource "azurerm_log_analytics_data_export_rule" "export_to_eventhub_weu" {
-  for_each = toset(["ContainerLog"])
+  for_each = toset(["ContainerLogV2"])
 
   name                    = each.value
   resource_group_name     = local.log_analytics_weu_workspace_resource_group_name

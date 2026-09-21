@@ -1,4 +1,4 @@
-.create external table ['AuditLogs'] (["LogEntry"]:dynamic)
+.create external table ['AuditLogs'] (["LogMessage"]:dynamic)
     kind = blob
 partition by (['IngestionDatetime']:datetime )
 pathformat = (datetime_pattern("yyyy/MM/dd/HH/mm", ['IngestionDatetime']))
