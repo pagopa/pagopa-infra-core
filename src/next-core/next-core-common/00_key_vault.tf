@@ -10,6 +10,10 @@ module "domain_key_vault_secrets_query" {
 }
 
 
+data "azurerm_key_vault" "kv_nodo" {
+  name                = "${local.product}-nodo-kv"
+  resource_group_name = "${local.product}-nodo-sec-rg"
+}
 
 data "azurerm_key_vault_secret" "apim_publisher_email" {
   name         = "apim-publisher-email"
