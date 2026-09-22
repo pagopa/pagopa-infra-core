@@ -27,8 +27,8 @@ locals {
     JAVA_OPTS             = "" # "-Djavax.net.debug=ssl:handshake" // mTLS debug
 
     # Cert configuration
-    CERTIFICATE_CRT = data.azurerm_key_vault_secret.certificate_crt_node_forwarder.value
-    CERTIFICATE_KEY = data.azurerm_key_vault_secret.certificate_key_node_forwarder.value
+    CERTIFICATE_CRT = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv_nodo.vault_uri}/secrets/forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-cert)"
+    CERTIFICATE_KEY = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv_nodo.vault_uri}/secrets/forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-key)"
 
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
     WEBSITES_PORT                       = 8080
@@ -341,7 +341,17 @@ resource "azurerm_monitor_autoscale_setting" "node_forwarder_app_service_autosca
 
 }
 
+# KV Policy
+resource "azurerm_key_vault_access_policy" "node_forwarder_app_service_policy" {
+  key_vault_id = data.azurerm_key_vault.kv_nodo.id
+  tenant_id    = data.azurerm_key_vault.kv_nodo.tenant_id
+  object_id    = module.node_forwarder_app_service[0].principal_id
 
+  key_permissions         = []
+  secret_permissions      = ["Get", "List"]
+  certificate_permissions = []
+  storage_permissions     = []
+}
 
 
 #################################
