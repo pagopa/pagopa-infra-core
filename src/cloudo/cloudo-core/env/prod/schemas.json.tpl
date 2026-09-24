@@ -7,6 +7,17 @@
     "partition_key": "infra",
     "entity": [
       {
+        "id": "pagopa-p-opex_pagopa-wisp-converter-redirect-availability",
+        "name": "WISP redirect availability analysis",
+        "description": "Read-only analysis of WISP redirect availability and backend response paths",
+        "runbook": "wisp/wisp-redirect-analysis.sh",
+        "run_args": "",
+        "worker": "generic",
+        "oncall": false,
+        "require_approval": false,
+        "tags": "wisp,apim,diagnostics"
+      },
+      {
         "id": "pagopa-p-appgw-total-request-info",
         "name": "total request pagopa-app-gw",
         "description": "Get Total request from pagopa appgw!",
