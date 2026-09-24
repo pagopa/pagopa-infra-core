@@ -21,7 +21,7 @@ module "azure_auditlogs" {
   log_analytics_workspace = {
     id            = data.azurerm_log_analytics_workspace.log_analytics.id,
     rg_name       = local.log_analytics_italy_workspace_resource_group_name
-    export_tables = ["ContainerLog"], # change to appropriate log analytics table
+    export_tables = ["ContainerLogV2"], # change to appropriate log analytics table
   }
 
 
@@ -32,7 +32,7 @@ module "azure_auditlogs" {
 
   data_explorer = {
     name           = "${local.project}-dec",
-    sku_name       = "Dev(No SLA)_Standard_E2a_v4",
+    sku_name       = "Dev(No SLA)_Standard_D11_v2",
     sku_capacity   = 1,
     reader_groups  = [data.azuread_group.adgroup_security.object_id, data.azuread_group.adgroup_operations.object_id, data.azuread_group.adgroup_technical_project_managers.object_id],
     admin_groups   = [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id],
@@ -43,7 +43,7 @@ module "azure_auditlogs" {
 }
 
 resource "azurerm_log_analytics_data_export_rule" "export_to_eventhub_weu" {
-  for_each = toset(["ContainerLog"])
+  for_each = toset(["ContainerLogV2"])
 
   name                    = each.value
   resource_group_name     = local.log_analytics_weu_workspace_resource_group_name
