@@ -6,12 +6,13 @@ resource "azurerm_resource_group" "monitor_rg" {
 }
 
 resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
-  name                = "${local.project}-law"
-  location            = azurerm_resource_group.monitor_rg.location
-  resource_group_name = azurerm_resource_group.monitor_rg.name
-  sku                 = var.law_sku
-  retention_in_days   = var.law_retention_in_days
-  daily_quota_gb      = var.law_daily_quota_gb
+  name                    = "${local.project}-law"
+  location                = azurerm_resource_group.monitor_rg.location
+  resource_group_name     = azurerm_resource_group.monitor_rg.name
+  sku                     = var.law_sku
+  retention_in_days       = var.law_retention_in_days
+  daily_quota_gb          = var.law_daily_quota_gb
+  data_collection_rule_id = azurerm_monitor_data_collection_rule.dcr_core.id
 
   internet_query_enabled = var.law_internet_query_enabled
 
@@ -125,6 +126,35 @@ resource "azurerm_monitor_action_group" "slack" {
     name                    = "sendtoslack"
     email_address           = data.azurerm_key_vault_secret.monitor_notification_slack_email.value
     use_common_alert_schema = true
+  }
+
+  tags = module.tag_config.tags
+}
+
+#ISSUE: https://github.com/hashicorp/terraform-provider-azurerm/issues/25671#issuecomment-2830115549
+resource "azurerm_monitor_data_collection_rule" "dcr_core" {
+  name                = "${local.project}-dcr"
+  resource_group_name = azurerm_resource_group.monitor_rg.name
+  location            = var.location
+  kind                = "WorkspaceTransforms"
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = "${azurerm_resource_group.monitor_rg.id}/providers/Microsoft.OperationalInsights/workspaces/${local.project}-law"
+      name                  = "${local.project}-dcr"
+    }
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-ContainerInventory"]
+    destinations  = ["${local.project}-dcr"]
+    transform_kql = "source | project-away EnvironmentVar, Command, Links, Repository, ContainerHostname"
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-Perf"]
+    destinations  = ["${local.project}-dcr"]
+    transform_kql = "source | where ObjectName != \"K8SContainer\""
   }
 
   tags = module.tag_config.tags
