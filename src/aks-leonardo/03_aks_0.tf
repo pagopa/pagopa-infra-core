@@ -21,7 +21,7 @@ module "aks_leonardo" {
   dns_prefix                 = local.project
   resource_group_name        = azurerm_resource_group.rg_aks.name
   kubernetes_version         = var.aks_kubernetes_version
-  log_analytics_workspace_id = var.env_short != "d" ? data.azurerm_log_analytics_workspace.log_analytics_italy.id : data.azurerm_log_analytics_workspace.log_analytics.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.log_analytics_italy.id
   sku_tier                   = var.aks_sku_tier
 
   ## Prometheus managed
@@ -107,11 +107,9 @@ module "aks_leonardo" {
     ] : [])
   ])
 
-  microsoft_defender_log_analytics_workspace_id        = var.env == "prod" ? data.azurerm_log_analytics_workspace.log_analytics_italy.id : null
-  oms_agent_monitoring_metrics_role_assignment_enabled = var.env == "prod"
-  # aligned prod configuration
-  oms_agent_msi_auth_for_monitoring_enabled = var.env_short == "p" ? false : true
-  tags                                      = module.tag_config.tags
+  microsoft_defender_log_analytics_workspace_id = var.env == "prod" ? data.azurerm_log_analytics_workspace.log_analytics_italy.id : null
+
+  tags = module.tag_config.tags
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "user_nodepool_default" {
