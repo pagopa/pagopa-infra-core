@@ -32,7 +32,7 @@ module "azure_auditlogs" {
 
   data_explorer = {
     name           = "${local.project}-dec",
-    sku_name       = "Dev(No SLA)_Standard_E2a_v4",
+    sku_name       = "Dev(No SLA)_Standard_D11_v2",
     sku_capacity   = 1,
     reader_groups  = [data.azuread_group.adgroup_security.object_id, data.azuread_group.adgroup_operations.object_id, data.azuread_group.adgroup_technical_project_managers.object_id],
     admin_groups   = [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id],
