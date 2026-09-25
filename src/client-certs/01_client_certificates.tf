@@ -15,7 +15,18 @@ module "client_certificate" {
           "www.${local.forwarder_fqdn}"
         ]
       }
-    } : {}
+    } : {},
+    {
+      abc = {
+        key_vault_name            = data.azurerm_key_vault.kv_nodo.name
+        subject                   = "CN=abc.pagopa.it",
+        rotation_minutes_override = 10
+        validity_in_months        = 1
+        san_dns_names = [
+          "abc.pagopa.it"
+        ]
+      }
+    }
   )
   stable_promotion_ids = var.stable_promotion_ids
 
