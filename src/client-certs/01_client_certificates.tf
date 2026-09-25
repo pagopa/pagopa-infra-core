@@ -20,7 +20,7 @@ module "client_certificate" {
       abc = {
         key_vault_name            = data.azurerm_key_vault.kv_nodo.name
         subject                   = "CN=abc.pagopa.it",
-        rotation_minutes_override = 10
+        rotation_minutes_override = 20
         validity_in_months        = 1
         san_dns_names = [
           "abc.pagopa.it"

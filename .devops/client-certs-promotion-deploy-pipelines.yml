@@ -54,9 +54,9 @@ variables:
     CERTIFICATE_VALUE_UAT: 'forwarder.uat.platform.pagopa.it'
     CERTIFICATE_VALUE_PROD: 'forwarder.platform.pagopa.it'
   ${{ if eq(parameters.CERTIFICATE, 'abc') }}:
-    CERTIFICATE_VALUE_DEV: 'abc.pagopa.it'
-    CERTIFICATE_VALUE_UAT: 'abc.pagopa.it'
-    CERTIFICATE_VALUE_PROD: 'abc.pagopa.it'
+    CERTIFICATE_VALUE_DEV: 'abc'
+    CERTIFICATE_VALUE_UAT: 'abc'
+    CERTIFICATE_VALUE_PROD: 'abc'
 
   TF_VARS_DEV: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_DEV }}\":\"$(Build.BuildId)\"}"'
   TF_VARS_UAT: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_UAT }}\":\"$(Build.BuildId)\"}"'
