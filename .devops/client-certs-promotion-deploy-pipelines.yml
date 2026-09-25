@@ -1,0 +1,106 @@
+# only manual
+trigger: none
+pr: none
+
+parameters:
+  - name: 'DEV'
+    displayName: 'Run on DEV environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'UAT'
+    displayName: 'Run on UAT environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'PROD'
+    displayName: 'Run on PROD environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'CERTIFICATE'
+    displayName: 'Certificate to promote'
+    type: string
+    default: 'forwarder'
+    values:
+      - 'forwarder'
+      - 'abc'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: add-tf-vars-optional-variable # refs/tags/v6.17.6
+      endpoint: "io-azure-devops-github-ro"
+
+variables:
+  TIME_OUT: 15
+  # working dir
+  WORKING_DIR: 'src/client-certs'
+  DOMAIN_NAME: client_certs
+
+  ${{ if eq(parameters.CERTIFICATE, 'forwarder') }}:
+    CERTIFICATE_VALUE_DEV: 'forwarder.dev.platform.pagopa.it'
+    CERTIFICATE_VALUE_UAT: 'forwarder.uat.platform.pagopa.it'
+    CERTIFICATE_VALUE_PROD: 'forwarder.platform.pagopa.it'
+  ${{ if eq(parameters.CERTIFICATE, 'abc') }}:
+    CERTIFICATE_VALUE_DEV: 'abc.pagopa.it'
+    CERTIFICATE_VALUE_UAT: 'abc.pagopa.it'
+    CERTIFICATE_VALUE_PROD: 'abc.pagopa.it'
+
+  TF_VARS_DEV: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_DEV }}\":\"$(Build.BuildId)\"}"'
+  TF_VARS_UAT: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_UAT }}\":\"$(Build.BuildId)\"}"'
+  TF_VARS_PROD: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_PROD }}\":\"$(Build.BuildId)\"}"'
+
+stages:
+  #DEV
+  - ${{ if eq(parameters['DEV'], true) }}:
+    - template: './base-deploy-pipelines.yml'
+      parameters:
+        ENV: 'dev'
+        ENV_FOLDER: 'dev'
+        WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_DEV)'
+        SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+        POOL_NAME: '$(TF_POOL_NAME_DEV)'
+        CERTIFICATE_VALUE: ${{ variables.CERTIFICATE_VALUE_DEV }}
+        TF_VARS: ${{ variables.TF_VARS_DEV }}
+
+  #UAT
+  - ${{ if eq(parameters['UAT'], true) }}:
+    - template: './base-deploy-pipelines.yml'
+      parameters:
+        ENV: 'uat'
+        ENV_FOLDER: 'uat'
+        WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_UAT)'
+        SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
+        POOL_NAME: '$(TF_POOL_NAME_UAT)'
+        CERTIFICATE_VALUE: ${{ variables.CERTIFICATE_VALUE_UAT }}
+        TF_VARS: ${{ variables.TF_VARS_UAT }}
+
+  #PROD
+  - ${{ if eq(parameters['PROD'], true) }}:
+    - template: './base-deploy-pipelines.yml'
+      parameters:
+        ENV: 'prod'
+        ENV_FOLDER: 'prod'
+        WORKING_DIR_MODULE: ${{ variables.WORKING_DIR }}
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_PROD)'
+        SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_PROD)'
+        POOL_NAME: '$(TF_POOL_NAME_PROD)'
+        CERTIFICATE_VALUE: ${{ variables.CERTIFICATE_VALUE_PROD }}
+        TF_VARS: ${{ variables.TF_VARS_PROD }}

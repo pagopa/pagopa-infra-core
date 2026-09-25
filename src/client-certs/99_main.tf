@@ -27,5 +27,5 @@ data "azurerm_client_config" "current" {}
 
 module "__v4__" {
   # https://github.com/pagopa/terraform-azurerm-v4/releases/tag/v10.33.0
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=d766b79433d6884ae5f181a319417880bef341b9"
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=feat/manage-certificate-promotion"
 }
