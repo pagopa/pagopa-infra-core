@@ -1162,7 +1162,7 @@
   {
     "apiName" : "certificate",
     "appName" : "ecommerceJwtIssuerService",
-    "url" : "https://${internal_api_domain_prefix}.ecommerce.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=7",
+    "url" : "https://${internal_api_domain_prefix}.ecommerce.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=6",
     "type" : "aks",
     "checkCertificate" : ${prod_only_enabled},
     "method" : "GET",
@@ -1182,7 +1182,7 @@
   {
     "apiName" : "certificate",
     "appName" : "payWalletJwtIssuerService",
-    "url" : "https://${itn_internal_api_domain_prefix}.pay-wallet.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=7",
+    "url" : "https://${itn_internal_api_domain_prefix}.pay-wallet.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=6",
     "type" : "aks",
     "checkCertificate" : ${prod_only_enabled},
     "method" : "GET",
