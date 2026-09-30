@@ -3,7 +3,7 @@ locals {
   domain                 = "synthetic"
   project                = "${local.product}-${var.location_short}-${local.domain}"
   ecommerce_project      = "${local.product}-${var.location_short}-ecommerce"
-  payment_wallet_project = "${local.product}-${var.location_short}-pay-wallet"
+  payment_wallet_project = "${local.product}-itn-pay-wallet"
 
   grafana_rg_name = "${local.product}-${var.location_short}-grafana-rg"
   grafana_name    = "${local.product}-${var.location_short}-grafana"
