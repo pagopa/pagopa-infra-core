@@ -2,6 +2,8 @@ locals {
   product = "${var.prefix}-${var.env_short}"
   domain  = "synthetic"
   project = "${local.product}-${var.location_short}-${local.domain}"
+  ecommerce_project = "${local.product}-${var.location_short}-ecommerce"
+  payment_wallet_project = "${local.product}-${var.location_short}-pay-wallet"
 
   grafana_rg_name = "${local.product}-${var.location_short}-grafana-rg"
   grafana_name    = "${local.product}-${var.location_short}-grafana"
@@ -13,6 +15,8 @@ locals {
   monitor_action_group_opsgenie_name       = "Opsgenie"
   monitor_action_group_infra_opsgenie_name = "InfraOpsgenie"
   monitor_resource_group_name              = "${local.product}-monitor-rg"
+  monitor_action_group_ecommerce_opsgenie_name = "EcomOpsgenie"
+  monitor_action_group_payment_wallet_opsgenie_name = "PayWalletOpsgenie"
   cloudo_action_group_rg_name              = "${local.product}-itn-cloudo-rg"
 
   vnet_core_resource_group_name               = "${local.product}-vnet-rg"
