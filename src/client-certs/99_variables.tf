@@ -42,3 +42,7 @@ variable "location_short" {
   }
   description = "One of wue, neu"
 }
+variable "enabled_forwarder_certificates" {
+  type    = bool
+  default = false
+}

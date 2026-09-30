@@ -4,7 +4,8 @@ WITH records AS(
   CROSS APPLY GetArrayElements(records) AS records
 )
 
-SELECT sig.LogEntry
+--SELECT udf.parseJson(sig.LogMessage)
+SELECT sig.LogMessage
 INTO [audit-logs-output]
 FROM records
-WHERE udf.parseJson(sig.LogEntry).audit='true'
+WHERE sig.LogMessage.audit='true'

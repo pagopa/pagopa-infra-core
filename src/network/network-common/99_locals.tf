@@ -6,12 +6,14 @@ locals {
   project_hub_spoke          = "${local.product}-${var.location_short_hub_spoke}-${local.domain}"
   product_location_hub_spoke = "${local.product}-${var.location_short_hub_spoke}"
 
-  vnet_italy_name                     = "${local.product}-itn-vnet"
-  vnet_italy_resource_group_name      = "${local.product}-itn-vnet-rg"
-  vnet_core_resource_group_name       = "${local.product}-vnet-rg"
-  vnet_core_name                      = "${local.product}-vnet"
-  vnet_spoke_data_name                = "${local.product}-itn-spoke-data-vnet"
-  vnet_spoke_data_resource_group_name = "${local.product}-itn-network-hub-spoke-rg"
+  vnet_italy_name                      = "${local.product}-itn-vnet"
+  vnet_italy_resource_group_name       = "${local.product}-itn-vnet-rg"
+  vnet_core_resource_group_name        = "${local.product}-vnet-rg"
+  vnet_core_name                       = "${local.product}-vnet"
+  vnet_spoke_data_name                 = "${local.product}-itn-spoke-data-vnet"
+  vnet_spoke_tools_name                = "${local.product}-itn-spoke-tools-vnet"
+  vnet_spoke_data_resource_group_name  = "${local.product}-itn-network-hub-spoke-rg"
+  vnet_spoke_tools_resource_group_name = "${local.product}-itn-network-hub-spoke-rg"
 
   vnet_integration_resource_group_name = "${local.product}-vnet-rg"
   vnet_integration_name                = "${local.product}-vnet-integration"
@@ -31,9 +33,10 @@ locals {
     westeurope = {
       short_name = "weu"
       vnets = {
-        "${local.vnet_core_name}"       = local.vnet_core_resource_group_name
-        "${local.vnet_italy_name}"      = local.vnet_italy_resource_group_name
-        "${local.vnet_spoke_data_name}" = local.vnet_spoke_data_resource_group_name
+        "${local.vnet_core_name}"        = local.vnet_core_resource_group_name
+        "${local.vnet_italy_name}"       = local.vnet_italy_resource_group_name
+        "${local.vnet_spoke_data_name}"  = local.vnet_spoke_data_resource_group_name
+        "${local.vnet_spoke_tools_name}" = local.vnet_spoke_tools_resource_group_name
       }
       log_analytics_workspace_name = local.log_analytics_weu_workspace_name
       log_analytics_workspace_rg   = local.log_analytics_weu_workspace_resource_group_name
