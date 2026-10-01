@@ -27,10 +27,10 @@ parameters:
   - name: 'CERTIFICATE'
     displayName: 'Certificate to promote'
     type: string
-    default: 'forwarder'
+    default: ''
     values:
       - 'forwarder'
-      - 'abc'
+      - ""
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -40,7 +40,7 @@ resources:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: add-tf-vars-optional-variable # refs/tags/v6.17.6
+      ref: refs/tags/v6.19.0
       endpoint: "io-azure-devops-github-ro"
 
 variables:

@@ -51,7 +51,7 @@ variable "enabled_forwarder_certificates" {
 variable "stable_promotion_ids" {
   type        = map(string)
   default     = {}
-  description = "Promotion ids by certificate name, passed by pipelines at apply time (e.g. -var 'stable_promotion_ids={\"my-cert\":\"<build id>\"}'): a certificate (<name>-pfx) is promoted to its stable secrets (<name>-stable-*) when its id changes. Runs omitting it never promote: the first deploy of a certificate must list it, otherwise no -stable-* secret is created."
+  description = "Promotion ids by certificate name, passed by pipelines at apply time (e.g. -var 'stable_promotion_ids={\"forwarder-dev-platform-pagopa-it\":\"<build id>\"}'): a certificate (<name>-pfx) is promoted to its stable secrets (<name>-stable-*) when its id changes. Runs omitting it never promote: the first deploy of a certificate must list it, otherwise no -stable-* secret is created."
 
   validation {
     condition     = alltrue([for id in values(var.stable_promotion_ids) : can(regex("^[A-Za-z0-9._-]+$", id))])
