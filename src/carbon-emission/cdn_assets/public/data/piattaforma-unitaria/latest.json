@@ -1,0 +1,121 @@
+{
+  "value": [
+    {
+      "carbonIntensity": 0.0083745858529086,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-07-01",
+      "latestMonthEmissions": 408.963998999381,
+      "monthOverMonthEmissionsChangeRatio": 0.0,
+      "monthlyEmissionsChangeValue": 0.0,
+      "previousMonthEmissions": 408.963998999381
+    },
+    {
+      "carbonIntensity": 0.008193617860633936,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-08-01",
+      "latestMonthEmissions": 395.19753787336094,
+      "monthOverMonthEmissionsChangeRatio": -0.033661792137456265,
+      "monthlyEmissionsChangeValue": -13.766461126020033,
+      "previousMonthEmissions": 408.963998999381
+    },
+    {
+      "carbonIntensity": 0.00793771554689818,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-09-01",
+      "latestMonthEmissions": 437.49918804876404,
+      "monthOverMonthEmissionsChangeRatio": 0.10703925536337336,
+      "monthlyEmissionsChangeValue": 42.3016501754031,
+      "previousMonthEmissions": 395.19753787336094
+    },
+    {
+      "carbonIntensity": 0.007226336164571938,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-10-01",
+      "latestMonthEmissions": 409.6772587304316,
+      "monthOverMonthEmissionsChangeRatio": -0.06359309932074975,
+      "monthlyEmissionsChangeValue": -27.821929318332423,
+      "previousMonthEmissions": 437.49918804876404
+    },
+    {
+      "carbonIntensity": 0.006628668218262446,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-11-01",
+      "latestMonthEmissions": 377.2314018855378,
+      "monthOverMonthEmissionsChangeRatio": -0.07919857925588013,
+      "monthlyEmissionsChangeValue": -32.4458568448938,
+      "previousMonthEmissions": 409.6772587304316
+    },
+    {
+      "carbonIntensity": 0.006596624282079458,
+      "dataType": "MonthlySummaryData",
+      "date": "2025-12-01",
+      "latestMonthEmissions": 389.83637997486596,
+      "monthOverMonthEmissionsChangeRatio": 0.033414445420831725,
+      "monthlyEmissionsChangeValue": 12.604978089328142,
+      "previousMonthEmissions": 377.2314018855378
+    },
+    {
+      "carbonIntensity": 0.006634924036756007,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-01-01",
+      "latestMonthEmissions": 426.56211629963815,
+      "monthOverMonthEmissionsChangeRatio": 0.09420807859733361,
+      "monthlyEmissionsChangeValue": 36.725736324772186,
+      "previousMonthEmissions": 389.83637997486596
+    },
+    {
+      "carbonIntensity": 0.006824141226338215,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-02-01",
+      "latestMonthEmissions": 458.1037006633731,
+      "monthOverMonthEmissionsChangeRatio": 0.07394370751287861,
+      "monthlyEmissionsChangeValue": 31.541584363734955,
+      "previousMonthEmissions": 426.56211629963815
+    },
+    {
+      "carbonIntensity": 0.005967694771302361,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-03-01",
+      "latestMonthEmissions": 382.14356342958587,
+      "monthOverMonthEmissionsChangeRatio": -0.16581428424129843,
+      "monthlyEmissionsChangeValue": -75.96013723378724,
+      "previousMonthEmissions": 458.1037006633731
+    },
+    {
+      "carbonIntensity": 0.005671795289262344,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-04-01",
+      "latestMonthEmissions": 406.5837164462423,
+      "monthOverMonthEmissionsChangeRatio": 0.0639554224001991,
+      "monthlyEmissionsChangeValue": 24.44015301665644,
+      "previousMonthEmissions": 382.14356342958587
+    },
+    {
+      "carbonIntensity": 0.005369850407683393,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-05-01",
+      "latestMonthEmissions": 369.4880203202572,
+      "monthOverMonthEmissionsChangeRatio": -0.09123753516304393,
+      "monthlyEmissionsChangeValue": -37.095696125985114,
+      "previousMonthEmissions": 406.5837164462423
+    },
+    {
+      "carbonIntensity": 0.005093332841269954,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-06-01",
+      "latestMonthEmissions": 375.49890883634924,
+      "monthOverMonthEmissionsChangeRatio": 0.016268155354217054,
+      "monthlyEmissionsChangeValue": 6.010888516092052,
+      "previousMonthEmissions": 369.4880203202572
+    },
+    {
+      "carbonIntensity": 0.0056851536646328645,
+      "dataType": "MonthlySummaryData",
+      "date": "2026-07-01",
+      "latestMonthEmissions": 469.8075466980677,
+      "monthOverMonthEmissionsChangeRatio": 0.25115555769249986,
+      "monthlyEmissionsChangeValue": 94.30863786171847,
+      "previousMonthEmissions": 375.49890883634924
+    }
+  ]
+}

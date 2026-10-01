@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-09-16T10:00:00Z",
+  "emissionsUnit": "kgCO2e",
+  "carbonScope": "da confermare",
+  "subscriptions": [
+    {
+      "slug": "pagopa-platform",
+      "name": "pagoPA platform",
+      "file": "pagopa-platform/latest.json"
+    },
+    {
+      "slug": "pari",
+      "name": "PARI",
+      "file": "pari/latest.json",
+      "synthetic": true
+    },
+    {
+      "slug": "piattaforma-unitaria",
+      "name": "Piattaforma Unitaria",
+      "file": "piattaforma-unitaria/latest.json",
+      "synthetic": true
+    }
+  ],
+  "equivalences": {
+    "verified": false,
+    "source": "https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator",
+    "note": "Coefficienti da riverificare sul calcolatore EPA corrente prima di qualunque pubblicazione. Finche' verified e' false la UI non li mostra.",
+    "items": [
+      {
+        "id": "smartphone-charged",
+        "label": "smartphone caricati",
+        "kgCO2ePerUnit": 0.00822
+      },
+      {
+        "id": "km-driven",
+        "label": "km in auto a benzina",
+        "kgCO2ePerUnit": 0.2486
+      },
+      {
+        "id": "tree-seedlings",
+        "label": "alberi cresciuti per 10 anni",
+        "kgCO2ePerUnit": 60.0
+      }
+    ]
+  }
+}
