@@ -59,6 +59,7 @@ module "monitoring_function" {
     api_dot_env_name                         = var.env == "prod" ? "api" : "api.${var.env}"
     env_dot                                  = var.env == "prod" ? "" : "${var.env}."
     internal_api_domain_prefix               = "weu${var.env}"
+    itn_internal_api_domain_prefix           = "itn${var.env}"
     internal_api_domain_suffix               = var.env == "prod" ? "internal.platform.pagopa.it" : "internal.${var.env}.platform.pagopa.it"
     nodo_subscription_key                    = nonsensitive(module.secret_core.values["synthetic-monitoring-nodo-subscription-key"].value)
     ndp_pagopa_subscription_key              = nonsensitive(module.secret_core.values["synthetic-monitoring-ndp-pagopa-subscription-key"].value),
@@ -69,9 +70,12 @@ module "monitoring_function" {
     verify_payment_internal_expected_outcome = var.verify_payment_internal_expected_outcome
     nexi_node_ip_postgres                    = var.nexi_node_ip_postgres
     fdr_enabled                              = var.env == "prod" ? false : true
+    prod_only_enabled                        = var.env == "prod" ? true : false
     nexi_ndp_host_postgres                   = var.nexi_ndp_host_postgres
     nexi_ndphost_header                      = var.nexi_ndphost_header
     developers_action_group_ids              = jsonencode((can(data.azurerm_monitor_action_group.opsgenie[0]) ? [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id, data.azurerm_monitor_action_group.opsgenie[0].id] : [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id]))
+    ecommerce_action_group_ids               = jsonencode((can(data.azurerm_monitor_action_group.ecommerce_opsgenie[0]) ? [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id, data.azurerm_monitor_action_group.ecommerce_opsgenie[0].id] : [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id]))
+    payment_wallet_action_group_ids          = jsonencode((can(data.azurerm_monitor_action_group.payment_wallet_opsgenie[0]) ? [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id, data.azurerm_monitor_action_group.payment_wallet_opsgenie[0].id] : [data.azurerm_monitor_action_group.email.id, data.azurerm_monitor_action_group.slack.id]))
     nexi_postgres_enabled                    = var.enabled_resource.test_nexi_postgres
     checkout_cdn_endpoint                    = "https://${data.azurerm_cdn_frontdoor_endpoint.checkout_cdn_endpoint.host_name}"
     cloudo_action_group_ids                  = jsonencode([data.azurerm_monitor_action_group.cloudo.id]),
