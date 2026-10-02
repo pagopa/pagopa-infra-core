@@ -10,7 +10,6 @@ module "client_certificate" {
         subject                    = "CN=${local.forwarder_fqdn}",
         renewal_days_before_expiry = 60,
         validity_in_months         = 12
-        key_vault_id               = data.azurerm_key_vault.kv_nodo.id
         san_dns_names = [
           local.forwarder_fqdn,
           "www.${local.forwarder_fqdn}"
@@ -18,5 +17,7 @@ module "client_certificate" {
       }
     } : {}
   )
+  stable_promotion_ids = var.stable_promotion_ids
+
   tags = module.tag_config.tags
 }
