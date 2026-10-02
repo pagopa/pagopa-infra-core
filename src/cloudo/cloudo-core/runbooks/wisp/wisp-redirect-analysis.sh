@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
+
+# Read-only analysis of recent WISP redirect telemetry for ClouDo alerts.
 set -euo pipefail
 
+# Skip resolved alerts; fired alerts and manual runs continue.
 if [[ "${MONITOR_CONDITION:-}" == "Resolved" ]]; then
   echo "The WISP redirect availability alert is resolved. No analysis is required."
   exit 0
 fi
 
+# Select the Azure environment provided by ClouDo.
 ENV_SHORT="${CLOUDO_ENVIRONMENT_SHORT:-}"
 
 case "$ENV_SHORT" in
@@ -19,6 +23,7 @@ esac
 WORKSPACE_NAME="pagopa-${ENV_SHORT}-law"
 WORKSPACE_RESOURCE_GROUP="pagopa-${ENV_SHORT}-monitor-rg"
 
+# Use the ClouDo managed identity when no Azure session is available.
 if ! az account show >/dev/null 2>&1; then
   echo "Logging in to Azure with the ClouDo managed identity..."
   if [[ -n "${AZURE_CLIENT_ID:-}" ]]; then
@@ -28,6 +33,7 @@ if ! az account show >/dev/null 2>&1; then
   fi
 fi
 
+# Resolve the workspace ID required by the Log Analytics CLI.
 if ! WORKSPACE_ID="$(az monitor log-analytics workspace show \
   --resource-group "$WORKSPACE_RESOURCE_GROUP" \
   --workspace-name "$WORKSPACE_NAME" \
@@ -42,15 +48,56 @@ if [[ -z "$WORKSPACE_ID" ]]; then
   exit 1
 fi
 
-KQL_QUERY="$(cat <<'KQL'
+# Use the resource-specific APIM table when available, otherwise use the legacy table.
+if az monitor log-analytics query \
+  --workspace "$WORKSPACE_ID" \
+  --analytics-query "ApiManagementGatewayLogs | take 0 | project Url, ResponseCode, BackendUrl" \
+  --timespan PT1M \
+  --output json \
+  >/dev/null 2>&1; then
+
+  LOG_TABLE="ApiManagementGatewayLogs"
+
+  KQL_SOURCE="$(cat <<'KQL'
+ApiManagementGatewayLogs
+| where TimeGenerated >= ago(30m)
+| project
+    TimeGenerated,
+    RequestUrl = tostring(Url),
+    Code = tolong(ResponseCode),
+    BackendUrlValue = tostring(BackendUrl)
+KQL
+)"
+
+else
+  LOG_TABLE="AzureDiagnostics"
+
+  KQL_SOURCE="$(cat <<'KQL'
 AzureDiagnostics
 | where TimeGenerated >= ago(30m)
 | where Category == "GatewayLogs"
-| extend RequestPath = tolower(tostring(parse_url(url_s).Path))
-| where RequestPath == "/wisp-converter/redirect/api/v1/payments"
 | extend
-    Code = tolong(responseCode_d),
-    BackendPath = tolower(tostring(parse_url(backendUrl_s).Path))
+    LegacyUrl = tostring(column_ifexists("url_s", "")),
+    AlternativeUrl = tostring(column_ifexists("requestUri_s", "")),
+    LegacyCode = tolong(column_ifexists("responseCode_d", "")),
+    AlternativeCode = tolong(column_ifexists("httpStatusCode_d", "")),
+    LegacyBackendUrl = tostring(column_ifexists("backendUrl_s", ""))
+| project
+    TimeGenerated,
+    RequestUrl = coalesce(LegacyUrl, AlternativeUrl),
+    Code = coalesce(LegacyCode, AlternativeCode),
+    BackendUrlValue = LegacyBackendUrl
+KQL
+)"
+fi
+
+# Reproduce the alert logic and add response details for on-call analysis.
+KQL_QUERY="$(cat <<KQL
+${KQL_SOURCE}
+| where isnotempty(RequestUrl)
+| extend RequestPath = tolower(tostring(parse_url(RequestUrl).Path))
+| where RequestPath == "/wisp-converter/redirect/api/v1/payments"
+| extend BackendPath = tolower(tostring(parse_url(BackendUrlValue).Path))
 | summarize
     Requests = count(),
     Redirect302 = countif(Code == 302),
@@ -61,18 +108,15 @@ AzureDiagnostics
     OtherCodes = countif(Code !in (200, 302))
     by TimeSlot = bin(TimeGenerated, 5m)
 | extend
-    RedirectAvailability = round(100.0 * todouble(Redirect302) / Requests, 2),
-    ExpectedAvailability = round(
+    RedirectAvailability = 100.0 * todouble(Redirect302) / Requests,
+    ExpectedAvailability = iff(
+      Requests >= 500,
+      95.0,
       iff(
-        Requests >= 500,
-        95.0,
-        iff(
-          Requests <= 100,
-          50.0,
-          (todouble(Requests - 100) / 400.0 * 45.0) + 50.0
-        )
-      ),
-      2
+        Requests <= 100,
+        50.0,
+        (todouble(Requests - 100) / 400.0 * 45.0) + 50.0
+      )
     )
 | extend BelowThreshold = Requests > 10 and RedirectAvailability < ExpectedAvailability
 | order by TimeSlot asc
@@ -84,6 +128,9 @@ AzureDiagnostics
     BelowThreshold
     and PreviousBelowThreshold
     and datetime_diff("minute", TimeSlot, PreviousTimeSlot) == 5
+| extend
+    RedirectAvailability = round(RedirectAvailability, 2),
+    ExpectedAvailability = round(ExpectedAvailability, 2)
 | project
     TimeSlot,
     Requests,
@@ -104,10 +151,12 @@ KQL
 echo "WISP redirect diagnostic analysis"
 echo "Environment: ${ENV_SHORT}"
 echo "Workspace: ${WORKSPACE_NAME}"
+echo "Log table: ${LOG_TABLE}"
 echo "Endpoint: /wisp-converter/redirect/api/v1/payments"
 echo "Observation window: 30 minutes"
 echo
 
+# Print the diagnostic report in the ClouDo execution output.
 if ! QUERY_OUTPUT="$(az monitor log-analytics query \
   --workspace "$WORKSPACE_ID" \
   --analytics-query "$KQL_QUERY" \
