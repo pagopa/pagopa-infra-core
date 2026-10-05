@@ -14,6 +14,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
   daily_quota_gb                     = var.law_daily_quota_gb
   reservation_capacity_in_gb_per_day = var.env_short == "p" ? 100 : null
   allow_resource_only_permissions    = var.env_short != "p"
+  data_collection_rule_id            = azurerm_monitor_data_collection_rule.dcr_core.id
 
   tags = module.tag_config.tags
 
@@ -346,4 +347,33 @@ resource "azurerm_monitor_diagnostic_setting" "activity_log" {
   enabled_log {
     category = "Alert"
   }
+}
+
+#ISSUE: https://github.com/hashicorp/terraform-provider-azurerm/issues/25671#issuecomment-2830115549
+resource "azurerm_monitor_data_collection_rule" "dcr_core" {
+  name                = "${local.project}-dcr"
+  resource_group_name = azurerm_resource_group.monitor_rg.name
+  location            = var.location
+  kind                = "WorkspaceTransforms"
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = "${azurerm_resource_group.monitor_rg.id}/providers/Microsoft.OperationalInsights/workspaces/${local.product}-law"
+      name                  = "${local.project}-dcr"
+    }
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-ContainerInventory"]
+    destinations  = ["${local.project}-dcr"]
+    transform_kql = "source | project-away EnvironmentVar, Command, Links, Repository, ContainerHostname"
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-Perf"]
+    destinations  = ["${local.project}-dcr"]
+    transform_kql = "source | where ObjectName != \"K8SContainer\""
+  }
+
+  tags = module.tag_config.tags
 }
