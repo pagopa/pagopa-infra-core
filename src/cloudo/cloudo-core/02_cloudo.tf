@@ -56,6 +56,10 @@ module "cloudo" {
       role  = "Contributor"
       scope = data.azurerm_resource_group.network_rg.id
     },
+    {
+      role  = "Carbon Optimization Reader"
+      scope = data.azurerm_subscription.current.id
+    }
   ]
 
   key_vaults_integration = {
