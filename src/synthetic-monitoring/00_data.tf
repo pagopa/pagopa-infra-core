@@ -25,6 +25,18 @@ data "azurerm_monitor_action_group" "opsgenie" {
   name                = local.monitor_action_group_opsgenie_name
 }
 
+data "azurerm_monitor_action_group" "ecommerce_opsgenie" {
+  count               = var.env_short == "p" ? 1 : 0
+  resource_group_name = "${local.ecommerce_project}-alerts-rg"
+  name                = local.monitor_action_group_ecommerce_opsgenie_name
+}
+
+data "azurerm_monitor_action_group" "payment_wallet_opsgenie" {
+  count               = var.env_short == "p" ? 1 : 0
+  resource_group_name = "${local.payment_wallet_project}-alerts-rg"
+  name                = local.monitor_action_group_payment_wallet_opsgenie_name
+}
+
 data "azurerm_monitor_action_group" "cloudo" {
   resource_group_name = local.cloudo_action_group_rg_name
   name                = local.monitor_action_group_cloudo_name
