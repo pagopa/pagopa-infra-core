@@ -32,7 +32,7 @@ monitor_appinsights_name                    = "pagopa-d-appinsights"
 #
 aks_private_cluster_enabled  = false
 aks_alerts_enabled           = false
-aks_kubernetes_version       = "1.34.1"
+aks_kubernetes_version       = "1.35.8"
 aks_enable_workload_identity = true
 
 aks_system_node_pool = {
@@ -71,4 +71,18 @@ non_critical_nodepool = {
   idh_tier = "Standard_B4ms_noncore",
   min_size = 1,
   max_size = 3,
+}
+
+
+aks_foobar_user_node_pool_configuration = {
+  enabled         = true,
+  tier            = "Standard_B8ms"
+  name            = "user"
+  node_count_min  = 1,
+  node_count_max  = 3,
+  node_labels     = { node_name : "aks-leonardo-user", node_type : "user" },
+  node_taints     = [],
+  node_tags       = {}
+  os_disk_type    = "Managed",
+  os_disk_size_gb = 75,
 }

@@ -36,7 +36,7 @@ aks_system_node_pool = {
 }
 
 aks_user_node_pool = {
-  enabled         = true
+  enabled         = false
   name            = "user01"
   vm_size         = "Standard_B8ms"
   os_disk_type    = "Managed"
@@ -50,7 +50,7 @@ aks_user_node_pool = {
 
 aks_cidr_subnet = ["10.1.0.0/17"]
 
-aks_kubernetes_version = "1.34.1"
+aks_kubernetes_version = "1.35.8"
 
 
 ingress_min_replica_count        = "1"
@@ -135,3 +135,17 @@ non_critical_nodepool = {
   min_size = 1,
   max_size = 3,
 }
+
+aks_foobar_user_node_pool_configuration = {
+  enabled         = true,
+  tier            = "Standard_B8ms"
+  name            = "user"
+  node_count_min  = 4,
+  node_count_max  = 5,
+  node_labels     = { node_name : "aks-user-01", node_type : "user" }
+  node_taints     = [],
+  node_tags       = { node_tag_1 : "1" }
+  os_disk_type    = "Managed",
+  os_disk_size_gb = 300,
+}
+
