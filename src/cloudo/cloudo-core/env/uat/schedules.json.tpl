@@ -19,6 +19,15 @@
         "worker_pool": "generic",
         "enabled": true,
         "oncall": false
+      },
+      {
+        "name": "[carbon] Monthly emissions report",
+        "cron": "0 0 7 20 * *",
+        "runbook": "carbon/fetch_carbon_report.py",
+        "run_args": "--storage-account pagopauitncarbonfe",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false
       }
     ]
   }
