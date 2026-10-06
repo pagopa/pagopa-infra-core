@@ -18,6 +18,13 @@ module "carbon_cdn" {
     name = local.project
   }
 
+  custom_domains = {
+    "carbon.${var.env != "prod" ? "${var.env}." : ""}platform.pagopa.it" = {
+      dns_zone_name                = local.platform_dns_zone_name
+      dns_zone_resource_group_name = local.platform_dns_zone_resource_group_name
+    }
+  }
+
   storage_account = {
     enabled                  = true
     account_name             = "${local.project}fe"
@@ -63,7 +70,7 @@ module "carbon_cdn" {
       forwarding             = "MatchRequest"
       https_redirect         = true
       cache_behavior         = "IgnoreQueryString"
-      custom_domains         = []
+      custom_domains         = ["carbon.${var.env != "prod" ? "${var.env}." : ""}platform.pagopa.it"]
       rulesets               = ["CarbonGlobal"]
       enabled                = true
       link_to_default_domain = true
