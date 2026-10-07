@@ -49,9 +49,9 @@ variables:
   DOMAIN_NAME: client_certs
 
   ${{ if eq(parameters.CERTIFICATE, 'forwarder') }}:
-    CERTIFICATE_VALUE_DEV: 'forwarder.dev.platform.pagopa.it'
-    CERTIFICATE_VALUE_UAT: 'forwarder.uat.platform.pagopa.it'
-    CERTIFICATE_VALUE_PROD: 'forwarder.platform.pagopa.it'
+    CERTIFICATE_VALUE_DEV: 'forwarder-dev-platform-pagopa-it'
+    CERTIFICATE_VALUE_UAT: 'forwarder-uat-platform-pagopa-it'
+    CERTIFICATE_VALUE_PROD: 'forwarder-platform-pagopa-it'
 
   TF_VARS_DEV: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_DEV }}\":\"$(Build.BuildId)\"}"'
   TF_VARS_UAT: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_UAT }}\":\"$(Build.BuildId)\"}"'
