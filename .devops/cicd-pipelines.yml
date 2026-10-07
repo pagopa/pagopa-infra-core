@@ -1,0 +1,91 @@
+# only manual
+trigger: none
+pr: none
+
+parameters:
+  - name: 'DEV'
+    displayName: 'Run on DEV environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'UAT'
+    displayName: 'Run on UAT environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'PROD'
+    displayName: 'Run on PROD environment'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v6.9.0
+      endpoint: "io-azure-devops-github-ro"
+
+
+variables:
+  TIME_OUT: 15
+
+
+stages:
+  - stage: DEV
+    displayName: DEV cleanup
+    dependsOn: []
+    condition: and(succeeded(), eq(${{parameters.DEV}}, true))
+    pool:
+      name: '$(TF_POOL_NAME_DEV)'
+    jobs:
+      - job: apply_all_folders
+        displayName: Apply al folders in target env
+        strategy:
+          parallel: 1
+        timeoutInMinutes: ${{ variables.TIME_OUT }}
+        condition: succeeded()
+        steps:
+          - checkout: self
+            workspaceRepo: true
+          - template: ../azure-kubeconfig-generator/template.yaml
+            parameters:
+              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+              WORKINGDIR: '${{ parameters.WORKINGDIR }}'
+              AKS_NAME: '$(TF_DEV_AKS_NAME)'
+              AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
+              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
+              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+          - template: ../azure-kubeconfig-generator/template.yaml
+            parameters:
+              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+              WORKINGDIR: '${{ parameters.WORKINGDIR }}'
+              AKS_NAME: '$(TF_SECOND_DEV_AKS_NAME)'
+              AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
+              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
+              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+
+          - task: AzureCLI@2
+            displayName: "apply all folders"
+            inputs:
+              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+              scriptLocation: inlineScript
+              scriptType: bash
+              inlineScript: |
+                set -e
+                virtualenv venv
+                source venv/bin/activate
+                python3 .devops/templates/tf-apply-all.py dev
+
+
