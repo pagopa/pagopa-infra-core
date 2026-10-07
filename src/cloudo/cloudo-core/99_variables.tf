@@ -108,3 +108,14 @@ variable "cloudo_worker" {
   })
   description = "Configuration for the ClouDO worker container, including container image details and registry authentication."
 }
+
+variable "cloudo_agent" {
+  type = object({
+    image_name        = optional(string, "pagopa/cloudo-agent")
+    image_tag         = optional(string, "0.0.0")
+    registry_url      = optional(string, "https://ghcr.io")
+    registry_username = optional(string)
+    registry_password = optional(string)
+  })
+  description = "Configuration for the ClouDO agent container, including container image details and registry authentication."
+}

@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 module "cloudo" {
-  source = "git::https://github.com/pagopa/payments-ClouDO.git//src/core/iac?ref=994202c053c40660f2f721b518ab4ee34c7f3293" #0.26.0
+  source = "git::https://github.com/pagopa/payments-ClouDO.git//src/core/iac?ref=13d8b5c6ab068d8ed02bf7baa1580874e7ec4278" #0.28.1
 
   prefix                    = local.product
   product_name              = var.prefix
@@ -116,6 +116,16 @@ module "cloudo" {
     image_tag         = var.cloudo_ui.image_tag
     registry_url      = var.cloudo_ui.registry_url
     registry_username = var.cloudo_ui.registry_username
+    registry_password = data.azurerm_key_vault_secret.github_pat.value
+  }
+
+  cloudo_agent_enabled = var.env_short == "d" ? true : false
+
+  agent_image = {
+    image_name        = var.cloudo_agent.image_name
+    image_tag         = var.cloudo_agent.image_tag
+    registry_url      = var.cloudo_agent.registry_url
+    registry_username = var.cloudo_agent.registry_username
     registry_password = data.azurerm_key_vault_secret.github_pat.value
   }
 

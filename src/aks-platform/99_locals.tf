@@ -7,6 +7,8 @@ locals {
   monitor_action_group_slack_name    = "SlackPagoPA"
   monitor_action_group_email_name    = "PagoPA"
   monitor_action_group_opsgenie_name = "InfraOpsgenie"
+  monitor_action_group_cloudo_name   = "pagopa-${var.env_short}-cloudo-trigger"
+  monitor_action_group_cloudo_rg     = "pagopa-${var.env_short}-itn-cloudo-rg"
   monitor_appinsights_name           = "${local.product}-appinsights"
 
   vnet_name                = "${local.product}-vnet"

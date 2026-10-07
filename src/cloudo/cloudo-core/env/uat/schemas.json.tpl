@@ -13,6 +13,7 @@
         "runbook": "azure/application_gateway_info.sh",
         "run_args": "pagopa-u-app-gw pagopa-u-vnet-rg",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
         "tags": "application gateway,azure"
@@ -24,6 +25,7 @@
         "runbook": "cdn/checkout_cdn_check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
         "tags": "checkout,azure"
@@ -35,6 +37,7 @@
         "runbook": "cdn/cdn_to_apim_switch.sh",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": true,
         "tags": "checkout,azure"
@@ -46,6 +49,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -58,6 +62,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -70,6 +75,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -82,6 +88,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -94,6 +101,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -106,6 +114,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -118,6 +127,7 @@
         "runbook": "ndp/ndp-switch.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": true,
         "group": "ndp-dr-switch",
@@ -130,6 +140,7 @@
         "runbook": "carbon/fetch_carbon_report.py",
         "run_args": "--storage-account pagopauitncarbonfe",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
         "tags": "carbon,azure"
@@ -146,9 +157,10 @@
         "runbook": "aks/aks-deployments-rollout.sh",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
-        "tags": ""
+        "tags": "elastic"
       }
     ]
   }

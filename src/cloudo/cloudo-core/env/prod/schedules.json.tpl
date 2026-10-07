@@ -9,7 +9,8 @@
         "run_args": "C081WTLJHB8",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "core"
       },
       {
         "name": "FDR_ARCHIVE_MAINTENANCE_PROCESS",
@@ -18,7 +19,8 @@
         "run_args": "C084LL01EHX",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "core"
       },
       {
         "name": "[finops] Cost spike 7 days ",
@@ -27,7 +29,8 @@
         "run_args": "--days 7 -r 30 --top-types 30 --slack-team-id TQSBH3ZS4 --slack-bot-id B0C0X97T4UA --keyvault-name pagopa-p-itn-cloudo-kv --keyvault-slack-token finops-slack-token",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "infra"
       },
       {
         "name": "[finops] Cost spike 30 days ",
@@ -36,7 +39,8 @@
         "run_args": "--days 30 -r 30 --top-types 30 --slack-team-id TQSBH3ZS4 --slack-bot-id B0C0X97T4UA --keyvault-name pagopa-p-itn-cloudo-kv --keyvault-slack-token finops-slack-token",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "infra"
       }
     ]
   }

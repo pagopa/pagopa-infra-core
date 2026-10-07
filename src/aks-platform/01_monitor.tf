@@ -27,3 +27,8 @@ data "azurerm_monitor_action_group" "opsgenie" {
   resource_group_name = var.monitor_resource_group_name
   name                = local.monitor_action_group_opsgenie_name
 }
+
+data "azurerm_monitor_action_group" "cloudo" {
+  resource_group_name = local.monitor_action_group_cloudo_rg
+  name                = local.monitor_action_group_cloudo_name
+}
