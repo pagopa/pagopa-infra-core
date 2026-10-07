@@ -119,7 +119,7 @@ module "cloudo" {
     registry_password = data.azurerm_key_vault_secret.github_pat.value
   }
 
-  cloudo_agent_enabled = var.env_short == "d" ? true : false
+  cloudo_agent_enabled = var.env_short != "u" ? true : false
 
   agent_image = {
     image_name        = var.cloudo_agent.image_name
