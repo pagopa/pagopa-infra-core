@@ -79,7 +79,8 @@ module "prometheus_managed_addon" {
   action_groups_id = flatten([
     [
       data.azurerm_monitor_action_group.slack.id,
-      data.azurerm_monitor_action_group.email.id
+      data.azurerm_monitor_action_group.email.id,
+      data.azurerm_monitor_action_group.cloudo.id
     ],
     (var.env == "prod" ? [
       data.azurerm_monitor_action_group.opsgenie.0.id

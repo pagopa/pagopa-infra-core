@@ -33,3 +33,11 @@ cloudo_worker = {
   registry_url      = "https://ghcr.io"
   registry_username = "payments-cloud-bot"
 }
+
+# ClouDO agent parameters
+cloudo_agent = {
+  image_name        = "pagopa/cloudo-agent"
+  image_tag         = "0.0.0"
+  registry_url      = "https://ghcr.io"
+  registry_username = "payments-cloud-bot"
+}

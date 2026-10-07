@@ -97,6 +97,10 @@ module "aks_leonardo" {
       {
         action_group_id    = data.azurerm_monitor_action_group.email.id
         webhook_properties = null
+      },
+      {
+        action_group_id    = data.azurerm_monitor_action_group.cloudo.id
+        webhook_properties = null
       }
     ],
     (var.env == "prod" ? [
