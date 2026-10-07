@@ -13,6 +13,7 @@
         "runbook": "azure/application_gateway_info.sh",
         "run_args": "pagopa-d-app-gw pagopa-d-vnet-rg",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
         "tags": "application gateway,azure"
@@ -24,6 +25,7 @@
         "runbook": "cdn/checkout_cdn_check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": false,
         "tags": "checkout,azure"
@@ -35,6 +37,7 @@
         "runbook": "cdn/cdn_to_apim_switch.sh",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": false,
         "require_approval": true,
         "tags": "checkout,azure"
@@ -46,6 +49,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -58,6 +62,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -70,6 +75,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -82,6 +88,7 @@
         "runbook": "ndp/ndp-check.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "require_approval": false,
         "group": "ndp-dr-check",
@@ -94,6 +101,7 @@
         "runbook": "ndp/ndp-switch.py",
         "run_args": "",
         "worker": "generic",
+        "team": "infra",
         "oncall": true,
         "enabled": true,
         "require_approval": true,
@@ -115,18 +123,7 @@
   },
   {
     "partition_key": "alert",
-    "entity": [
-    {
-      "id": "12345678-1234-1234-1234-1234567890ab",
-      "name": "Test action group ClouDO",
-      "description": "",
-      "runbook": "test.py",
-      "run_args": "-n 1000 --repeats 1000",
-      "worker": "generic",
-      "oncall": false,
-      "require_approval": false,
-      "tags": ""
-    }]
+    "entity": []
   },
   {
     "partition_key": "elastic",
@@ -138,6 +135,7 @@
       "runbook": "aks/aks-deployments-rollout.sh",
       "run_args": "",
       "worker": "generic",
+      "team": "infra",
       "oncall": false,
       "require_approval": false,
       "tags": ""
