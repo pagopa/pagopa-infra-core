@@ -134,7 +134,6 @@ def apply_folder(repo_path, folder, prefix, env):
     raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{prefix}-{env}" if prefix else env
-  print(f"\n{bcolors.SECTION} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
@@ -144,11 +143,13 @@ def main():
   azure_login()
   failed_folders = []
   skipped_folders = []
-  for folder, config in ordered_folders.items():
+  total_folders = len(ordered_folders)
+  for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
+        print(f"\n{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
         apply_folder(repo_path, folder, config['prefix'], env)
-        print(f"{bcolors.OK} Successfully applied folder '{folder}' {bcolors.ENDC}")
+        print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
       except Exception as e:
         failed_folders.append((folder, str(e)))
         print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
