@@ -11,7 +11,22 @@ ordered_folders = {
 
 
 def azure_login():
-  print("Logging into Azure...")
+  # In Azure DevOps AzureCLI@2 the session is already authenticated (usually via service connection).
+  # Reuse that session and only fallback to Managed Identity when explicitly requested.
+  try:
+    run_command(['az', 'account', 'show'])
+    print("Azure CLI session already authenticated.")
+    return
+  except subprocess.CalledProcessError:
+    pass
+
+  if os.environ.get('FORCE_AZ_LOGIN_IDENTITY', '').lower() != 'true':
+    raise RuntimeError(
+      "Azure CLI is not authenticated. Run this script inside an AzureCLI@2 task or set "
+      "FORCE_AZ_LOGIN_IDENTITY=true to use managed identity login."
+    )
+
+  print("Logging into Azure with Managed Identity...")
   client_id = os.environ.get('AZURE_CLIENT_ID')
   cmd = ['az', 'login', '--identity']
   if client_id:
