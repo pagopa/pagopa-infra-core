@@ -6,6 +6,8 @@ import sys
 ENV = os.environ.get('ENV', 'dev')
 
 ordered_folders = {
+  "network/network-secrets": { "prefix": ""},
+  "network/network-secrets": { "prefix": ""},
   "network/network-secrets": { "prefix": ""}
 }
 
@@ -112,11 +114,11 @@ def main():
   env = sys.argv[1]
   repo_path = "."
   azure_login()
-  try:
-    for folder, config in ordered_folders.items():
+  for folder, config in ordered_folders.items():
+    try:
       apply_folder(repo_path, folder, config['prefix'], env)
-  finally:
-    pass  # No cleanup needed
+    except Exception as e:
+      print(f"Error applying folder '{folder}': {e}")
 
 
 if __name__ == '__main__':
