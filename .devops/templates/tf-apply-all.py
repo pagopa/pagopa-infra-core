@@ -4,15 +4,12 @@ import subprocess
 import sys
 
 class bcolors:
-  HEADER = '\033[95m'
-  OKBLUE = '\033[94m'
-  OKCYAN = '\033[96m'
-  OKGREEN = '\033[92m'
-  WARNING = '\033[93m'
-  FAIL = '\033[91m'
+  SECTION = '\033[1;34;47m'
+  INFO = '\033[0;37;44m'
+  WARN = '\033[0;30;43m'
+  ERROR = '\033[0;37;41m'
+  OK = '\033[1;37;42m'
   ENDC = '\033[0m'
-  BOLD = '\033[1m'
-  UNDERLINE = '\033[4m'
 
 ordered_folders = {
   "core": { "prefix": ""},
@@ -120,10 +117,10 @@ def patch_terraform_script(repo_path):
   patched_block = re.sub(r'^[ \t]*check_arguments[ \t]*\n', '', original_block, count=1, flags=re.MULTILINE)
 
   if patched_block == original_block:
-    print(f"{bcolors.WARNING} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
+    print(f"{bcolors.WARN} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
     return
 
-  print(f"{bcolors.OKCYAN} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
+  print(f"{bcolors.INFO} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
@@ -132,10 +129,10 @@ def patch_terraform_script(repo_path):
 def apply_folder(repo_path, folder, prefix, env):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
-    raise FileNotFoundError(f" {bcolors.WARNING} Folder not found: {folder_path} {bcolors.ENDC}")
+    raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{prefix}-{env}" if prefix else env
-  print(f"\n{bcolors.HEADER} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
+  print(f"\n{bcolors.SECTION} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
@@ -148,17 +145,17 @@ def main():
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
         apply_folder(repo_path, folder, config['prefix'], env)
-        print(f"{bcolors.OKGREEN} Successfully applied folder '{folder}' {bcolors.ENDC}")
+        print(f"{bcolors.OK} Successfully applied folder '{folder}' {bcolors.ENDC}")
       except Exception as e:
         failed_folders.append((folder, str(e)))
-        print(f"{bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+        print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
     else:
-      print(f"{bcolors.OKCYAN} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
+      print(f"{bcolors.INFO} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
 
   if failed_folders:
-    print(f"\n{bcolors.FAIL} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
+    print(f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
     for folder, error in failed_folders:
-      print(f"{bcolors.FAIL} - {folder}: {error} {bcolors.ENDC}")
+      print(f"{bcolors.ERROR} - {folder}: {error} {bcolors.ENDC}")
 
 if __name__ == '__main__':
   main()
