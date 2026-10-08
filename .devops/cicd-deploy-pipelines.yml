@@ -78,7 +78,7 @@ stages:
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
 
           - task: AzureCLI@2
-            displayName: "apply all folders"
+            displayName: "Apply all folders"
             inputs:
               azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
               addSpnToEnvironment: true
