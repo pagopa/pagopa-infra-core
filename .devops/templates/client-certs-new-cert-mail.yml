@@ -44,7 +44,7 @@ stages:
               azureSubscription: ${{ parameters.SC_NAME }}
               scriptType: bash
               scriptLocation: inlineScript
-              # send-mail reads the attachment from here
+              # send-mail reads the attachments from here, by file name
               workingDirectory: $(System.DefaultWorkingDirectory)
               inlineScript: |
                 set -euo pipefail
@@ -64,12 +64,12 @@ stages:
                   --name "${{ parameters.CA_CERT_NAME }}" \
                   --encoding PEM --file ca.pem
 
-                mkdir -p chains
+                attachments=""
                 rows=""
                 names=""
                 while read -r cert_name key_vault_name; do
                   echo "==> Building chain of '$cert_name' from $key_vault_name..."
-                  chain_file="chains/$cert_name-chain.pem"
+                  chain_file="$cert_name-chain.pem"
                   az keyvault certificate download \
                     --vault-name "$key_vault_name" \
                     --name "$cert_name" \
@@ -77,20 +77,18 @@ stages:
                   cat leaf.pem ca.pem > "$chain_file"
                   rm -f leaf.pem
 
+                  subject=$(openssl x509 -in "$chain_file" -noout -subject -nameopt RFC2253 | sed 's/^subject=//')
                   serial=$(openssl x509 -in "$chain_file" -noout -serial | cut -d= -f2)
                   not_after=$(openssl x509 -in "$chain_file" -noout -enddate | cut -d= -f2)
                   thumbprint=$(openssl x509 -in "$chain_file" -noout -fingerprint -sha1 | cut -d= -f2 | tr -d ':')
 
                   names="${names:+$names, }$cert_name"
-                  rows="$rows<tr><td><b>$cert_name</b></td><td>$key_vault_name</td><td>$serial</td><td>$thumbprint</td><td>$not_after</td></tr>"
+                  attachments="${attachments:+$attachments,}$chain_file"
+                  rows="$rows<tr><td><b>$cert_name</b></td><td>$subject</td><td>$key_vault_name</td><td>$serial</td><td>$thumbprint</td><td>$not_after</td></tr>"
                 done <<< "$certs"
                 rm -f ca.pem
 
-                # send-mail attaches a single file: all the chains go in one zip
-                attachment="client-certs-${{ parameters.ENV }}-$(Build.BuildId).zip"
-                python3 -m zipfile -c "$attachment" chains/*
-
-                echo "##vso[task.setvariable variable=CHAINS_ZIP]$attachment"
+                echo "##vso[task.setvariable variable=CHAIN_FILES]$attachments"
                 echo "##vso[task.setvariable variable=CERT_ROWS]$rows"
                 echo "##vso[task.setvariable variable=CERT_NAMES]$names"
             env:
@@ -107,7 +105,7 @@ stages:
 
           - template: templates/send-mail/template.yaml@terraform
             parameters:
-              MAIL_SUBJECT: "[${{ upper(replace(parameters.ENV, '_auto', '')) }}] New Client certificate issued: $(CERT_NAMES)"
+              MAIL_SUBJECT: "[${{ upper(replace(parameters.ENV, '_auto', '')) }}] New CLIENT certificate issued: $(CERT_NAMES)"
               MAIL_BODY: |
                 <html>
                   <body>
@@ -117,6 +115,7 @@ stages:
                     <table border="1" cellpadding="4" cellspacing="0">
                       <tr>
                         <th>Name</th>
+                        <th>Subject</th>
                         <th>Key Vault</th>
                         <th>Serial</th>
                         <th>SHA-1 thumbprint</th>
@@ -132,4 +131,4 @@ stages:
               SENDER_EMAIL: "$(CLIENT_CERTS_MAIL_SENDER)"
               RECEIVER_EMAIL: "$(CLIENT_CERTS_MAIL_RECEIVERS)"
               APP_PASS: "$(CLIENT_CERTS_MAIL_APP_PASS)"
-              ATTACHMENTS_COMMA_SEP: "$(CHAINS_ZIP)"
+              ATTACHMENTS_COMMA_SEP: "$(CHAIN_FILES)"
