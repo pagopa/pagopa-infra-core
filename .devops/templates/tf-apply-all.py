@@ -15,9 +15,29 @@ class bcolors:
   UNDERLINE = '\033[4m'
 
 ordered_folders = {
+  "core": { "prefix": ""},
+  "next-core/next-core-common": { "prefix": ""},
+  "next-core/next-core-secrets": { "prefix": ""},
+  "core-itn/core-itn-secrets": {"prefix": ""},
+  "core-itn/core-itn-common": {"prefix": ""},
   "network/network-secrets": { "prefix": ""},
+  "network/network-common": { "prefix": ""},
+  "aks-platform": { "prefix": "weu"},
+  "next-aks": { "prefix": ""},
+  "aks-leonardo": { "prefix": "itn"},
+  "packer": { "prefix": ""},
+  "synthetic-monitoring": { "prefix": "weu"},
+  "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
+  "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
+  "audit-logs": { "prefix": "" },
+  "client-certs": { "prefix": "" },
+  "continuos-platform-alerting": { "prefix": "" },
+  "grafana-monitoring": { "prefix": "weu" },
+  "release-notes-agent/rn-agent-secrets": { "prefix": "" },
+  "release-notes-agent/rn-agent-common": { "prefix": "" },
   "cloudo/cloudo-secrets": { "prefix": ""},
-  "core-itn/core-itn-secrets": { "prefix": ""},
+  "cloudo/cloudo-core": { "prefix": ""},
+  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
 }
 
 
@@ -114,7 +134,7 @@ def apply_folder(repo_path, folder, prefix, env):
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f" {bcolors.WARNING} Folder not found: {folder_path} {bcolors.ENDC}")
 
-  env_name = f"{prefix}{env}"
+  env_name = f"{prefix}-{env}"
   print(f"\n{bcolors.OKBLUE} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
@@ -124,11 +144,13 @@ def main():
   repo_path = "."
   azure_login()
   for folder, config in ordered_folders.items():
-    try:
-      apply_folder(repo_path, folder, config['prefix'], env)
-    except Exception as e:
-      print(f"{bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
-
+    if env in config.get('limit_env', ["dev", "uat", "prod"]):
+      try:
+        apply_folder(repo_path, folder, config['prefix'], env)
+      except Exception as e:
+        print(f"{bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+    else:
+      print(f"{bcolors.OKCYAN} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
 
 if __name__ == '__main__':
   main()
