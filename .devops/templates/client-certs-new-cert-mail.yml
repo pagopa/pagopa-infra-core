@@ -1,0 +1,116 @@
+parameters:
+  - name: 'ENV'
+    displayName: 'Azure devops ENV name'
+    type: string
+  - name: 'DEFINITION_NAME'
+    displayName: 'Definition name'
+    type: string
+  - name: 'POOL_NAME'
+    type: string
+  - name: 'SC_NAME'
+    displayName: 'Azure service connection allowed to read the certificates'
+    type: string
+  - name: 'CA_KEY_VAULT_NAME'
+    displayName: 'Key Vault holding the root CA'
+    type: string
+  - name: 'CA_CERT_NAME'
+    type: string
+    default: 'private-root-ca'
+  - name: 'TIME_OUT'
+    type: number
+    default: 15
+
+stages:
+  # The apply stage and its deployment job share the same name
+  - stage: ${{ parameters.ENV }}_new_cert_mail_${{ parameters.DEFINITION_NAME }}
+    displayName: ${{ parameters.ENV }}_new_cert_mail_${{ parameters.DEFINITION_NAME }}
+    dependsOn: ['${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module']
+    condition: succeeded()
+    pool:
+      name: ${{ parameters.POOL_NAME }}
+    jobs:
+      - job: new_cert_mail
+        timeoutInMinutes: ${{ parameters.TIME_OUT }}
+        variables:
+          CREATED_ADDRESSES: $[ stageDependencies.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.outputs['${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.TfPublish.CREATED_ADDRESSES'] ]
+          CERT_KEY_VAULTS: $[ stageDependencies.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.outputs['${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.TfPublish.OUTPUT'] ]
+        # Runs only when the apply created or replaced a certificate
+        condition: and(succeeded(), contains(stageDependencies.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.outputs['${{ parameters.ENV }}_apply_${{ parameters.DEFINITION_NAME }}_module.TfPublish.CREATED_ADDRESSES'], '.client_cert_sign['))
+        steps:
+          - checkout: none
+          - task: AzureCLI@2
+            displayName: 'Build new certificates chain'
+            inputs:
+              azureSubscription: ${{ parameters.SC_NAME }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              # send-mail reads the attachment from here
+              workingDirectory: $(System.DefaultWorkingDirectory)
+              inlineScript: |
+                set -euo pipefail
+
+                # module.<m>.terraform_data.client_cert_sign["<name>"] -> "<name> <key vault>"
+                certs=$(python3 -c '
+                import json, os, re
+                key_vaults = json.loads(os.environ["CERT_KEY_VAULTS"])
+                for address in json.loads(os.environ["CREATED_ADDRESSES"]):
+                    m = re.search(r"\.client_cert_sign\[\"(.+)\"\]$", address)
+                    if m:
+                        print(m.group(1), key_vaults[m.group(1)])
+                ')
+
+                az keyvault certificate download \
+                  --vault-name "${{ parameters.CA_KEY_VAULT_NAME }}" \
+                  --name "${{ parameters.CA_CERT_NAME }}" \
+                  --encoding PEM --file ca.pem
+
+                mkdir -p chains
+                rows=""
+                while read -r cert_name key_vault_name; do
+                  echo "==> Building chain of '$cert_name' from $key_vault_name..."
+                  chain_file="chains/$cert_name-chain.pem"
+                  az keyvault certificate download \
+                    --vault-name "$key_vault_name" \
+                    --name "$cert_name" \
+                    --encoding PEM --file leaf.pem
+                  cat leaf.pem ca.pem > "$chain_file"
+                  rm -f leaf.pem
+
+                  serial=$(openssl x509 -in "$chain_file" -noout -serial | cut -d= -f2)
+                  not_after=$(openssl x509 -in "$chain_file" -noout -enddate | cut -d= -f2)
+                  thumbprint=$(openssl x509 -in "$chain_file" -noout -fingerprint -sha1 | cut -d= -f2 | tr -d ':')
+
+                  rows="$rows<tr><td><b>$cert_name</b></td><td>$key_vault_name</td><td>$serial</td><td>$thumbprint</td><td>$not_after</td></tr>"
+                done <<< "$certs"
+                rm -f ca.pem
+
+                # send-mail attaches a single file: all the chains go in one zip
+                attachment="client-certs-${{ parameters.ENV }}-$(Build.BuildId).zip"
+                python3 -m zipfile -c "$attachment" chains/*
+
+                echo "##vso[task.setvariable variable=CHAINS_ZIP]$attachment"
+                echo "##vso[task.setvariable variable=CERT_ROWS]$rows"
+            env:
+              CREATED_ADDRESSES: $(CREATED_ADDRESSES)
+              CERT_KEY_VAULTS: $(CERT_KEY_VAULTS)
+
+          - template: templates/send-mail/template.yaml@terraform
+            parameters:
+              MAIL_SUBJECT: "[${{ parameters.ENV }}] New client certificates"
+              MAIL_BODY: |
+                <html>
+                  <body>
+                    <p>New client certificates have been issued in <b>${{ parameters.ENV }}</b>.</p>
+                    <table border="1" cellpadding="4" cellspacing="0">
+                      <tr><th>Name</th><th>Key Vault</th><th>Serial</th><th>SHA-1 thumbprint</th><th>Valid until</th></tr>
+                      $(CERT_ROWS)
+                    </table>
+                    <p>The full chains (certificate + root CA) are attached.</p>
+                    <p>Clients still use the stable certificates: run the promotion pipeline to promote them.</p>
+                    <p>Run: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)</p>
+                  </body>
+                </html>
+              SENDER_EMAIL: "$(CLIENT_CERTS_MAIL_SENDER)"
+              RECEIVER_EMAIL: "$(CLIENT_CERTS_MAIL_RECEIVERS)"
+              APP_PASS: "$(CLIENT_CERTS_MAIL_APP_PASS)"
+              ATTACHMENTS_COMMA_SEP: "$(CHAINS_ZIP)"

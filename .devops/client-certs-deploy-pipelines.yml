@@ -33,7 +33,7 @@ resources:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: 9d95100cba190b37bed0e6fbb57052723dcc9544 # refs/tags/v6.17.6
+      ref: refs/heads/expose-output-tfplanapply # refs/tags/v6.19.0
       endpoint: "io-azure-devops-github-ro"
 
 variables:
@@ -54,6 +54,15 @@ stages:
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_DEV)'
         SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
         POOL_NAME: '$(TF_POOL_NAME_DEV)'
+        PUBLISH_CREATED_ADDRESSES: true
+        PUBLISH_OUTPUT: 'client_certificates_key_vaults'
+    - template: './templates/client-certs-new-cert-mail.yml'
+      parameters:
+        ENV: 'dev_auto'
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        POOL_NAME: '$(TF_POOL_NAME_DEV)'
+        SC_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+        CA_KEY_VAULT_NAME: 'pagopa-d-weu-core-ca-kv'
   #UAT
   - ${{ if eq(parameters['UAT'], true) }}:
     - template: './base-deploy-pipelines.yml'
@@ -65,6 +74,15 @@ stages:
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_UAT)'
         SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
         POOL_NAME: '$(TF_POOL_NAME_UAT)'
+        PUBLISH_CREATED_ADDRESSES: true
+        PUBLISH_OUTPUT: 'client_certificates_key_vaults'
+    - template: './templates/client-certs-new-cert-mail.yml'
+      parameters:
+        ENV: 'uat_auto'
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        POOL_NAME: '$(TF_POOL_NAME_UAT)'
+        SC_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
+        CA_KEY_VAULT_NAME: 'pagopa-u-weu-core-ca-kv'
   #PROD
   - ${{ if eq(parameters['PROD'], true) }}:
     - template: './base-deploy-pipelines.yml'
@@ -76,3 +94,12 @@ stages:
         SC_PLAN_NAME: '$(TF_AZURE_SERVICE_CONNECTION_PLAN_NAME_PROD)'
         SC_APPLY_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_PROD)'
         POOL_NAME: '$(TF_POOL_NAME_PROD)'
+        PUBLISH_CREATED_ADDRESSES: true
+        PUBLISH_OUTPUT: 'client_certificates_key_vaults'
+    - template: './templates/client-certs-new-cert-mail.yml'
+      parameters:
+        ENV: 'prod_auto'
+        DEFINITION_NAME: ${{ variables.DOMAIN_NAME }}
+        POOL_NAME: '$(TF_POOL_NAME_PROD)'
+        SC_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_PROD)'
+        CA_KEY_VAULT_NAME: 'pagopa-p-weu-core-ca-kv'
