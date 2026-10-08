@@ -105,7 +105,7 @@ def apply_folder(repo_path, folder, prefix, env):
 
   env_name = f"{prefix}{env}"
   print(f"\n=== Applying '{folder}' (env: {env_name}) in {folder_path} ===")
-  run_command_streaming(['./terraform.sh', 'plan', env_name, '-no-color'], cwd=folder_path)
+  run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
 def main():
