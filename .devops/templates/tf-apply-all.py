@@ -141,6 +141,7 @@ def main():
   repo_path = "."
   azure_login()
   failed_folders = []
+  skipped_folders = []
   for folder, config in ordered_folders.items():
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
@@ -150,12 +151,18 @@ def main():
         failed_folders.append((folder, str(e)))
         print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
     else:
+      skipped_folders.append(folder)
       print(f"{bcolors.INFO} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
 
   if failed_folders:
     print(f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
     for folder, error in failed_folders:
       print(f"{bcolors.ERROR} - {folder}: {error} {bcolors.ENDC}")
+
+  if skipped_folders:
+    print(f"\n{bcolors.INFO} === Skipped folders ({len(skipped_folders)}) === {bcolors.ENDC}")
+    for folder in skipped_folders:
+      print(f"{bcolors.INFO} - {folder} {bcolors.ENDC}")
 
 if __name__ == '__main__':
   main()
