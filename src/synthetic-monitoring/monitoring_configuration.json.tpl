@@ -1161,5 +1161,45 @@
       "alertConfiguration": {
         "enabled": ${alert_enabled}
       }
+  },
+  {
+    "apiName" : "certificate",
+    "appName" : "ecommerceJwtIssuerService",
+    "url" : "https://${internal_api_domain_prefix}.ecommerce.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=6",
+    "type" : "aks",
+    "checkCertificate" : ${prod_only_enabled},
+    "method" : "GET",
+    "expectedCodes" : ["200"],
+    "tags" : {
+      "description" : "pagopa ${env_name} eCommerce jwt issuer certificate status endpoint"
+    },
+    "durationLimit" : 10000,
+    "alertConfiguration" : {
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${ecommerce_action_group_ids},
+      "window_size" : "PT1H",
+      "threshold" : 99,
+      "operator" : "LessThanOrEqual"
+    }
+  },
+  {
+    "apiName" : "certificate",
+    "appName" : "payWalletJwtIssuerService",
+    "url" : "https://${itn_internal_api_domain_prefix}.pay-wallet.${internal_api_domain_suffix}/pagopa-jwt-issuer-service/tokens/certificates/jwt-token-issuer-cert-ec?validForDays=6",
+    "type" : "aks",
+    "checkCertificate" : ${prod_only_enabled},
+    "method" : "GET",
+    "expectedCodes" : ["200"],
+    "tags" : {
+      "description" : "pagopa ${env_name} payment wallet jwt issuer certificate status endpoint"
+    },
+    "durationLimit" : 10000,
+    "alertConfiguration" : {
+    "enabled" : ${alert_enabled},
+    "customActionGroupIds" : ${payment_wallet_action_group_ids},
+    "window_size" : "PT1H",
+    "threshold" : 99,
+    "operator" : "LessThanOrEqual"
   }
+}
 ]

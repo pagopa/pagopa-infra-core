@@ -40,12 +40,13 @@ Re-enable all the resource, commented before to complete the procedure
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 5a4d411fbc05d8666b741bb529c9aada16bf51ca |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | e01e9f4007a687ce0b35f017534b40965ff15bf3 |
 | <a name="module_aks_leonardo"></a> [aks\_leonardo](#module\_aks\_leonardo) | ./.terraform/modules/__v4__//kubernetes_cluster | n/a |
 | <a name="module_aks_prometheus_install"></a> [aks\_prometheus\_install](#module\_aks\_prometheus\_install) | ./.terraform/modules/__v4__//kubernetes_prometheus_install | n/a |
 | <a name="module_aks_storage_class"></a> [aks\_storage\_class](#module\_aks\_storage\_class) | ./.terraform/modules/__v4__//kubernetes_storage_class | n/a |
 | <a name="module_devops_service_account"></a> [devops\_service\_account](#module\_devops\_service\_account) | ./.terraform/modules/__v4__/kubernetes_service_account | n/a |
 | <a name="module_elastic_agent"></a> [elastic\_agent](#module\_elastic\_agent) | ./.terraform/modules/__v4__//elastic_agent | n/a |
+| <a name="module_foo_bar_user_node_pool"></a> [foo\_bar\_user\_node\_pool](#module\_foo\_bar\_user\_node\_pool) | ./.terraform/modules/__v4__/IDH/aks_node_pool | n/a |
 | <a name="module_haproxy_ingress"></a> [haproxy\_ingress](#module\_haproxy\_ingress) | ./.terraform/modules/__v4__/kubernetes_haproxy_ingress_controller | n/a |
 | <a name="module_keda_workload_identity_configuration"></a> [keda\_workload\_identity\_configuration](#module\_keda\_workload\_identity\_configuration) | ./.terraform/modules/__v4__//kubernetes_workload_identity_configuration | n/a |
 | <a name="module_keda_workload_identity_init"></a> [keda\_workload\_identity\_init](#module\_keda\_workload\_identity\_init) | ./.terraform/modules/__v4__//kubernetes_workload_identity_init | n/a |
@@ -104,6 +105,7 @@ Re-enable all the resource, commented before to complete the procedure
 | [azurerm_key_vault_secret.vm_debug_ssh_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_log_analytics_workspace.log_analytics](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/log_analytics_workspace) | data source |
 | [azurerm_log_analytics_workspace.log_analytics_italy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/log_analytics_workspace) | data source |
+| [azurerm_monitor_action_group.cloudo](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/monitor_action_group) | data source |
 | [azurerm_monitor_action_group.email](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/monitor_action_group) | data source |
 | [azurerm_monitor_action_group.opsgenie](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/monitor_action_group) | data source |
 | [azurerm_monitor_action_group.slack](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/monitor_action_group) | data source |
@@ -126,6 +128,7 @@ Re-enable all the resource, commented before to complete the procedure
 |------|-------------|------|---------|:--------:|
 | <a name="input_aks_alerts_enabled"></a> [aks\_alerts\_enabled](#input\_aks\_alerts\_enabled) | Aks alert enabled? | `bool` | `true` | no |
 | <a name="input_aks_enable_workload_identity"></a> [aks\_enable\_workload\_identity](#input\_aks\_enable\_workload\_identity) | n/a | `bool` | `false` | no |
+| <a name="input_aks_foobar_user_node_pool_configuration"></a> [aks\_foobar\_user\_node\_pool\_configuration](#input\_aks\_foobar\_user\_node\_pool\_configuration) | n/a | <pre>object({<br/>    enabled         = optional(bool, false),<br/>    tier            = string,<br/>    name            = optional(string, "user"),<br/>    node_count_min  = number,<br/>    node_count_max  = number,<br/>    node_labels     = map(any),<br/>    node_taints     = list(string),<br/>    node_tags       = map(any),<br/>    max_pods        = optional(number, 250),<br/>    os_disk_type    = string,<br/>    os_disk_size_gb = string<br/>  })</pre> | n/a | yes |
 | <a name="input_aks_kubernetes_version"></a> [aks\_kubernetes\_version](#input\_aks\_kubernetes\_version) | Kubernetes version of cluster aks | `string` | n/a | yes |
 | <a name="input_aks_private_cluster_enabled"></a> [aks\_private\_cluster\_enabled](#input\_aks\_private\_cluster\_enabled) | Enable or not public visibility of AKS | `bool` | `false` | no |
 | <a name="input_aks_sku_tier"></a> [aks\_sku\_tier](#input\_aks\_sku\_tier) | The SKU Tier that should be used for this Kubernetes Cluster. | `string` | `"Free"` | no |

@@ -97,6 +97,10 @@ module "aks_leonardo" {
       {
         action_group_id    = data.azurerm_monitor_action_group.email.id
         webhook_properties = null
+      },
+      {
+        action_group_id    = data.azurerm_monitor_action_group.cloudo.id
+        webhook_properties = null
       }
     ],
     (var.env == "prod" ? [
@@ -155,6 +159,49 @@ resource "azurerm_kubernetes_cluster_node_pool" "user_nodepool_default" {
       node_count
     ]
   }
+}
+
+
+module "foo_bar_user_node_pool" {
+  source = "./.terraform/modules/__v4__/IDH/aks_node_pool"
+  count  = var.aks_foobar_user_node_pool_configuration.enabled ? 1 : 0
+
+  product_name      = var.prefix
+  env               = var.env
+  idh_resource_tier = var.aks_foobar_user_node_pool_configuration.tier
+
+  os_disk_type    = var.aks_foobar_user_node_pool_configuration.os_disk_type
+  os_disk_size_gb = var.aks_foobar_user_node_pool_configuration.os_disk_size_gb
+
+
+  name                  = var.aks_foobar_user_node_pool_configuration.name
+  kubernetes_cluster_id = module.aks_leonardo.id
+  vnet_subnet_id        = azurerm_subnet.user_aks_subnet.id
+
+
+  node_count_min = var.aks_foobar_user_node_pool_configuration.node_count_min
+  node_count_max = var.aks_foobar_user_node_pool_configuration.node_count_max
+
+  max_pods = var.aks_foobar_user_node_pool_configuration.max_pods
+
+
+
+  double_node_pool = {
+    enabled = true
+    node_pool_foo = {
+      active = true
+    }
+    node_pool_bar = {
+      active = false
+    }
+  }
+
+  autoscale_enabled = true
+
+  node_labels = var.aks_foobar_user_node_pool_configuration.node_labels
+  node_tags   = var.aks_foobar_user_node_pool_configuration.node_tags
+  node_taints = var.aks_foobar_user_node_pool_configuration.node_taints
+  tags        = merge(module.tag_config.tags, var.aks_foobar_user_node_pool_configuration.node_tags)
 }
 
 #

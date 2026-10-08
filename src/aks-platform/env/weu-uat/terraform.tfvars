@@ -145,3 +145,17 @@ non_critical_nodepool = {
   min_size = 1,
   max_size = 3,
 }
+
+
+aks_foobar_user_node_pool_configuration = {
+  enabled         = false,
+  tier            = "Standard_D8ds_v5"
+  name            = "user"
+  node_count_min  = 4,
+  node_count_max  = 7,
+  node_labels     = { node_name : "aks-user-01", node_type : "user" },
+  node_taints     = [],
+  node_tags       = { node_tag_1 : "1" },
+  os_disk_type    = "Ephemeral",
+  os_disk_size_gb = 300,
+}

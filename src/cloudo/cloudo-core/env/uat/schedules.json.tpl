@@ -9,7 +9,8 @@
         "run_args": "--days 7 -r 30 --top-types 30 --slack-team-id TQSBH3ZS4 --slack-bot-id B0C0X97T4UA --keyvault-name pagopa-u-itn-cloudo-kv --keyvault-slack-token finops-slack-token",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "infra"
       },
       {
         "name": "[finops] Cost spike 30 days ",
@@ -18,7 +19,18 @@
         "run_args": "--days 30 -r 30 --top-types 30 --slack-team-id TQSBH3ZS4 --slack-bot-id B0C0X97T4UA --keyvault-name pagopa-u-itn-cloudo-kv --keyvault-slack-token finops-slack-token",
         "worker_pool": "generic",
         "enabled": true,
-        "oncall": false
+        "oncall": false,
+        "team": "infra"
+      },
+      {
+        "name": "[carbon] Monthly emissions report",
+        "cron": "0 0 7 20 * *",
+        "runbook": "carbon/fetch_carbon_report.py",
+        "run_args": "--storage-account pagopauitncarbonfe",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false,
+        "team": "infra"
       }
     ]
   }
