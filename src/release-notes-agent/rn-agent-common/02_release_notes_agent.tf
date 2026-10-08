@@ -41,5 +41,5 @@ module "rn_agent" {
   application_insights_name                   = local.application_insisght_name
   application_insights_resource_group_name    = local.monitor_resource_group_name
 
-
+  copilot_model = "gpt-6-luna"
 }
