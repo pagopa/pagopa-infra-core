@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 class bcolors:
-  SECTION = '\033[0:30;47m'
+  SECTION = '\033[0;30;47m'
   INFO = '\033[0;37;44m'
   WARN = '\033[0;30;43m'
   ERROR = '\033[0;37;41m'
