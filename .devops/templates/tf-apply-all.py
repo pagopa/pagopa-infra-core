@@ -10,6 +10,15 @@ ordered_folders = {
 }
 
 
+def azure_login():
+  print("Logging into Azure...")
+  client_id = os.environ.get('AZURE_CLIENT_ID')
+  cmd = ['az', 'login', '--identity']
+  if client_id:
+    cmd += ['--client-id', client_id]
+  run_command(cmd)
+
+
 def run_command(cmd, cwd=None, env=None):
   result = subprocess.run(
     cmd,
@@ -87,6 +96,7 @@ def apply_folder(repo_path, folder, prefix, env):
 def main():
   env = sys.argv[1]
   repo_path = "."
+  azure_login()
   try:
     for folder, config in ordered_folders.items():
       apply_folder(repo_path, folder, config['prefix'], env)
