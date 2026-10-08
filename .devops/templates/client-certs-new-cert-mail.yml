@@ -94,6 +94,11 @@ stages:
               CREATED_ADDRESSES: $(CREATED_ADDRESSES)
               CERT_KEY_VAULTS: $(CERT_KEY_VAULTS)
 
+          # send-mail runs PythonScript@0, which needs 'python' in PATH
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.x'
+
           - template: templates/send-mail/template.yaml@terraform
             parameters:
               MAIL_SUBJECT: "[${{ parameters.ENV }}] New client certificates"
