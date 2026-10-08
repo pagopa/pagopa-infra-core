@@ -10,6 +10,8 @@ class bcolors:
   ERROR = '\033[0;37;41m'
   OK = '\033[1;37;42m'
   ENDC = '\033[0m'
+  RED = '\033[91m'
+  BLU = '\033[94m'
 
 ordered_folders = {
   "core": { "prefix": ""},
@@ -157,12 +159,12 @@ def main():
   if failed_folders:
     print(f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
     for folder, error in failed_folders:
-      print(f"{bcolors.ERROR} - {folder}: {error} {bcolors.ENDC}")
+      print(f"{bcolors.RED} - {folder}: {error} {bcolors.ENDC}")
 
   if skipped_folders:
     print(f"\n{bcolors.INFO} === Skipped folders ({len(skipped_folders)}) === {bcolors.ENDC}")
     for folder in skipped_folders:
-      print(f"{bcolors.INFO} - {folder} {bcolors.ENDC}")
+      print(f"{bcolors.BLU} - {folder} {bcolors.ENDC}")
 
 if __name__ == '__main__':
   main()
