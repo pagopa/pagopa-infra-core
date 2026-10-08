@@ -40,6 +40,7 @@ resources:
 
 variables:
   TIME_OUT: 15
+  WORKINGDIR: "."
 
 
 stages:
@@ -51,7 +52,7 @@ stages:
       name: '$(TF_POOL_NAME_DEV)'
     jobs:
       - job: apply_all_folders
-        displayName: Apply al folders in target env
+        displayName: Apply all folders in target env
         strategy:
           parallel: 1
         timeoutInMinutes: ${{ variables.TIME_OUT }}
@@ -62,7 +63,7 @@ stages:
           - template: ../azure-kubeconfig-generator/template.yaml
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '${{ parameters.WORKINGDIR }}'
+              WORKINGDIR: '${{ variables.WORKINGDIR }}'
               AKS_NAME: '$(TF_DEV_AKS_NAME)'
               AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
@@ -70,7 +71,7 @@ stages:
           - template: ../azure-kubeconfig-generator/template.yaml
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '${{ parameters.WORKINGDIR }}'
+              WORKINGDIR: '${{ variables.WORKINGDIR }}'
               AKS_NAME: '$(TF_SECOND_DEV_AKS_NAME)'
               AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
