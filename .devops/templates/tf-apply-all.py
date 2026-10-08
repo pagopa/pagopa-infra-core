@@ -115,7 +115,7 @@ def apply_folder(repo_path, folder, prefix, env):
     raise FileNotFoundError(f" {bcolors.WARNING} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{prefix}{env}"
-  print(f"\n {bcolors.OKBLUE} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
+  print(f"\n {bcolors.OKBLUE} {bcolors.BOLD} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
@@ -127,7 +127,7 @@ def main():
     try:
       apply_folder(repo_path, folder, config['prefix'], env)
     except Exception as e:
-      print(f" {bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+      print(f" {bcolors.FAIL} {bcolors.BOLD} Error applying folder '{folder}': {e} {bcolors.ENDC}")
 
 
 if __name__ == '__main__':
