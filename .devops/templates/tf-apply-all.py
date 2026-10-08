@@ -3,7 +3,16 @@ import re
 import subprocess
 import sys
 
-ENV = os.environ.get('ENV', 'dev')
+class bcolors:
+  HEADER = '\033[95m'
+  OKBLUE = '\033[94m'
+  OKCYAN = '\033[96m'
+  OKGREEN = '\033[92m'
+  WARNING = '\033[93m'
+  FAIL = '\033[91m'
+  ENDC = '\033[0m'
+  BOLD = '\033[1m'
+  UNDERLINE = '\033[4m'
 
 ordered_folders = {
   "network/network-secrets": { "prefix": ""},
@@ -91,10 +100,10 @@ def patch_terraform_script(repo_path):
   patched_block = re.sub(r'^[ \t]*check_arguments[ \t]*\n', '', original_block, count=1, flags=re.MULTILINE)
 
   if patched_block == original_block:
-    print("Warning: check_arguments call not found in other_actions(); no changes made.")
+    print(f" {bcolors.WARNING} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
     return
 
-  print(f"Patching {script_path}: removing check_arguments call from other_actions()...")
+  print(f" {bcolors.OKCYAN} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
@@ -103,10 +112,10 @@ def patch_terraform_script(repo_path):
 def apply_folder(repo_path, folder, prefix, env):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
-    raise FileNotFoundError(f"Folder not found: {folder_path}")
+    raise FileNotFoundError(f" {bcolors.WARNING} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{prefix}{env}"
-  print(f"\n=== Applying '{folder}' (env: {env_name}) in {folder_path} ===")
+  print(f"\n {bcolors.OKBLUE} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
@@ -118,7 +127,7 @@ def main():
     try:
       apply_folder(repo_path, folder, config['prefix'], env)
     except Exception as e:
-      print(f"Error applying folder '{folder}': {e}")
+      print(f" {bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
 
 
 if __name__ == '__main__':
