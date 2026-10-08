@@ -94,10 +94,13 @@ stages:
               CREATED_ADDRESSES: $(CREATED_ADDRESSES)
               CERT_KEY_VAULTS: $(CERT_KEY_VAULTS)
 
-          # send-mail runs PythonScript@0, which needs 'python' in PATH
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'
+          - bash: |
+              set -euo pipefail
+              bin_dir="$(Agent.TempDirectory)/python-bin"
+              mkdir -p "$bin_dir"
+              ln -sf "$(command -v python3)" "$bin_dir/python"
+              echo "##vso[task.prependpath]$bin_dir"
+            displayName: 'Expose python3 as python'
 
           - template: templates/send-mail/template.yaml@terraform
             parameters:
