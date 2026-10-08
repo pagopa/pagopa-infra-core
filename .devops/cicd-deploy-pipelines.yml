@@ -39,7 +39,7 @@ resources:
 
 
 variables:
-  TIME_OUT: 15
+  TIME_OUT: 120
   WORKINGDIR: "."
 
 
