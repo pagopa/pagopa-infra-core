@@ -66,6 +66,7 @@ stages:
 
                 mkdir -p chains
                 rows=""
+                names=""
                 while read -r cert_name key_vault_name; do
                   echo "==> Building chain of '$cert_name' from $key_vault_name..."
                   chain_file="chains/$cert_name-chain.pem"
@@ -80,6 +81,7 @@ stages:
                   not_after=$(openssl x509 -in "$chain_file" -noout -enddate | cut -d= -f2)
                   thumbprint=$(openssl x509 -in "$chain_file" -noout -fingerprint -sha1 | cut -d= -f2 | tr -d ':')
 
+                  names="${names:+$names, }$cert_name"
                   rows="$rows<tr><td><b>$cert_name</b></td><td>$key_vault_name</td><td>$serial</td><td>$thumbprint</td><td>$not_after</td></tr>"
                 done <<< "$certs"
                 rm -f ca.pem
@@ -90,6 +92,7 @@ stages:
 
                 echo "##vso[task.setvariable variable=CHAINS_ZIP]$attachment"
                 echo "##vso[task.setvariable variable=CERT_ROWS]$rows"
+                echo "##vso[task.setvariable variable=CERT_NAMES]$names"
             env:
               CREATED_ADDRESSES: $(CREATED_ADDRESSES)
               CERT_KEY_VAULTS: $(CERT_KEY_VAULTS)
@@ -104,18 +107,26 @@ stages:
 
           - template: templates/send-mail/template.yaml@terraform
             parameters:
-              MAIL_SUBJECT: "[${{ parameters.ENV }}] New client certificates"
+              MAIL_SUBJECT: "[${{ upper(replace(parameters.ENV, '_auto', '')) }}] New Client certificate issued: $(CERT_NAMES)"
               MAIL_BODY: |
                 <html>
                   <body>
-                    <p>New client certificates have been issued in <b>${{ parameters.ENV }}</b>.</p>
+                    <p>New Client certificate issued in <b>${{ upper(replace(parameters.ENV, '_auto', '')) }}</b>:</p>
+                    <p style="font-size:16px"><b>$(CERT_NAMES)</b></p>
+
                     <table border="1" cellpadding="4" cellspacing="0">
-                      <tr><th>Name</th><th>Key Vault</th><th>Serial</th><th>SHA-1 thumbprint</th><th>Valid until</th></tr>
+                      <tr>
+                        <th>Name</th>
+                        <th>Key Vault</th>
+                        <th>Serial</th>
+                        <th>SHA-1 thumbprint</th>
+                        <th>Valid until</th>
+                      </tr>
                       $(CERT_ROWS)
                     </table>
-                    <p>The full chains (certificate + root CA) are attached.</p>
-                    <p>Clients still use the stable certificates: run the promotion pipeline to promote them.</p>
-                    <p>Run: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)</p>
+
+                    <p>The full chain (certificate + root CA) is attached.</p>
+                    <p>Clients still use the stable certificate: run the promotion pipeline to promote the new one.</p>
                   </body>
                 </html>
               SENDER_EMAIL: "$(CLIENT_CERTS_MAIL_SENDER)"
