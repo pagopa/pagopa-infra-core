@@ -30,6 +30,7 @@ parameters:
     default: 'forwarder'
     values:
       - 'forwarder'
+      - 'abcd'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -52,6 +53,10 @@ variables:
     CERTIFICATE_VALUE_DEV: 'forwarder-dev-platform-pagopa-it'
     CERTIFICATE_VALUE_UAT: 'forwarder-uat-platform-pagopa-it'
     CERTIFICATE_VALUE_PROD: 'forwarder-platform-pagopa-it'
+  ${{ if eq(parameters.CERTIFICATE, 'abcd') }}:
+    CERTIFICATE_VALUE_DEV: 'abcd'
+    CERTIFICATE_VALUE_UAT: 'abcd'
+    CERTIFICATE_VALUE_PROD: 'abcd'
 
   TF_VARS_DEV: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_DEV }}\":\"$(Build.BuildId)\"}"'
   TF_VARS_UAT: '-var "stable_promotion_ids={\"${{ variables.CERTIFICATE_VALUE_UAT }}\":\"$(Build.BuildId)\"}"'
