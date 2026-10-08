@@ -7,8 +7,8 @@ ENV = os.environ.get('ENV', 'dev')
 
 ordered_folders = {
   "network/network-secrets": { "prefix": ""},
-  "network/network-secrets": { "prefix": ""},
-  "network/network-secrets": { "prefix": ""}
+  "cloudo/cloudo-secrets": { "prefix": ""},
+  "core-itn/core-itn-secrets": { "prefix": ""},
 }
 
 
