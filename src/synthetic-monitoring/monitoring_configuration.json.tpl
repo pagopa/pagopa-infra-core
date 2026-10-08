@@ -1084,6 +1084,9 @@
     "durationLimit" : 10000,
     "alertConfiguration" : {
       "enabled" : ${alert_enabled},
+      "frequency" : "PT5M",
+      "window_size" : "PT15M",
+      "threshold" : 50,
       "customActionGroupIds" : ${developers_action_group_ids}
     }
   },
