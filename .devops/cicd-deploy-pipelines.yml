@@ -81,16 +81,23 @@ stages:
             displayName: "apply all folders"
             inputs:
               azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+              addSpnToEnvironment: true
               scriptLocation: inlineScript
               scriptType: bash
               inlineScript: |
                 set -e
                 echo "[INFO] Terraform setup variables"
-                export ARM_USE_OIDC=true
-                export ARM_OIDC_TOKEN=${idToken}
-                export ARM_CLIENT_ID=${cliendId}
-                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-                export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+                export ARM_CLIENT_ID=${servicePrincipalId}
+                export ARM_SUBSCRIPTION_ID=$taz account show --query id --output tsv)
+                export ARM_TENANT_ID=${tenantId}
+                if [ -n "${idToken}" ]; then
+                  export ARM_USE_OIDC=true
+                  export ARM_OIDC_TOKEN=${idToken}
+                elif [ -n "${servicePrincipalKey}" ]; then
+                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
+                else
+                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
+                  exit 1
+                fi
                 python3 .devops/templates/tf-apply-all.py dev
-
 
