@@ -100,10 +100,10 @@ def patch_terraform_script(repo_path):
   patched_block = re.sub(r'^[ \t]*check_arguments[ \t]*\n', '', original_block, count=1, flags=re.MULTILINE)
 
   if patched_block == original_block:
-    print(f" {bcolors.WARNING} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
+    print(f"{bcolors.WARNING} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
     return
 
-  print(f" {bcolors.OKCYAN} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
+  print(f"{bcolors.OKCYAN} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
@@ -115,7 +115,7 @@ def apply_folder(repo_path, folder, prefix, env):
     raise FileNotFoundError(f" {bcolors.WARNING} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{prefix}{env}"
-  print(f"\n {bcolors.OKBLUE} {bcolors.BOLD} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
+  print(f"\n{bcolors.OKBLUE} === Applying '{folder}' (env: {env_name}) in {folder_path} === {bcolors.ENDC}")
   run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
 
 
@@ -127,7 +127,7 @@ def main():
     try:
       apply_folder(repo_path, folder, config['prefix'], env)
     except Exception as e:
-      print(f" {bcolors.FAIL} {bcolors.BOLD} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+      print(f"{bcolors.FAIL} Error applying folder '{folder}': {e} {bcolors.ENDC}")
 
 
 if __name__ == '__main__':
