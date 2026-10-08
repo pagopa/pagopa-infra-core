@@ -18,6 +18,7 @@ locals {
         subject                    = "CN=abcd.dev.platform.pagopa.it",
         renewal_days_before_expiry = 60,
         validity_in_months         = 12
+        rotation_minutes_override  = 10
         san_dns_names = [
           "abcd.dev.platform.pagopa.it"
         ]
