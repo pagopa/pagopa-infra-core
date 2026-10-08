@@ -88,7 +88,7 @@ def apply_folder(repo_path, folder, prefix, env):
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f"Folder not found: {folder_path}")
 
-  env_name = f"{prefix}{ENV}"
+  env_name = f"{prefix}{env}"
   print(f"\n=== Applying '{folder}' (env: {env_name}) in {folder_path} ===")
   run_command_streaming(['./terraform.sh', 'plan', env_name, '-no-color'], cwd=folder_path)
 
