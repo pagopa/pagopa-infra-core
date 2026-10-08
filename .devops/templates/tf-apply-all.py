@@ -5,7 +5,7 @@ import sys
 
 class bcolors:
   SECTION = '\033[0;30;47m'
-  INFO = '\033[0;37;44m'
+  INFO = '\033[1;37;44m'
   WARN = '\033[0;30;43m'
   ERROR = '\033[0;37;41m'
   OK = '\033[0;30;42m'
@@ -151,7 +151,7 @@ def main():
         apply_folder(repo_path, folder, config['prefix'], env)
         print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
       except Exception as e:
-        failed_folders.append((folder, str(e)))
+        failed_folders.append(folder)
         print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
     else:
       skipped_folders.append(folder)
@@ -166,7 +166,7 @@ def main():
     print(
       f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
     for folder, error in failed_folders:
-      print(f"{bcolors.RED} - {folder}: {error} {bcolors.ENDC}")
+      print(f"{bcolors.RED} - {folder}{bcolors.ENDC}")
     exit(1)
 
 if __name__ == '__main__':
