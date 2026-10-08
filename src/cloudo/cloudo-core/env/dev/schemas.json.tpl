@@ -2,21 +2,24 @@
   {
     "partition_key": "generic",
     "entity": []
+  }, {
+    "partition_key": "core",
+    "entity": [{
+                       "id": "pagopa-d-opex_pagopa-wisp-converter-redirect-availability",
+                       "name": "WISP redirect availability analysis",
+                       "description": "Read-only analysis of WISP redirect availability and backend response paths",
+                       "runbook": "wisp/wisp-redirect-analysis.sh",
+                       "run_args": "",
+                       "worker": "generic",
+                       "oncall": false,
+                       "require_approval": false,
+                       "team": "core",
+                       "tags": "wisp,apim,diagnostics"
+                     }]
   },
   {
     "partition_key": "infra",
     "entity": [
-      {
-        "id": "pagopa-d-opex_pagopa-wisp-converter-redirect-availability",
-        "name": "WISP redirect availability analysis",
-        "description": "Read-only analysis of WISP redirect availability and backend response paths",
-        "runbook": "wisp/wisp-redirect-analysis.sh",
-        "run_args": "",
-        "worker": "generic",
-        "oncall": false,
-        "require_approval": false,
-        "tags": "wisp,apim,diagnostics"
-      },
       {
         "id": "pagopa-d-appgw-total-request-info",
         "name": "total request pagopa-app-gw",
