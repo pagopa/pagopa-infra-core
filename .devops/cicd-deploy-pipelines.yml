@@ -45,7 +45,7 @@ variables:
 
 stages:
   - stage: DEV
-    displayName: DEV cleanup
+    displayName: DEV apply all folders
     dependsOn: []
     condition: and(succeeded(), eq(${{parameters.DEV}}, true))
     pool:
@@ -64,7 +64,7 @@ stages:
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
               WORKINGDIR: '${{ variables.WORKINGDIR }}'
-              AKS_NAME: '$(TF_DEV_AKS_NAME)'
+              AKS_NAME: '$(TF_AKS_DEV_NAME)'
               AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
@@ -72,7 +72,7 @@ stages:
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
               WORKINGDIR: '${{ variables.WORKINGDIR }}'
-              AKS_NAME: '$(TF_SECOND_DEV_AKS_NAME)'
+              AKS_NAME: '$(TF_SECOND_AKS_DEV_NAME)'
               AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
