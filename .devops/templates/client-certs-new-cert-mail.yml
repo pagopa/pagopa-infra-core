@@ -125,7 +125,7 @@ stages:
                     </table>
 
                     <p>The full chain (certificate + root CA) is attached.</p>
-                    <p>Clients still use the stable certificate: run the promotion pipeline to promote the new one.</p>
+                    <p>Note: The new client certificate has only been generated. The current certificate is still actively in use.</p>
                   </body>
                 </html>
               SENDER_EMAIL: "$(CLIENT_CERTS_MAIL_SENDER)"
