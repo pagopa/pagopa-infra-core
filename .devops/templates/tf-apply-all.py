@@ -143,7 +143,7 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
       env_short=env[:1], env=env)
     run_command_streaming(
       ['kubectl', 'config', 'use-context', f"{config['k8s_context']}",
-       '--kubeconfig', f"config-{cluster_name}"])
+       '--kubeconfig', f"{k8s_config_folder}/config-{cluster_name}"])
 
     arguments.extend(k8s_arguments)
   run_command_streaming(arguments, cwd=folder_path)
