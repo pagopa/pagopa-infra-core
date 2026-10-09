@@ -89,6 +89,8 @@ stages:
                 set -e
                 echo "$(pwd)"
                 ls -la
+                echo "Agent.BuildDirectory: $(Agent.BuildDirectory)"
+                ls -la $(Agent.BuildDirectory)
 
           - task: AzureCLI@2
             displayName: "Apply all folders"
