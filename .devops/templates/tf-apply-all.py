@@ -134,7 +134,7 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
     raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
-  k8s_arguments = ['-var', f'k8s_kube_config_path_prefix = "{k8s_config_folder}"']
+  k8s_arguments = ['-var', f'k8s_kube_config_path_prefix="{k8s_config_folder}"']
   arguments = ['./terraform.sh', 'plan', env_name]
   if config.get('k8s', False):
     arguments.extend(k8s_arguments)
