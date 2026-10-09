@@ -79,20 +79,6 @@ stages:
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
               OUTPUT_CTX_NAME: 'itn'
           - task: AzureCLI@2
-            displayName: "debug"
-            inputs:
-              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              addSpnToEnvironment: true
-              scriptLocation: inlineScript
-              scriptType: bash
-              inlineScript: |
-                set -e
-                echo "$(pwd)"
-                ls -la
-                echo "Agent.BuildDirectory: $(Agent.BuildDirectory)"
-                ls -la $(Agent.BuildDirectory)
-
-          - task: AzureCLI@2
             displayName: "Apply all folders"
             inputs:
               azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
