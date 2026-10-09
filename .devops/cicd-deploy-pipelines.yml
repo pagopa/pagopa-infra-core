@@ -34,7 +34,7 @@ resources:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v6.9.0
+      ref: refs/multiple-kubeconfig
       endpoint: "io-azure-devops-github-ro"
 
 
@@ -68,6 +68,7 @@ stages:
               AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+              OUTPUT_CTX_NAME: 'weu'
           - template: templates/azure-kubeconfig-generator/template.yaml@terraform
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
@@ -76,6 +77,7 @@ stages:
               AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+              OUTPUT_CTX_NAME: 'itn'
           - task: AzureCLI@2
             displayName: "debug"
             inputs:
