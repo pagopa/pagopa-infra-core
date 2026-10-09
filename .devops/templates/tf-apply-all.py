@@ -119,10 +119,10 @@ def patch_terraform_script(repo_path):
   patched_block = re.sub(r'^[ \t]*check_arguments[ \t]*\n', '', original_block, count=1, flags=re.MULTILINE)
 
   if patched_block == original_block:
-    print(f"{bcolors.WARN} Warning: check_arguments call not found in other_actions(); no changes made. {bcolors.ENDC}")
+    print(f"{bcolors.WARN}Warning: check_arguments call not found in other_actions(); no changes made.{bcolors.ENDC}")
     return
 
-  print(f"{bcolors.INFO} Patching {script_path}: removing check_arguments call from other_actions()... {bcolors.ENDC}")
+  print(f"{bcolors.INFO}Patching {script_path}: removing check_arguments call from other_actions()...{bcolors.ENDC}")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
@@ -131,7 +131,7 @@ def patch_terraform_script(repo_path):
 def apply_folder(repo_path, folder, config, env, k8s_config_folder):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
-    raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
+    raise FileNotFoundError(f"{bcolors.WARN}Folder not found: {folder_path}{bcolors.ENDC}")
 
 
 
@@ -162,29 +162,29 @@ def main():
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
-        print(f"##[group] {bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
+        print(f"##[group]{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
         apply_folder(repo_path, folder, config, env, k8s_config_folder)
-        print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
+        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}'{bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)
-        print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+        print(f"{bcolors.ERROR}Error applying folder '{folder}': {e}{bcolors.ENDC}")
       finally:
-        print(f"##[endgroup]=== Finished [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}\n")
+        print(f"##[endgroup]")
     else:
       skipped_folders.append(folder)
-      print(f"{bcolors.INFO} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
+      print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
   # report skipped and failed folders
   if skipped_folders:
-    print(f"\n{bcolors.INFO} === Skipped folders ({len(skipped_folders)}) === {bcolors.ENDC}")
+    print(f"\n{bcolors.INFO}=== Skipped folders ({len(skipped_folders)}) ==={bcolors.ENDC}")
     for folder in skipped_folders:
-      print(f"{bcolors.BLU} - {folder} {bcolors.ENDC}")
+      print(f"{bcolors.BLU}- {folder}{bcolors.ENDC}")
 
   if failed_folders:
     print(
-      f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
+      f"\n{bcolors.ERROR}=== Failed folders ({len(failed_folders)}) ==={bcolors.ENDC}")
     for folder in failed_folders:
-      print(f"{bcolors.RED} - {folder}{bcolors.ENDC}")
+      print(f"{bcolors.RED}- {folder}{bcolors.ENDC}")
     exit(1)
 
 if __name__ == '__main__':
