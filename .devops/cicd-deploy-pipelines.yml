@@ -110,5 +110,5 @@ stages:
                   echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
                   exit 1
                 fi
-                python3 -u .devops/templates/tf-apply-all.py dev $(Agent.BuildDirectory)
+                python3 -u .devops/templates/tf-apply-all.py dev $(pwd)
 
