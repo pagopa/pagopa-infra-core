@@ -23,7 +23,7 @@ ordered_folders = {
   # "network/network-common": { "prefix": ""},
   "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
   # "next-aks": { "prefix": ""},
-  # "aks-leonardo": { "prefix": "itn"},
+  "aks-leonardo": { "prefix": "itn", "k8s": True, "k8s_context": "itn", "cluster_name_template": "pagopa-{env_short}-itn-{env}-aks"},
   # "packer": { "prefix": ""},
   # "synthetic-monitoring": { "prefix": "weu"},
   # "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
