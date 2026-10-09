@@ -162,12 +162,14 @@ def main():
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
-        print(f"\n{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
+        print(f"##[group] {bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
         apply_folder(repo_path, folder, config, env, k8s_config_folder)
         print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)
         print(f"{bcolors.ERROR} Error applying folder '{folder}': {e} {bcolors.ENDC}")
+      finally:
+        print(f"##[endgroup]=== Finished [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}\n")
     else:
       skipped_folders.append(folder)
       print(f"{bcolors.INFO} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
@@ -181,7 +183,7 @@ def main():
   if failed_folders:
     print(
       f"\n{bcolors.ERROR} === Failed folders ({len(failed_folders)}) === {bcolors.ENDC}")
-    for folder, error in failed_folders:
+    for folder in failed_folders:
       print(f"{bcolors.RED} - {folder}{bcolors.ENDC}")
     exit(1)
 
