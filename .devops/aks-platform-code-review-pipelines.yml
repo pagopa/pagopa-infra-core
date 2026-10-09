@@ -43,7 +43,7 @@ resources:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/heads/multiple-kubeconfig
+      ref: refs/heads/feat-tf-debug
       endpoint: "io-azure-devops-github-ro"
 
 variables:
