@@ -14,29 +14,29 @@ class bcolors:
   BLU = '\033[94m'
 
 ordered_folders = {
-  "core": { "prefix": ""},
-  "next-core/next-core-common": { "prefix": ""},
-  "next-core/next-core-secrets": { "prefix": ""},
-  "core-itn/core-itn-secrets": {"prefix": ""},
-  "core-itn/core-itn-common": {"prefix": ""},
-  "network/network-secrets": { "prefix": ""},
-  "network/network-common": { "prefix": ""},
-  "aks-platform": { "prefix": "weu"},
-  "next-aks": { "prefix": ""},
-  "aks-leonardo": { "prefix": "itn"},
-  "packer": { "prefix": ""},
-  "synthetic-monitoring": { "prefix": "weu"},
-  "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
-  "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
-  "audit-logs": { "prefix": "" },
-  "client-certs": { "prefix": "" },
-  "continuos-platform-alerting": { "prefix": "" },
-  "grafana-monitoring": { "prefix": "weu" },
-  "release-notes-agent/rn-agent-secrets": { "prefix": "" },
-  "release-notes-agent/rn-agent-common": { "prefix": "" },
-  "cloudo/cloudo-secrets": { "prefix": ""},
-  "cloudo/cloudo-core": { "prefix": ""},
-  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
+  # "core": { "prefix": ""},
+  # "next-core/next-core-secrets": {"prefix": ""},
+  # "next-core/next-core-common": { "prefix": ""},
+  # "core-itn/core-itn-secrets": {"prefix": ""},
+  # "core-itn/core-itn-common": {"prefix": ""},
+  # "network/network-secrets": { "prefix": ""},
+  # "network/network-common": { "prefix": ""},
+  "aks-platform": { "prefix": "weu", "k8s": True},
+  # "next-aks": { "prefix": ""},
+  # "aks-leonardo": { "prefix": "itn"},
+  # "packer": { "prefix": ""},
+  # "synthetic-monitoring": { "prefix": "weu"},
+  # "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
+  # "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
+  # "audit-logs": { "prefix": "" },
+  # "client-certs": { "prefix": "" },
+  # "continuos-platform-alerting": { "prefix": "" },
+  # "grafana-monitoring": { "prefix": "weu" },
+  # "release-notes-agent/rn-agent-secrets": { "prefix": "" },
+  # "release-notes-agent/rn-agent-common": { "prefix": "" },
+  # "cloudo/cloudo-secrets": { "prefix": ""},
+  # "cloudo/cloudo-core": { "prefix": ""},
+  # "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
 }
 
 
@@ -128,13 +128,17 @@ def patch_terraform_script(repo_path):
     f.write(content)
 
 
-def apply_folder(repo_path, folder, prefix, env):
+def apply_folder(repo_path, folder, config, env):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
-  env_name = f"{prefix}-{env}" if prefix else env
-  run_command_streaming(['./terraform.sh', 'plan', env_name], cwd=folder_path)
+  env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
+  k8s_arguments = ['-var', f'k8s_kube_config_path_prefix = "{repo_path}"']
+  arguments = ['./terraform.sh', 'plan', env_name]
+  if config.get('k8s', False):
+    arguments.extend(k8s_arguments)
+  run_command_streaming(arguments, cwd=folder_path)
 
 
 def main():
@@ -144,11 +148,13 @@ def main():
   failed_folders = []
   skipped_folders = []
   total_folders = len(ordered_folders)
+
+  # run command on each folder in order
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
         print(f"\n{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
-        apply_folder(repo_path, folder, config['prefix'], env)
+        apply_folder(repo_path, folder, config, env)
         print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)
@@ -157,6 +163,7 @@ def main():
       skipped_folders.append(folder)
       print(f"{bcolors.INFO} Skipping '{folder}' for env: '{env}'. Exclusion configured {bcolors.ENDC}")
 
+  # report skipped and failed folders
   if skipped_folders:
     print(f"\n{bcolors.INFO} === Skipped folders ({len(skipped_folders)}) === {bcolors.ENDC}")
     for folder in skipped_folders:
