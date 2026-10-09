@@ -128,13 +128,13 @@ def patch_terraform_script(repo_path):
     f.write(content)
 
 
-def apply_folder(repo_path, folder, config, env):
+def apply_folder(repo_path, folder, config, env, k8s_config_folder):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
-  k8s_arguments = ['-var', f'k8s_kube_config_path_prefix = "{repo_path}"']
+  k8s_arguments = ['-var', f'k8s_kube_config_path_prefix = "{k8s_config_folder}"']
   arguments = ['./terraform.sh', 'plan', env_name]
   if config.get('k8s', False):
     arguments.extend(k8s_arguments)
@@ -143,6 +143,7 @@ def apply_folder(repo_path, folder, config, env):
 
 def main():
   env = sys.argv[1]
+  k8s_config_folder = sys.argv[2]
   repo_path = "."
   azure_login()
   failed_folders = []
@@ -154,7 +155,7 @@ def main():
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
         print(f"\n{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
-        apply_folder(repo_path, folder, config, env)
+        apply_folder(repo_path, folder, config, env, k8s_config_folder)
         print(f"{bcolors.OK} Successfully applied folder {folder_index}/{total_folders} '{folder}' {bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)

@@ -63,7 +63,7 @@ stages:
           - template: templates/azure-kubeconfig-generator/template.yaml@terraform
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '${{ variables.WORKINGDIR }}'
+              WORKINGDIR: '$(Agent.BuildDirectory)'
               AKS_NAME: '$(TF_AKS_DEV_NAME)'
               AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
@@ -71,7 +71,7 @@ stages:
           - template: templates/azure-kubeconfig-generator/template.yaml@terraform
             parameters:
               AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '${{ variables.WORKINGDIR }}'
+              WORKINGDIR: '$(Agent.BuildDirectory)'
               AKS_NAME: '$(TF_SECOND_AKS_DEV_NAME)'
               AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
@@ -99,5 +99,5 @@ stages:
                   echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
                   exit 1
                 fi
-                python3 -u .devops/templates/tf-apply-all.py dev
+                python3 -u .devops/templates/tf-apply-all.py dev $(Agent.BuildDirectory)
 
