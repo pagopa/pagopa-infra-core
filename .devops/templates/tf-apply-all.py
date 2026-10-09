@@ -21,7 +21,7 @@ ordered_folders = {
   # "core-itn/core-itn-common": {"prefix": ""},
   # "network/network-secrets": { "prefix": ""},
   # "network/network-common": { "prefix": ""},
-  "aks-platform": { "prefix": "weu", "k8s": True},
+  "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
   # "next-aks": { "prefix": ""},
   # "aks-leonardo": { "prefix": "itn"},
   # "packer": { "prefix": ""},
@@ -133,10 +133,18 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f" {bcolors.WARN} Folder not found: {folder_path} {bcolors.ENDC}")
 
+
+
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
   k8s_arguments = ['-var', f'k8s_kube_config_path_prefix="{k8s_config_folder}"']
   arguments = ['./terraform.sh', 'plan', env_name]
   if config.get('k8s', False):
+    cluster_name = config.get('cluster_name_template', '').format(
+      env_short=env[:1], env=env)
+    run_command_streaming(
+      ['kubectl', 'config', 'use-context', f"{config['k8s_context']}",
+       '--kubeconfig', f"config-{cluster_name}"])
+
     arguments.extend(k8s_arguments)
   run_command_streaming(arguments, cwd=folder_path)
 
