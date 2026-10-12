@@ -5,25 +5,13 @@ locals {
         key_vault_name             = data.azurerm_key_vault.kv_nodo.name
         subject                    = "CN=${local.forwarder_fqdn}",
         renewal_days_before_expiry = 60,
-        validity_in_months         = 12
+        validity_in_months         = var.env_short == "d" ? 6 : 12
         san_dns_names = [
           local.forwarder_fqdn,
           "www.${local.forwarder_fqdn}"
         ]
       }
     } : {},
-    {
-      "abcd" = {
-        key_vault_name             = data.azurerm_key_vault.kv_nodo.name
-        subject                    = "CN=abcd.dev.platform.pagopa.it",
-        renewal_days_before_expiry = 60,
-        validity_in_months         = 12
-        rotation_minutes_override  = 10
-        san_dns_names = [
-          "abcd.dev.platform.pagopa.it"
-        ]
-      }
-    }
   )
 }
 
