@@ -39,7 +39,7 @@ resources:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/heads/expose-output-tfplanapply # refs/tags/v6.19.0
+      ref: 36b9afb7219b3a032d7f83c542398740fe16d7b0 # refs/tags/v6.21.0
       endpoint: "io-azure-devops-github-ro"
 
 variables:
