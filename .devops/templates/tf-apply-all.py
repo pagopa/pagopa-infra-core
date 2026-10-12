@@ -14,7 +14,7 @@ class bcolors:
   BLU = '\033[94m'
 
 ordered_folders = {
-  "core": { "prefix": ""},
+  # "core": { "prefix": ""}, skipped, it contains only payment manager that is "in wait"
   "next-core/next-core-secrets": {"prefix": ""},
   "next-core/next-core-common": { "prefix": ""},
   "core-itn/core-itn-secrets": {"prefix": ""},
