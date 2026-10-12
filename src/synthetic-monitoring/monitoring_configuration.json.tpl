@@ -1177,7 +1177,7 @@
     "alertConfiguration" : {
       "enabled" : ${alert_enabled},
       "customActionGroupIds" : ${ecommerce_action_group_ids},
-      "window_size" : "PT1H",
+      "window_size" : "PT5M",
       "threshold" : 99,
       "operator" : "LessThanOrEqual"
     }
@@ -1195,11 +1195,11 @@
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
-    "enabled" : ${alert_enabled},
-    "customActionGroupIds" : ${payment_wallet_action_group_ids},
-    "window_size" : "PT1H",
-    "threshold" : 99,
-    "operator" : "LessThanOrEqual"
+      "enabled" : ${alert_enabled},
+      "customActionGroupIds" : ${payment_wallet_action_group_ids},
+      "window_size" : "PT5M",
+      "threshold" : 99,
+      "operator" : "LessThanOrEqual"
   }
 }
 ]
