@@ -13,7 +13,7 @@ application_insisght_resource_group_name = "pagopa-p-monitor-rg"
 # ClouDO orchestrator parameters
 cloudo_orchestrator = {
   image_name        = "pagopa/cloudo-orchestrator"
-  image_tag         = "0.29.1"
+  image_tag         = "0.30.0"
   registry_url      = "https://ghcr.io"
   registry_username = "payments-cloud-bot"
 }
@@ -21,7 +21,7 @@ cloudo_orchestrator = {
 # ClouDO UI parameters
 cloudo_ui = {
   image_name        = "pagopa/cloudo-ui"
-  image_tag         = "0.20.1"
+  image_tag         = "0.21.0"
   registry_url      = "https://ghcr.io"
   registry_username = "payments-cloud-bot"
 }
@@ -29,7 +29,7 @@ cloudo_ui = {
 # ClouDO worker parameters
 cloudo_worker = {
   image_name        = "pagopa/cloudo-worker"
-  image_tag         = "0.25.1"
+  image_tag         = "0.26.0"
   registry_url      = "https://ghcr.io"
   registry_username = "payments-cloud-bot"
 }
