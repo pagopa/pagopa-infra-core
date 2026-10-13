@@ -138,7 +138,7 @@
         "run_args": "",
         "worker": "generic",
         "team": "infra",
-        "oncall": false,
+        "oncall": true,
         "require_approval": false,
         "tags": "elastic,aks,apiconfig"
       },
@@ -150,7 +150,7 @@
         "run_args": "",
         "worker": "generic",
         "team": "infra",
-        "oncall": false,
+        "oncall": true,
         "require_approval": false,
         "tags": "elastic"
       },
