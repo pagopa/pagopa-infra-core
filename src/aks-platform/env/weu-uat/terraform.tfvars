@@ -51,7 +51,7 @@ aks_user_node_pool = {
 
 aks_cidr_subnet = ["10.1.0.0/17"]
 
-aks_kubernetes_version = "1.34.2"
+aks_kubernetes_version = "1.35.8"
 
 
 ingress_min_replica_count        = "2"
@@ -61,7 +61,7 @@ haproxy_ingress_load_balancer_ip = "10.1.100.252"
 # ingress-nginx helm charts releases 4.X.X: https://github.com/kubernetes/ingress-nginx/releases?expanded=true&page=1&q=tag%3Ahelm-chart-4
 # Pinned versions from "4.1.0" release: https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.1.0/charts/ingress-nginx/values.yaml
 nginx_helm = {
-  version = "4.14.2"
+  version = "4.15.1"
   controller = {
     image = {
       registry     = "k8s.gcr.io"
@@ -85,7 +85,7 @@ nginx_helm = {
 # keda image tags: https://github.com/kedacore/keda/pkgs/container/keda/versions
 # keda-metrics-apiserver image tags: https://github.com/kedacore/keda/pkgs/container/keda-metrics-apiserver/versions
 keda_helm = {
-  chart_version = "2.17.2"
+  chart_version = "2.20.2"
   keda = {
     image_name = "ghcr.io/kedacore/keda"
     image_tag  = "2.8.0@sha256:cce502ff17fd2984af70b4e470b403a82067929f6e4d1888875a52fcb33fa9fd"
@@ -148,8 +148,8 @@ non_critical_nodepool = {
 
 
 aks_foobar_user_node_pool_configuration = {
-  enabled         = false,
-  tier            = "Standard_D8ds_v5"
+  enabled         = true,
+  tier            = "Standard_D8ds"
   name            = "user"
   node_count_min  = 4,
   node_count_max  = 7,
