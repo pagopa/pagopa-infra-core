@@ -27,8 +27,8 @@ locals {
     JAVA_OPTS             = "" # "-Djavax.net.debug=ssl:handshake" // mTLS debug
 
     # Cert configuration
-    CERTIFICATE_CRT = data.azurerm_key_vault_secret.certificate_crt_node_forwarder.value
-    CERTIFICATE_KEY = data.azurerm_key_vault_secret.certificate_key_node_forwarder.value
+    CERTIFICATE_CRT = var.env_short == "d" ? try(data.azurerm_key_vault_secret.stable_certificate_crt_node_forwarder[0].value, null) : data.azurerm_key_vault_secret.certificate_crt_node_forwarder.value
+    CERTIFICATE_KEY = var.env_short == "d" ? try(data.azurerm_key_vault_secret.stable_certificate_key_node_forwarder[0].value, null) : data.azurerm_key_vault_secret.certificate_key_node_forwarder.value
 
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
     WEBSITES_PORT                       = 8080

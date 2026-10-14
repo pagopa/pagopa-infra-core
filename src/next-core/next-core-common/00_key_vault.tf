@@ -122,6 +122,24 @@ data "azurerm_key_vault_secret" "certificate_key_node_forwarder" {
   key_vault_id = module.key_vault.id
 }
 
+data "azurerm_key_vault" "nodo" {
+  name                = "${var.prefix}-${var.env_short}-nodo-kv"
+  resource_group_name = "${var.prefix}-${var.env_short}-nodo-sec-rg"
+}
+
+data "azurerm_key_vault_secret" "stable_certificate_crt_node_forwarder" {
+  count = var.env_short == "d" ? 1 : 0
+
+  name         = "forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-cert"
+  key_vault_id = data.azurerm_key_vault.nodo.id
+}
+
+data "azurerm_key_vault_secret" "stable_certificate_key_node_forwarder" {
+  count = var.env_short == "d" ? 1 : 0
+
+  name         = "forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-key"
+  key_vault_id = data.azurerm_key_vault.nodo.id
+}
 
 data "azurerm_key_vault_secret" "monitor_notification_email" {
   name         = "monitor-notification-email"
