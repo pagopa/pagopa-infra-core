@@ -81,17 +81,37 @@ def run_command(cmd, cwd=None, env=None):
 
 
 def run_command_streaming(cmd, cwd=None, env=None):
-  """Run a command inheriting the parent's stdio, so interactive/streamed
-  output (e.g. terraform apply) is visible in real time."""
-  result = subprocess.run(cmd, cwd=cwd, env=env)
-  if result.returncode != 0:
-    raise subprocess.CalledProcessError(result.returncode, cmd,
-                                        output=result.stdout,
-                                        stderr=result.stderr)
+  """Run a command printing its output in real time (stderr merged into stdout)
+  and return the captured output."""
+  process = subprocess.Popen(
+    cmd,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    universal_newlines=True,
+    cwd=cwd,
+    env=env
+  )
+  lines = []
+  for line in process.stdout:
+    print(line, end='', flush=True)
+    lines.append(line)
+  process.wait()
+  output = ''.join(lines)
+  if process.returncode != 0:
+    raise subprocess.CalledProcessError(process.returncode, cmd, output=output)
+  return output
 
 
+ANSI_RE = re.compile(r'\x1b\[[0-9;]*[A-Za-z]')
+PLAN_RE = re.compile(r'Plan: \d+ to add, \d+ to change, \d+ to destroy\.')
+NO_CHANGES_RE = re.compile(r'No changes\. Your infrastructure matches the configuration\.')
 
 
+def extract_plan_summary(output):
+  """Return the terraform plan result line(s), e.g. 'Plan: 0 to add, 90 to change, 0 to destroy.'"""
+  clean = ANSI_RE.sub('', output or '')
+  matches = PLAN_RE.findall(clean) + NO_CHANGES_RE.findall(clean)
+  return ' | '.join(matches) if matches else 'Plan summary not found'
 
 
 def disable_opa_policy(repo_path):
@@ -146,7 +166,8 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
        '--kubeconfig', f"{k8s_config_folder}/config-{cluster_name}"])
 
     arguments.extend(k8s_arguments)
-  run_command_streaming(arguments, cwd=folder_path)
+  output = run_command_streaming(arguments, cwd=folder_path)
+  return extract_plan_summary(output)
 
 
 def main():
@@ -155,6 +176,7 @@ def main():
   repo_path = "."
   azure_login()
   failed_folders = []
+  plan_summaries = {}
   skipped_folders = []
   total_folders = len(ordered_folders)
 
@@ -163,8 +185,8 @@ def main():
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
         print(f"##[group]{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
-        apply_folder(repo_path, folder, config, env, k8s_config_folder)
-        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}'{bcolors.ENDC}")
+        plan_summaries[folder] = apply_folder(repo_path, folder, config, env, k8s_config_folder)
+        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}': {plan_summaries[folder]}{bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)
         print(f"{bcolors.ERROR}Error applying folder '{folder}': {e}{bcolors.ENDC}")
@@ -173,6 +195,12 @@ def main():
     else:
       skipped_folders.append(folder)
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
+
+  # report plan summary per folder
+  if plan_summaries:
+    print(f"\n{bcolors.INFO}=== Plan summary (env: {env}) ==={bcolors.ENDC}")
+    for folder, summary in plan_summaries.items():
+      print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
 
   # report skipped and failed folders
   if skipped_folders:
