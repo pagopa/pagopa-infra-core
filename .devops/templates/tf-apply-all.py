@@ -180,7 +180,7 @@ def main():
   skipped_folders = []
   total_folders = len(ordered_folders)
 
-  print(f"{bcolors.SECTION}=== test log ==={bcolors.ENDC}")
+  print(f"{bcolors.INFO}=== test log ==={bcolors.ENDC}")
 
   # # run command on each folder in order
   # for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
