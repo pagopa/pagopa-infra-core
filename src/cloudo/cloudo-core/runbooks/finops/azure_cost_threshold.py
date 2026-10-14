@@ -47,6 +47,30 @@ def get_subscription_display_name(credential, subscription_id):
         # Fallback to Subscription ID if permissions/import fail
         return subscription_id
 
+
+def is_reservation_cost(detail):
+    """Recognizes reservation charges across legacy and modern usage-detail records."""
+    get_field = detail.get if isinstance(detail, dict) else lambda name: getattr(detail, name, None)
+
+    pricing_model = get_field('pricing_model')
+    if pricing_model and str(pricing_model).strip().casefold() == 'reservation':
+        return True
+
+    if get_field('reservation_id') or get_field('reservation_name'):
+        return True
+
+    reservation_terms = ('reservation', 'reserved instance')
+    product_fields = ('product', 'product_order_name')
+    if any(
+        term in str(get_field(field) or '').casefold()
+        for field in product_fields
+        for term in reservation_terms
+    ):
+        return True
+
+    return False
+
+
 def fetch_resource_costs(client, scope, start_date, end_date):
     """
     Retrieves cost data from Azure API and groups costs by both resource ID and resource type.
@@ -71,6 +95,9 @@ def fetch_resource_costs(client, scope, start_date, end_date):
     costs_by_type = defaultdict(float)
 
     for detail in usage_details:
+        if is_reservation_cost(detail):
+            continue
+
         cost = 0.0
         possible_fields = [
             'cost_in_billing_currency',
