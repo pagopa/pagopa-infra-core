@@ -1177,8 +1177,8 @@
     "alertConfiguration" : {
       "enabled" : ${alert_enabled},
       "customActionGroupIds" : ${ecommerce_action_group_ids},
-      "window_size" : "PT5M",
-      "threshold" : 99,
+      "window_size" : "PT1H",
+      "threshold" : 1,
       "operator" : "LessThanOrEqual"
     }
   },
@@ -1197,8 +1197,8 @@
     "alertConfiguration" : {
       "enabled" : ${alert_enabled},
       "customActionGroupIds" : ${payment_wallet_action_group_ids},
-      "window_size" : "PT5M",
-      "threshold" : 99,
+      "window_size" : "PT1H",
+      "threshold" : 1,
       "operator" : "LessThanOrEqual"
   }
 }
