@@ -5,7 +5,7 @@ import sys
 
 class bcolors:
   SECTION = '\033[0;30;47m'
-  INFO = '\033[0;37;44m'
+  INFO = '\033[96m'
   WARN = '\033[0;30;43m'
   ERROR = '\033[0;37;41m'
   OK = '\033[0;30;42m'
