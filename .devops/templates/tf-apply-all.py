@@ -5,7 +5,7 @@ import sys
 
 class bcolors:
   SECTION = '\033[0;30;47m'
-  INFO = '\033[1;37;44m'
+  INFO = '\033[1;37;46m'
   WARN = '\033[0;30;43m'
   ERROR = '\033[0;37;41m'
   OK = '\033[0;30;42m'
@@ -180,40 +180,42 @@ def main():
   skipped_folders = []
   total_folders = len(ordered_folders)
 
-  # run command on each folder in order
-  for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
-    if env in config.get('limit_env', ["dev", "uat", "prod"]):
-      try:
-        print(f"##[group]{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
-        plan_summaries[folder] = apply_folder(repo_path, folder, config, env, k8s_config_folder)
-        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}': {plan_summaries[folder]}{bcolors.ENDC}")
-      except Exception as e:
-        failed_folders.append(folder)
-        print(f"{bcolors.ERROR}Error applying folder '{folder}': {e}{bcolors.ENDC}")
-      finally:
-        print(f"##[endgroup]")
-    else:
-      skipped_folders.append(folder)
-      print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
+  print(f"{bcolors.INFO}TEST info log {bcolors.ENDC}")
 
-  # report plan summary per folder
-  if plan_summaries:
-    print(f"\n{bcolors.INFO}=== Plan summary (env: {env}) ==={bcolors.ENDC}")
-    for folder, summary in plan_summaries.items():
-      print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
-
-  # report skipped and failed folders
-  if skipped_folders:
-    print(f"\n{bcolors.INFO}=== Skipped folders ({len(skipped_folders)}) ==={bcolors.ENDC}")
-    for folder in skipped_folders:
-      print(f"{bcolors.BLU}- {folder}{bcolors.ENDC}")
-
-  if failed_folders:
-    print(
-      f"\n{bcolors.ERROR}=== Failed folders ({len(failed_folders)}) ==={bcolors.ENDC}")
-    for folder in failed_folders:
-      print(f"{bcolors.RED}- {folder}{bcolors.ENDC}")
-    exit(1)
+  # # run command on each folder in order
+  # for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
+  #   if env in config.get('limit_env', ["dev", "uat", "prod"]):
+  #     try:
+  #       print(f"##[group]{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
+  #       plan_summaries[folder] = apply_folder(repo_path, folder, config, env, k8s_config_folder)
+  #       print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}': {plan_summaries[folder]}{bcolors.ENDC}")
+  #     except Exception as e:
+  #       failed_folders.append(folder)
+  #       print(f"{bcolors.ERROR}Error applying folder '{folder}': {e}{bcolors.ENDC}")
+  #     finally:
+  #       print(f"##[endgroup]")
+  #   else:
+  #     skipped_folders.append(folder)
+  #     print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
+  #
+  # # report plan summary per folder
+  # if plan_summaries:
+  #   print(f"\n{bcolors.INFO}=== Plan summary (env: {env}) ==={bcolors.ENDC}")
+  #   for folder, summary in plan_summaries.items():
+  #     print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
+  #
+  # # report skipped and failed folders
+  # if skipped_folders:
+  #   print(f"\n{bcolors.INFO}=== Skipped folders ({len(skipped_folders)}) ==={bcolors.ENDC}")
+  #   for folder in skipped_folders:
+  #     print(f"{bcolors.BLU}- {folder}{bcolors.ENDC}")
+  #
+  # if failed_folders:
+  #   print(
+  #     f"\n{bcolors.ERROR}=== Failed folders ({len(failed_folders)}) ==={bcolors.ENDC}")
+  #   for folder in failed_folders:
+  #     print(f"{bcolors.RED}- {folder}{bcolors.ENDC}")
+  #   exit(1)
 
 if __name__ == '__main__':
   main()
