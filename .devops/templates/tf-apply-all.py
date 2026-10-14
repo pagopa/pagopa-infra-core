@@ -32,8 +32,8 @@ ordered_folders = {
   "client-certs": { "prefix": "" },
   "continuos-platform-alerting": { "prefix": "" },
   "grafana-monitoring": { "prefix": "weu" },
-  "release-notes-agent/rn-agent-secrets": { "prefix": "" },
-  "release-notes-agent/rn-agent-common": { "prefix": "" },
+  "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
+  "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
   "cloudo/cloudo-secrets": { "prefix": ""},
   "cloudo/cloudo-core": { "prefix": ""},
   "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
