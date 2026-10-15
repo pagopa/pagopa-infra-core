@@ -93,7 +93,7 @@ module "nginx_ingress" {
 
 module "haproxy_ingress" {
   source = "./.terraform/modules/__v4__/kubernetes_haproxy_ingress_controller"
-  count  = var.env_short == "d" ? 1 : 0
+  count  = var.env_short != "p" ? 1 : 0
 
   release_name         = "haproxy-ingress"
   namespace            = "haproxy-ingress"
@@ -111,7 +111,7 @@ module "haproxy_ingress" {
 
   autoscaling = {
     enabled                   = true
-    min_replicas              = 3
+    min_replicas              = var.env_short == "p" ? 6 : 3
     max_replicas              = 20
     target_cpu_utilization    = 70
     target_memory_utilization = 75
@@ -150,7 +150,7 @@ module "haproxy_ingress" {
   # ---- Full monitoring ----
   enable_metrics         = true
   enable_stats           = true
-  enable_service_monitor = true # requires Prometheus Operator to be installed
+  enable_service_monitor = false
   metrics_port           = 1024
 
   # ---- Network Policy ----
@@ -178,4 +178,45 @@ module "haproxy_ingress" {
     "controller.config.forwarded-for"     = "true"
     "controller.config.load-balance"      = "roundrobin"
   }
+}
+
+resource "kubernetes_manifest" "haproxy_azmonitor" {
+  count = var.env_short != "p" ? 1 : 0
+
+  manifest = {
+    apiVersion = "azmonitoring.coreos.com/v1"
+    kind       = "PodMonitor"
+    metadata = {
+      name      = "haproxy-ingress-azmonitor"
+      namespace = "haproxy-ingress"
+    }
+    spec = {
+      selector = {
+        matchLabels = {
+          "app.kubernetes.io/name"     = "kubernetes-ingress"
+          "app.kubernetes.io/instance" = "haproxy-ingress"
+        }
+      }
+      namespaceSelector = {
+        matchNames = ["haproxy-ingress"]
+      }
+      podMetricsEndpoints = [
+        {
+          port          = "stat"
+          path          = "/metrics"
+          interval      = "30s"
+          scrapeTimeout = "10s"
+          metricRelabelings = [
+            {
+              sourceLabels = ["__name__"]
+              regex        = "haproxy_server_(http_responses_total|bytes_.*|max_.*|.*_time_average_seconds|idle_connections_.*|need_connections_current|safe_idle_connections_current|unsafe_idle_connections_current|used_connections_current|uweight|weight)"
+              action       = "drop"
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  depends_on = [module.haproxy_ingress]
 }
