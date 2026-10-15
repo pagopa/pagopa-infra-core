@@ -51,16 +51,19 @@ module "cloudo" {
     "API Management Service Contributor"
   ]
 
-  custom_role_assignments = [
-    {
-      role  = "Contributor"
-      scope = data.azurerm_resource_group.network_rg.id
-    },
-    {
-      role  = "Carbon Optimization Reader"
-      scope = data.azurerm_subscription.current.id
-    }
-  ]
+  custom_role_assignments = concat(
+    [
+      {
+        role  = "Contributor"
+        scope = data.azurerm_resource_group.network_rg.id
+      },
+      {
+        role  = "Carbon Optimization Reader"
+        scope = data.azurerm_subscription.current.id
+      }
+    ],
+    local.container_registry_role_assignments
+  )
 
   key_vaults_integration = {
     "pagopa-${var.env_short}-gps-kv" = {

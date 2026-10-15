@@ -23,4 +23,34 @@ locals {
     }
     if cluster.private_fqdn != null && cluster.private_fqdn != ""
   }
+
+  container_registries = {
+    weu = {
+      name                = "${var.prefix}${var.env_short}commonacr"
+      resource_group_name = "${local.product}-container-registry-rg"
+    }
+    itn = {
+      name                = "${var.prefix}${var.env_short}itncoreacr"
+      resource_group_name = "${local.product_ita}-acr-rg"
+    }
+    weu_bck = {
+      name                = "${var.prefix}${var.env_short}weucoreacrbck"
+      resource_group_name = "${local.product}-container-registry-${var.prefix}${var.env_short}commonacr-bck-rg"
+    }
+    itn_bck = {
+      name                = "${var.prefix}${var.env_short}itncoreacrbck"
+      resource_group_name = "${local.product}-container-registry-${var.prefix}${var.env_short}itncoreacr-bck-rg"
+    }
+  }
+
+  container_registry_roles = ["AcrPull", "AcrDelete"]
+
+  container_registry_role_assignments = flatten([
+    for acr in data.azurerm_container_registry.acr : [
+      for role in local.container_registry_roles : {
+        role  = role
+        scope = acr.id
+      }
+    ]
+  ])
 }
