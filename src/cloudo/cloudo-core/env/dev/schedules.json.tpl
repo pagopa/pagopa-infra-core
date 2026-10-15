@@ -45,7 +45,7 @@
       {
         "name": "[acr] Purge old images",
         "cron": "0 15 16 15 * *",
-        "runbook": "acr/acr_purge.py",
+        "runbook": "azure/acr_purge.py",
         "run_args": "--registry pagopadcommonacr,pagopaditncoreacr,pagopaditncoreacrbck,pagopadweucoreacrbck --keep 2 --ago-days 1 --workers 5 --execute",
         "worker_pool": "generic",
         "enabled": true,
