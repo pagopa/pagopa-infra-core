@@ -1,10 +1,9 @@
-prefix             = "pagopa"
-env_short          = "p"
-env                = "prod"
-domain             = "core"
-location           = "westeurope"
-location_short     = "weu"
-location_short_ita = "itn"
+prefix         = "pagopa"
+env_short      = "p"
+env            = "prod"
+domain         = "core"
+location       = "westeurope"
+location_short = "weu"
 is_feature_enabled = {
   vnet_ita                  = false,
   container_app_tools_cae   = true,
@@ -956,4 +955,3 @@ product_dns_records = {
     ]
   }
 }
-

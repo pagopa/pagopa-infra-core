@@ -51,18 +51,6 @@ variable "location_short" {
   description = "One of wue, neu"
 }
 
-variable "location_short_ita" {
-  type = string
-  validation {
-    condition = (
-      length(var.location_short_ita) == 3
-    )
-    error_message = "Length must be 3 chars."
-  }
-  description = "Location short for italy: itn"
-  default     = "itn"
-}
-
 ### Network
 
 variable "cidr_subnet_dns_forwarder_backup" {

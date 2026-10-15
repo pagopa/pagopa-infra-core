@@ -9,7 +9,10 @@ module "domain_key_vault_secrets_query" {
   ]
 }
 
-
+data "azurerm_key_vault" "nodo" {
+  name                = "${var.prefix}-${var.env_short}-nodo-kv"
+  resource_group_name = "${var.prefix}-${var.env_short}-nodo-sec-rg"
+}
 
 data "azurerm_key_vault_secret" "apim_publisher_email" {
   name         = "apim-publisher-email"
@@ -120,6 +123,20 @@ data "azurerm_key_vault_secret" "certificate_crt_node_forwarder" {
 data "azurerm_key_vault_secret" "certificate_key_node_forwarder" {
   name         = "certificate-key-node-forwarder"
   key_vault_id = module.key_vault.id
+}
+
+# KV pagopa-X-nodo-kv
+data "azurerm_key_vault_secret" "nodo_certificate_crt_node_forwarder" {
+  count = var.env_short == "p" ? 0 : 1
+
+  name         = "forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-cert"
+  key_vault_id = data.azurerm_key_vault.nodo.id
+}
+data "azurerm_key_vault_secret" "nodo_certificate_key_node_forwarder" {
+  count = var.env_short == "p" ? 0 : 1
+
+  name         = "forwarder${var.env == "prod" ? "" : "-${var.env}"}-platform-pagopa-it-stable-key"
+  key_vault_id = data.azurerm_key_vault.nodo.id
 }
 
 
