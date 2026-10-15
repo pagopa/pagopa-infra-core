@@ -424,11 +424,19 @@ resource "kubernetes_cluster_role" "azdo_cluster_admin" {
     verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 
+  # -- Deprecated --
   rule {
     api_groups = ["monitoring.coreos.com"]
     resources  = ["servicemonitors", "podmonitors"]
     verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
+
+  rule {
+    api_groups = ["azmonitoring.coreos.com"]
+    resources  = ["servicemonitors", "podmonitors"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  }
+
 
   rule {
     api_groups        = ["policy"]
