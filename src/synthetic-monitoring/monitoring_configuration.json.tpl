@@ -430,23 +430,6 @@
       "enabled" : ${alert_enabled}
     }
   },
-
-  {
-    "apiName" : "status",
-    "appName" : "gps",
-    "url" :  "https://${internal_api_domain_prefix}.gps.${internal_api_domain_suffix}/pagopa-spontaneous-payments-service/info",
-    "type" : "aks",
-    "checkCertificate" : true,
-    "method" : "GET",
-    "expectedCodes" : ["200"],
-    "tags" : {
-      "description" : "pagopa ${env_name} gps status endpoint"
-    },
-    "durationLimit" : 10000,
-    "alertConfiguration" : {
-      "enabled" : ${alert_enabled}
-    }
-  },
   {
     "apiName" : "status",
     "appName" : "gps",
