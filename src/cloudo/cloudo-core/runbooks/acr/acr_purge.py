@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Purge old images from an Azure Container Registry
+Purge old images from one or more Azure Container Registries
 
 Rules (same as `acr purge --ago <ago-days> --keep <keep> --untagged`):
   - the --keep most recent tagged images of each repository are always kept;
@@ -13,10 +13,10 @@ Default is DRY-RUN: it only prints what would be deleted. Pass --execute to dele
 Deletion is by digest (`az acr manifest delete`), so a deleted manifest loses all its tags.
 
 Runs as a ClouDO runbook (schedule in env/<env>/schedules.json.tpl) with the ClouDO
-managed identity, which needs AcrPull and AcrDelete on the registry.
+managed identity, which needs AcrPull and AcrDelete on every registry.
 
 Local run:
-    python3 acr_purge.py --registry pagopadcommonacr --keep 2 --ago-days 1 [--repo-filter '^pagopa'] [--execute]
+    python3 acr_purge.py --registry pagopadcommonacr,pagopaditncoreacr --keep 2 --ago-days 1 [--repo-filter '^pagopa'] [--execute]
 """
 import argparse
 import json
@@ -116,32 +116,21 @@ def plan_repo(registry, repo, cutoff, keep, workers):
     return deleted, len(mans)
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Purge old ACR images (default: dry-run).")
-    ap.add_argument("--registry", required=True)
-    ap.add_argument("--keep", type=int, default=10, help="most recent tagged images to keep per repository")
-    ap.add_argument("--ago-days", type=float, default=1, help="minimum age in days to delete an image")
-    ap.add_argument("--repo-filter", default=".*", help="regex on repository names (default: all)")
-    ap.add_argument("--workers", type=int, default=8, help="parallel az calls")
-    ap.add_argument("--execute", action="store_true", help="really delete (otherwise dry-run)")
-    args = ap.parse_args()
-    if args.keep < 0 or args.ago_days < 0:
-        ap.error("--keep and --ago-days must be >= 0")
-
-    az_login()
-    cutoff = datetime.now(timezone.utc) - timedelta(days=args.ago_days)
+def purge_registry(registry, args, cutoff):
+    """Purge one registry. Return the list of errors: failures on single repositories or
+    manifests are logged and skipped, they never stop the purge of the other ones."""
     repo_re = re.compile(args.repo_filter)
-    repos = sorted(r for r in az("acr", "repository", "list", "--name", args.registry) or [] if repo_re.search(r))
+    repos = sorted(r for r in az("acr", "repository", "list", "--name", registry) or [] if repo_re.search(r))
 
-    print(f"{'EXECUTE' if args.execute else 'DRY-RUN'} on {args.registry}: --keep {args.keep} "
+    print(f"{'EXECUTE' if args.execute else 'DRY-RUN'} on {registry}: --keep {args.keep} "
           f"--ago-days {args.ago_days:g} (before {cutoff:%Y-%m-%d %H:%M} UTC), {len(repos)} repositories")
 
     plan, errors = [], []
     for repo in repos:
         try:
-            deleted, total = plan_repo(args.registry, repo, cutoff, args.keep, args.workers)
-        except RuntimeError as e:
-            errors.append(f"{repo}: {e}")
+            deleted, total = plan_repo(registry, repo, cutoff, args.keep, args.workers)
+        except Exception as e:
+            errors.append(f"{registry}/{repo}: {e}")
             print(f"{repo}: ERROR, skipped ({e})")
             continue
         if deleted:
@@ -151,16 +140,16 @@ def main():
                 print(f"   {(m.get('lastUpdateTime') or '')[:16]}  {m['digest'][:19]}  {' '.join(m.get('tags') or []) or '-'}")
         plan.extend((repo, m) for m in deleted)
 
-    print(f"TOTAL: {len(plan)} manifests to delete in {len(repos)} repositories")
+    print(f"{registry} TOTAL: {len(plan)} manifests to delete in {len(repos)} repositories")
 
     if args.execute and plan:
         def delete(item):
             repo, m = item
             try:
-                az("acr", "manifest", "delete", "--registry", args.registry, "--name", f"{repo}@{m['digest']}", "--yes")
-            except RuntimeError as e:
+                az("acr", "manifest", "delete", "--registry", registry, "--name", f"{repo}@{m['digest']}", "--yes")
+            except Exception as e:
                 if "MANIFEST_UNKNOWN" not in str(e) and "not found" not in str(e).lower():
-                    return f"{repo}@{m['digest']}: {e}"
+                    return f"{registry}/{repo}@{m['digest']}: {e}"
 
         # multi-arch indexes first, so no index is ever left pointing to a deleted platform manifest
         indexes = [p for p in plan if p[1].get("mediaType") in INDEX_MEDIA_TYPES]
@@ -168,13 +157,47 @@ def main():
         with ThreadPoolExecutor(max_workers=args.workers) as ex:
             failed = [e for phase in (indexes, others) for e in ex.map(delete, phase) if e]
         errors += failed
-        print(f"Deleted: {len(plan) - len(failed)} | Errors: {len(failed)}")
+        print(f"{registry} deleted: {len(plan) - len(failed)} | Errors: {len(failed)}")
     elif not args.execute:
-        print("DRY-RUN: nothing deleted, pass --execute to delete.")
+        print(f"{registry} DRY-RUN: nothing deleted, pass --execute to delete.")
+    return errors
 
-    for e in errors:
+
+def main():
+    ap = argparse.ArgumentParser(description="Purge old ACR images (default: dry-run).")
+    ap.add_argument("--registry", required=True, help="registry name, or comma-separated list of registries")
+    ap.add_argument("--keep", type=int, default=10, help="most recent tagged images to keep per repository")
+    ap.add_argument("--ago-days", type=float, default=1, help="minimum age in days to delete an image")
+    ap.add_argument("--repo-filter", default=".*", help="regex on repository names (default: all)")
+    ap.add_argument("--workers", type=int, default=8, help="parallel az calls")
+    ap.add_argument("--execute", action="store_true", help="really delete (otherwise dry-run)")
+    args = ap.parse_args()
+    registries = list(dict.fromkeys(r.strip() for r in args.registry.split(",") if r.strip()))
+    if not registries:
+        ap.error("--registry must contain at least one registry name")
+    if args.keep < 0 or args.ago_days < 0:
+        ap.error("--keep and --ago-days must be >= 0")
+
+    az_login()
+    cutoff = datetime.now(timezone.utc) - timedelta(days=args.ago_days)
+
+    # errors on single repositories/manifests are only reported, the runbook fails only
+    # when a whole registry cannot be read (wrong name, missing permissions, ...)
+    warnings, failed_registries = [], []
+    for registry in registries:
+        try:
+            warnings += purge_registry(registry, args, cutoff)
+        except Exception as e:
+            failed_registries.append(f"{registry}: {e}")
+            print(f"{registry}: ERROR, registry skipped ({e})")
+
+    for w in warnings:
+        print(f"WARNING {w}")
+    for e in failed_registries:
         print(f"ERROR {e}")
-    return 1 if errors else 0
+    print(f"Registries: {len(registries) - len(failed_registries)}/{len(registries)} processed | "
+          f"Warnings: {len(warnings)}")
+    return 1 if failed_registries else 0
 
 
 if __name__ == "__main__":

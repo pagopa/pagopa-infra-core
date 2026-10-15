@@ -43,20 +43,10 @@
         "team": "infra"
       },
       {
-        "name": "[acr] Purge old weu images",
-        "cron": "0 0 15 * *",
+        "name": "[acr] Purge old images",
+        "cron": "0 0 16 15 * *",
         "runbook": "acr/acr_purge.py",
-        "run_args": "--registry pagopadcommonacr --keep 2 --ago-days 1 --execute",
-        "worker_pool": "generic",
-        "enabled": true,
-        "oncall": false,
-        "team": "infra"
-      },
-      {
-        "name": "[acr] Purge old itn images",
-        "cron": "0 0 15 * *",
-        "runbook": "acr/acr_purge.py",
-        "run_args": "--registry pagopaditncoreacr --keep 2 --ago-days 1 --execute",
+        "run_args": "--registry pagopadcommonacr,pagopaditncoreacr,pagopaditncoreacrbck,pagopadweucoreacrbck --keep 2 --ago-days 1 --workers 5 --execute",
         "worker_pool": "generic",
         "enabled": true,
         "oncall": false,

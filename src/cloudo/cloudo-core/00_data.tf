@@ -48,14 +48,10 @@ data "azurerm_virtual_network" "network_tools_vnet" {
   resource_group_name = "${var.prefix}-${var.env_short}-${var.location_short_ita}-network-hub-spoke-rg"
 }
 
-data "azurerm_container_registry" "weu_acr" {
-  name                = "${var.prefix}${var.env_short}commonacr"
-  resource_group_name = "${local.product}-container-registry-rg"
-}
-
-data "azurerm_container_registry" "itn_acr" {
-  name                = "${var.prefix}${var.env_short}itncoreacr"
-  resource_group_name = "${local.product_ita}-acr-rg"
+data "azurerm_container_registry" "acr" {
+  for_each            = local.container_registries
+  name                = each.value.name
+  resource_group_name = each.value.resource_group_name
 }
 
 data "azurerm_resource_group" "network_rg" {
