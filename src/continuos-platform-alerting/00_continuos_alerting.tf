@@ -71,6 +71,7 @@ module "amba_alerts_core_platform" {
     "Microsoft.Cdn/profiles",                     # CDN
     "Microsoft.ContainerRegistry/registries",     # ACR
     "Microsoft.Compute/virtualMachineScaleSets",  # VMSS
+    "Microsoft.Kusto/clusters",                   # ADX cluster
   ]
 
   # Solo le alert "Must Have" AMBA di default. Passare a false abilita
