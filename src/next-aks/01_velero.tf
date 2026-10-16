@@ -13,6 +13,8 @@ module "velero_workload_identity_init" {
   workload_identity_location            = var.location
   workload_identity_name_prefix         = "velero"
   workload_identity_resource_group_name = azurerm_resource_group.rg_velero_backup[0].name
+
+  tags = module.tag_config.tags
 }
 
 resource "kubernetes_namespace" "velero_namespace" {
