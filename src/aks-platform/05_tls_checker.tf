@@ -8,6 +8,8 @@ module "tls_checker_workload_identity_init" {
   workload_identity_name_prefix         = "tls"
   workload_identity_resource_group_name = azurerm_resource_group.aks_rg.name
   workload_identity_location            = var.location
+
+  tags = module.tag_config.tags
 }
 
 module "tls_checker_workload_identity_configuration" {
@@ -26,6 +28,8 @@ module "tls_checker_workload_identity_configuration" {
   key_vault_secret_permissions      = ["Get"]
 
   depends_on = [module.tls_checker_workload_identity_init]
+
+  tags = module.tag_config.tags
 }
 
 ###############################
