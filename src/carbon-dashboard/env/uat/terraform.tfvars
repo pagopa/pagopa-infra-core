@@ -1,0 +1,6 @@
+prefix         = "pagopa"
+env_short      = "u"
+env            = "uat"
+domain         = "carbon"
+location       = "italynorth"
+location_short = "itn"
