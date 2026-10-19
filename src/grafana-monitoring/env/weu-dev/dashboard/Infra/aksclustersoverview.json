@@ -1,0 +1,4550 @@
+{
+  "title": "AKS · Cluster overview",
+  "uid": "aks-cluster-overview",
+  "description": "Stato complessivo del cluster AKS: nodi, capacità, workload, namespace, autoscaling, storage e rete. Azure Managed Prometheus. Le sezioni Workload/Namespace/HPA/PVC seguono il filtro Namespace; overview e nodi sono sempre a livello cluster.",
+  "tags": [
+    "aks",
+    "kubernetes",
+    "overview",
+    "azure-managed-prometheus"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "timezone": "browser",
+  "liveNow": false,
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "version": 1,
+  "fiscalYearStartMonth": 0,
+  "weekStart": "",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ]
+  },
+  "links": [
+    {
+      "title": "Altre dashboard AKS",
+      "type": "dashboards",
+      "tags": [
+        "aks"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "external link",
+      "targetBlank": false
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "origin",
+        "label": "Datasource",
+        "type": "datasource",
+        "query": "grafana-azureprometheus-datasource",
+        "regex": "aks.*",
+        "refresh": 1,
+        "hide": 0,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azureprometheus-datasource",
+          "uid": "${origin}"
+        },
+        "definition": "query_result(count by (cluster) (kube_node_info))",
+        "query": {
+          "qryType": 5,
+          "query": "query_result(count by (cluster) (kube_node_info))",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "regex": "/cluster=\"([^\"]+)\"/",
+        "refresh": 1,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azureprometheus-datasource",
+          "uid": "${origin}"
+        },
+        "definition": "query_result(count by (namespace) (kube_pod_container_info{cluster=~\"$cluster\"}))",
+        "query": {
+          "qryType": 5,
+          "query": "query_result(count by (namespace) (kube_pod_container_info{cluster=~\"$cluster\"}))",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "regex": "/namespace=\"([^\"]+)\"/",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "hide": 0,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "allValue": ".*"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Stato cluster  ·  $cluster",
+      "collapsed": false,
+      "id": 1,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Nodi",
+      "description": "Nodi registrati nel cluster.",
+      "id": 2,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count(kube_node_info{cluster=~\"$cluster\"})",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Nodi non Ready",
+      "description": "Nodi con condizione Ready diversa da true.",
+      "id": 3,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count(max by (node) (kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\", status!=\"true\"}) == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Nodi sotto pressione",
+      "description": "Nodi con MemoryPressure, DiskPressure o PIDPressure attiva.",
+      "id": 4,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count(max by (node) (kube_node_status_condition{cluster=~\"$cluster\", condition=~\"MemoryPressure|DiskPressure|PIDPressure\", status=\"true\"}) == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pod Running",
+      "description": "Pod in fase Running.",
+      "id": 5,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Running\"})",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pod Pending",
+      "description": "Pod in Pending: spesso mancano risorse sui nodi o PVC non bound.",
+      "id": 6,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Pending\"}) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Container in errore",
+      "description": "Container in waiting per CrashLoopBackOff, ImagePullBackOff, CreateContainerConfigError, ecc.",
+      "id": 7,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count(sum by (namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\", reason!~\"ContainerCreating|PodInitializing\"}) > 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Workload degradati",
+      "description": "Deployment/StatefulSet/DaemonSet con meno repliche disponibili di quelle desiderate.",
+      "id": 8,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "(count((max by (namespace, deployment) (kube_deployment_spec_replicas{cluster=~\"$cluster\"}) - max by (namespace, deployment) (kube_deployment_status_replicas_available{cluster=~\"$cluster\"})) > 0) or vector(0)) + (count((max by (namespace, statefulset) (kube_statefulset_replicas{cluster=~\"$cluster\"}) - max by (namespace, statefulset) (kube_statefulset_status_replicas_ready{cluster=~\"$cluster\"})) > 0) or vector(0)) + (count((max by (namespace, daemonset) (kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}) - max by (namespace, daemonset) (kube_daemonset_status_number_available{cluster=~\"$cluster\"})) > 0) or vector(0))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Restart ultima ora",
+      "description": "Restart dei container nell'ultima ora.",
+      "id": 9,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "round(sum(increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[1h]))) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "CPU in uso",
+      "description": "CPU usata dai nodi / CPU totale dei nodi (node-exporter).",
+      "id": 10,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(sum by (instance) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!~\"idle|iowait|steal\"}[5m]))) / sum(count by (instance) (node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"})) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "CPU richiesta",
+      "description": "Somma delle CPU request dei pod attivi / CPU allocatable dei nodi. Vicino al 100% i nuovi pod restano Pending.",
+      "id": 11,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"}) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 30
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "CPU limit (overcommit)",
+      "description": "Somma dei CPU limit / allocatable. Oltre 100% il cluster è in overcommit.",
+      "id": 12,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_limits{cluster=~\"$cluster\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"}) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 300,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Memoria in uso",
+      "description": "Memoria usata dai nodi (MemTotal - MemAvailable) / MemTotal.",
+      "id": 13,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) - sum by (instance) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"})) / sum(sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"})) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Memoria richiesta",
+      "description": "Somma delle memory request dei pod attivi / memoria allocatable.",
+      "id": 14,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"memory\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"memory\"}) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 30
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Pod / capacità",
+      "description": "Pod attivi / numero massimo di pod schedulabili (max-pods dei nodi).",
+      "id": 15,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count((max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"pods\"}) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false,
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
+      }
+    },
+    {
+      "type": "row",
+      "title": "Capacità e utilizzo",
+      "collapsed": false,
+      "id": 16,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU cluster",
+      "description": "Uso reale contro request, limit e capacità allocatable (core).",
+      "id": 17,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(sum by (instance) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!~\"idle|iowait|steal\"}[$__rate_interval])))",
+          "refId": "A",
+          "legendFormat": "Uso",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "B",
+          "legendFormat": "Request",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_limits{cluster=~\"$cluster\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "C",
+          "legendFormat": "Limit",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"})",
+          "refId": "D",
+          "legendFormat": "Allocatable",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Allocatable"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    4,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Request"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    2,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memoria cluster",
+      "description": "Uso reale contro request, limit e capacità allocatable.",
+      "id": 18,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) - sum by (instance) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}))",
+          "refId": "A",
+          "legendFormat": "Uso",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"memory\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "B",
+          "legendFormat": "Request",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_pod_container_resource_limits{cluster=~\"$cluster\", resource=\"memory\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "C",
+          "legendFormat": "Limit",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"memory\"})",
+          "refId": "D",
+          "legendFormat": "Allocatable",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Allocatable"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    4,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Request"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    2,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Nodi",
+      "collapsed": false,
+      "id": 19,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Stato nodi",
+      "description": "Uso reale (node-exporter) e risorse richieste dai pod per ogni nodo.",
+      "id": 20,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(max by (node) (kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\", status=\"true\"}), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(label_replace(sum by (instance) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!~\"idle|iowait|steal\"}[5m])) / count by (instance) (node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}) * 100, \"node\", \"$1\", \"instance\", \"([^:]+).*\"), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (node) (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum by (node) (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"}) * 100, \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(label_replace((sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) - sum by (instance) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"})) / sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) * 100, \"node\", \"$1\", \"instance\", \"([^:]+).*\"), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (node) (kube_pod_container_resource_requests{cluster=~\"$cluster\", resource=\"memory\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)) / sum by (node) (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"memory\"}) * 100, \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(count by (node) (max by (node, namespace, pod) (kube_pod_info{cluster=~\"$cluster\", node!=\"\"}) and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1)), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "F",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (node) (kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"pods\"}), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "G",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(label_replace(max by (instance) (1 - node_filesystem_avail_bytes{cluster=~\"$cluster\", fstype=~\"ext4|xfs\"} / node_filesystem_size_bytes{cluster=~\"$cluster\", fstype=~\"ext4|xfs\"}) * 100, \"node\", \"$1\", \"instance\", \"([^:]+).*\"), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "H",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(count by (node) (kube_node_status_condition{cluster=~\"$cluster\", condition=~\"MemoryPressure|DiskPressure|PIDPressure\", status=\"true\"} == 1), \"nodepool\", \"$1\", \"node\", \"aks-([^-]+)-.*\")",
+          "refId": "I",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value #A": "Ready",
+              "Value #B": "CPU uso",
+              "Value #C": "CPU richiesta",
+              "Value #D": "Memoria uso",
+              "Value #E": "Memoria richiesta",
+              "Value #F": "Pod",
+              "Value #G": "Max pod",
+              "Value #H": "Disco",
+              "Value #I": "Pressione",
+              "node": "Nodo",
+              "nodepool": "Nodepool"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "node": 0,
+              "nodepool": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5,
+              "Value #E": 6,
+              "Value #F": 7,
+              "Value #G": 8,
+              "Value #H": 9,
+              "Value #I": 10
+            },
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Nodo",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Nodo"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ready"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "✓ Ready",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "0": {
+                        "text": "✖ NotReady",
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 70
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memoria uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 70
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU richiesta"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memoria richiesta"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disco"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max pod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pressione"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "—",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU per nodo",
+      "description": "Percentuale di CPU usata per nodo.",
+      "id": 21,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (instance) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!~\"idle|iowait|steal\"}[$__rate_interval])) / count by (instance) (node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}) * 100, \"node\", \"$1\", \"instance\", \"([^:]+).*\")",
+          "refId": "A",
+          "legendFormat": "{{node}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memoria per nodo",
+      "description": "Percentuale di memoria usata per nodo.",
+      "id": 22,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace((sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) - sum by (instance) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"})) / sum by (instance) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) * 100, \"node\", \"$1\", \"instance\", \"([^:]+).*\")",
+          "refId": "A",
+          "legendFormat": "{{node}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Workload e pod  ·  namespace: $namespace",
+      "collapsed": false,
+      "id": 23,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Workload degradati",
+      "description": "Workload con repliche disponibili inferiori alle desiderate. Vuota = tutto ok.",
+      "id": 24,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, workload, kind) (label_replace(label_replace((max by (namespace, deployment) (kube_deployment_spec_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"}) - max by (namespace, deployment) (kube_deployment_status_replicas_available{cluster=~\"$cluster\", namespace=~\"$namespace\"})) > 0, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"kind\", \"Deployment\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace((max by (namespace, statefulset) (kube_statefulset_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"}) - max by (namespace, statefulset) (kube_statefulset_status_replicas_ready{cluster=~\"$cluster\", namespace=~\"$namespace\"})) > 0, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"kind\", \"StatefulSet\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace((max by (namespace, daemonset) (kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\", namespace=~\"$namespace\"}) - max by (namespace, daemonset) (kube_daemonset_status_number_available{cluster=~\"$cluster\", namespace=~\"$namespace\"})) > 0, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"kind\", \"DaemonSet\", \"\", \"\"))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, deployment) (kube_deployment_spec_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"kind\", \"Deployment\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, statefulset) (kube_statefulset_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"kind\", \"StatefulSet\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, daemonset) (kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"kind\", \"DaemonSet\", \"\", \"\"))",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, deployment) (kube_deployment_status_replicas_available{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"kind\", \"Deployment\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, statefulset) (kube_statefulset_status_replicas_ready{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"kind\", \"StatefulSet\", \"\", \"\")) or max by (namespace, workload, kind) (label_replace(label_replace(max by (namespace, daemonset) (kube_daemonset_status_number_available{cluster=~\"$cluster\", namespace=~\"$namespace\"}), \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"kind\", \"DaemonSet\", \"\", \"\"))",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "workload": "Workload",
+              "kind": "Tipo",
+              "Value #A": "Mancanti",
+              "Value #B": "Desiderate",
+              "Value #C": "Disponibili"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "namespace": 0,
+              "workload": 1,
+              "kind": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #A": 5
+            },
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Mancanti",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mancanti"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "orange",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Container in errore",
+      "description": "Container bloccati in waiting (CrashLoopBackOff, ImagePullBackOff, ...).",
+      "id": 25,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum by (namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\", namespace=~\"$namespace\", reason!~\"ContainerCreating|PodInitializing\"}) > 0",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "pod": "Pod",
+              "container": "Container",
+              "reason": "Motivo"
+            },
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Namespace",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Motivo"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Pod Pending",
+      "description": "Pod in attesa di essere schedulati o avviati.",
+      "id": 26,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 47
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", namespace=~\"$namespace\", phase=\"Pending\"}) == 1",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "pod": "Pod"
+            },
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Namespace",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top 10 restart (24h)",
+      "description": "Pod con più restart nelle ultime 24 ore.",
+      "id": 27,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 47
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "topk(10, sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\", namespace=~\"$namespace\"}[24h])) >= 1)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "pod": "Pod",
+              "Value": "Restart"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Restart",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Restart"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "orange",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "OOMKilled (24h)",
+      "description": "Container terminati per OOM che hanno riavviato nelle ultime 24 ore: memory limit troppo basso.",
+      "id": 28,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 47
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{cluster=~\"$cluster\", namespace=~\"$namespace\", reason=\"OOMKilled\"}) and on (namespace, pod, container) (sum by (namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\", namespace=~\"$namespace\"}[24h])) >= 1)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "pod": "Pod",
+              "container": "Container"
+            },
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Namespace",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Namespace",
+      "collapsed": false,
+      "id": 29,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Risorse per namespace",
+      "description": "Uso reale contro request. Uso/request basso = namespace sovradimensionato (vedi la dashboard Rightsizing).",
+      "id": 30,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count by (namespace) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", namespace=~\"$namespace\", phase=\"Running\"}) == 1)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum by (namespace) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{cluster=~\"$cluster\", namespace=~\"$namespace\", container!=\"\", container!=\"POD\"})",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum by (namespace) (kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\", resource=\"cpu\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum by (namespace) (node_namespace_pod_container:container_memory_working_set_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container!=\"\", container!=\"POD\"})",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum by (namespace) (kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\", resource=\"memory\"} and on (namespace, pod) (max by (namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending\"}) == 1))",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "round(sum by (namespace) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\", namespace=~\"$namespace\"}[24h])))",
+          "refId": "F",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value #A": "Pod",
+              "Value #B": "CPU uso",
+              "Value #C": "CPU request",
+              "Value #D": "Mem uso",
+              "Value #E": "Mem request",
+              "Value #F": "Restart 24h",
+              "namespace": "Namespace"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "cpu_r",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU uso"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU request"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "CPU uso / request",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "cpu_r"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "mem_r",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Mem uso"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Mem request"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Mem uso / request",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "mem_r"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "cpu_r": true,
+              "mem_r": true
+            },
+            "renameByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Namespace": 0,
+              "Pod": 1,
+              "CPU uso": 2,
+              "CPU request": 3,
+              "CPU uso / request": 4,
+              "Mem uso": 5,
+              "Mem request": 6,
+              "Mem uso / request": 7,
+              "Restart 24h": 8
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "CPU uso",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 260
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: core"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: core"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mem uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mem request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU uso / request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 40
+                    },
+                    {
+                      "color": "orange",
+                      "value": 90
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mem uso / request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 40
+                    },
+                    {
+                      "color": "orange",
+                      "value": 90
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Restart 24h"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": [
+            "Pod",
+            "CPU uso",
+            "CPU request",
+            "Mem uso",
+            "Mem request",
+            "Restart 24h"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU per namespace (top 10)",
+      "description": "Core usati per namespace (recording rule sum_irate).",
+      "id": 31,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "topk(10, sum by (namespace) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{cluster=~\"$cluster\", namespace=~\"$namespace\", container!=\"\", container!=\"POD\"}))",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memoria per namespace (top 10)",
+      "description": "Working set per namespace.",
+      "id": 32,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "topk(10, sum by (namespace) (node_namespace_pod_container:container_memory_working_set_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container!=\"\", container!=\"POD\"}))",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Autoscaling e storage",
+      "collapsed": false,
+      "id": 33,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 74
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "HPA",
+      "description": "Autoscaler: al 100% del massimo l'HPA non può più scalare.",
+      "id": 34,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 75
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, horizontalpodautoscaler) (kube_horizontalpodautoscaler_status_current_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, horizontalpodautoscaler) (kube_horizontalpodautoscaler_spec_min_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, horizontalpodautoscaler) (kube_horizontalpodautoscaler_spec_max_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, horizontalpodautoscaler) (kube_horizontalpodautoscaler_status_desired_replicas{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "horizontalpodautoscaler": "HPA",
+              "Value #A": "Attuali",
+              "Value #B": "Min",
+              "Value #C": "Max",
+              "Value #D": "Desiderate"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "hpa_r",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Attuali"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Max"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Uso del max",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "hpa_r"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "hpa_r": true
+            },
+            "renameByName": {},
+            "includeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Uso del max",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso del max"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Min"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Attuali"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Desiderate"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 95
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Volumi persistenti (PVC)",
+      "description": "Spazio usato per PVC montata (kubelet volume stats). Oltre 85% rischio disco pieno.",
+      "id": 35,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "namespace": "Namespace",
+              "persistentvolumeclaim": "PVC",
+              "Value #A": "Usato",
+              "Value #B": "Capacità"
+            },
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "pvc_r",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Usato"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Capacità"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Uso",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "pvc_r"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "pvc_r": true
+            },
+            "renameByName": {},
+            "includeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Uso",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Usato"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Capacità"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Rete",
+      "collapsed": false,
+      "id": 36,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Traffico per nodo (rx su, tx giù)",
+      "description": "Byte/s ricevuti e trasmessi dalle interfacce fisiche dei nodi.",
+      "id": 37,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 85
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (instance) (rate(node_network_receive_bytes_total{cluster=~\"$cluster\", device!~\"lo|veth.*|azv.*|cali.*|cilium.*|lxc.*|docker.*|cni.*|flannel.*|vxlan.*|tunl.*\"}[$__rate_interval])), \"node\", \"$1\", \"instance\", \"([^:]+).*\")",
+          "refId": "A",
+          "legendFormat": "{{node}} rx",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_replace(sum by (instance) (rate(node_network_transmit_bytes_total{cluster=~\"$cluster\", device!~\"lo|veth.*|azv.*|cali.*|cilium.*|lxc.*|docker.*|cni.*|flannel.*|vxlan.*|tunl.*\"}[$__rate_interval])), \"node\", \"$1\", \"instance\", \"([^:]+).*\")",
+          "refId": "B",
+          "legendFormat": "{{node}} tx",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* tx"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Traffico ricevuto per namespace (top 10)",
+      "description": "Byte/s ricevuti dai pod, aggregati per namespace (cAdvisor).",
+      "id": 38,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 85
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "topk(10, sum by (namespace) (rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval])))",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    }
+  ]
+}

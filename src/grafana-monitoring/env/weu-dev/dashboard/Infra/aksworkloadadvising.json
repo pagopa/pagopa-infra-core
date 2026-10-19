@@ -1,0 +1,4292 @@
+{
+  "title": "AKS · Rightsizing request & limits",
+  "uid": "aks-rightsizing",
+  "description": "Raccomandazioni di CPU/memory request e limit per workload e container (Azure Managed Prometheus). Ogni metrica pesante è interrogata una sola volta: i calcoli li fa Grafana. Range consigliato: max 5 giorni (oltre, il workspace WEU va in 504).",
+  "tags": [
+    "aks",
+    "kubernetes",
+    "rightsizing",
+    "finops",
+    "azure-managed-prometheus"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "timezone": "browser",
+  "liveNow": false,
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 41,
+  "version": 1,
+  "fiscalYearStartMonth": 0,
+  "weekStart": "",
+  "time": {
+    "from": "now-5d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "15m",
+      "1h"
+    ]
+  },
+  "links": [],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "origin",
+        "label": "Cluster",
+        "type": "datasource",
+        "query": "grafana-azureprometheus-datasource",
+        "regex": "aks.*",
+        "refresh": 1,
+        "hide": 0,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azureprometheus-datasource",
+          "uid": "${origin}"
+        },
+        "definition": "query_result(count by (namespace) (kube_pod_container_info))",
+        "query": {
+          "qryType": 5,
+          "query": "query_result(count by (namespace) (kube_pod_container_info))",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "regex": "/namespace=\"([^\"]+)\"/",
+        "refresh": 1,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "workload",
+        "label": "Workload",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azureprometheus-datasource",
+          "uid": "${origin}"
+        },
+        "definition": "query_result(count by (workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\"}))",
+        "query": {
+          "qryType": 5,
+          "query": "query_result(count by (workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\"}))",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "regex": "/workload=\"([^\"]+)\"/",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "hide": 0,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": []
+      },
+      {
+        "name": "percentile",
+        "label": "Percentile request",
+        "type": "custom",
+        "description": "Percentile dell'uso su cui calcolare la request.",
+        "hide": 0,
+        "query": "0.9,0.95,0.99",
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "0.95",
+          "value": "0.95"
+        },
+        "options": [
+          {
+            "text": "0.9",
+            "value": "0.9",
+            "selected": false
+          },
+          {
+            "text": "0.95",
+            "value": "0.95",
+            "selected": true
+          },
+          {
+            "text": "0.99",
+            "value": "0.99",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "req_headroom",
+        "label": "Margine request %",
+        "type": "custom",
+        "description": "Margine aggiunto al percentile per la request.",
+        "hide": 0,
+        "query": "0,10,20,30,50",
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "20",
+          "value": "20"
+        },
+        "options": [
+          {
+            "text": "0",
+            "value": "0",
+            "selected": false
+          },
+          {
+            "text": "10",
+            "value": "10",
+            "selected": false
+          },
+          {
+            "text": "20",
+            "value": "20",
+            "selected": true
+          },
+          {
+            "text": "30",
+            "value": "30",
+            "selected": false
+          },
+          {
+            "text": "50",
+            "value": "50",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "lim_headroom",
+        "label": "Margine limit %",
+        "type": "custom",
+        "description": "Margine aggiunto al picco osservato per il limit.",
+        "hide": 0,
+        "query": "20,30,50,100",
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "30",
+          "value": "30"
+        },
+        "options": [
+          {
+            "text": "20",
+            "value": "20",
+            "selected": false
+          },
+          {
+            "text": "30",
+            "value": "30",
+            "selected": true
+          },
+          {
+            "text": "50",
+            "value": "50",
+            "selected": false
+          },
+          {
+            "text": "100",
+            "value": "100",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Riepilogo $namespace  ·  dal ${__from:date:DD/MM HH:mm} al ${__to:date:DD/MM HH:mm}  ·  p${percentile}",
+      "collapsed": false,
+      "id": 1,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "CPU request attuale",
+      "description": "Somma CPU request x repliche (pod in esecuzione).",
+      "id": 2,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 50,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_cur"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "0.001"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CPU request consigliata",
+      "description": "Somma request consigliate x repliche attuali.",
+      "id": 3,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 50,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_rec"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "0.001"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CPU recuperabile",
+      "description": "Attuale - consigliata. Negativo = sottodimensionato. I container senza request contano solo nel consigliato.",
+      "id": 4,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 50,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_diff",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_cur"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_rec"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_diff"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "0.001"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Memoria request attuale",
+      "description": "Somma memory request x repliche (pod in esecuzione).",
+      "id": 5,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 51,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_cur"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1048576"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Memoria request consigliata",
+      "description": "Somma request consigliate x repliche attuali.",
+      "id": 6,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 51,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_rec"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1048576"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Memoria recuperabile",
+      "description": "Attuale - consigliata. Negativo = sottodimensionato. I container senza request contano solo nel consigliato.",
+      "id": 7,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 51,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_cur",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_rec",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "tot_diff",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_cur"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_rec"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "value",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tot_diff"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1048576"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Container senza request",
+      "description": "Container in esecuzione senza CPU o memory request (QoS BestEffort/Burstable).",
+      "id": 8,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "count(((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left () max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})) unless on (namespace, pod, container) (max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"cpu\"}) and max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"memory\"}))) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Restart nel periodo",
+      "description": "Restart dei container nel periodo analizzato.",
+      "id": 9,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range]) * on (namespace, pod) group_left () max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Top 10 CPU sprecata (request - consigliata) x repliche",
+      "description": "Dove ridurre la CPU request libera più capacità.",
+      "id": 10,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 50,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "w1",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "w2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "w1"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Spreco",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "w2"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "0.001"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Spreco",
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Spreco",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 10
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "item",
+                "Spreco"
+              ]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "item",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Spreco",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: core",
+          "min": 0,
+          "decimals": 2,
+          "color": {
+            "mode": "continuous-BlPu"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 14,
+        "maxVizHeight": 22,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Top 10 memoria sprecata (request - consigliata) x repliche",
+      "description": "Dove ridurre la memory request libera più capacità.",
+      "id": 11,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 51,
+          "refId": "A",
+          "withTransforms": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "w1",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "w2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "w1"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Repliche"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Spreco",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "w2"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1048576"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Spreco",
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Spreco",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 10
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "item",
+                "Spreco"
+              ]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "item",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Spreco",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0,
+          "decimals": 2,
+          "color": {
+            "mode": "continuous-BlPu"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 14,
+        "maxVizHeight": 22,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "CPU  ·  request = p${percentile} uso +${req_headroom}%  ·  limit = picco +${lim_headroom}%",
+      "collapsed": false,
+      "id": 12,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Raccomandazioni CPU per workload / container",
+      "description": "Valori in millicore pronti da copiare (request arrotondata a 5m, min 10m; limit a 10m e mai sotto la request). Uso = max tra le repliche. Se il workload ha un HPA su CPU, cambiare la request cambia anche il punto di scaling.",
+      "id": 50,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"cpu\"}) * 1000) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"cpu\"}) * 1000) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (quantile_over_time($percentile, rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[5m])[$__range:5m])) * 1000) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (max_over_time(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[2m])[$__range:2m])) * 1000) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((sum by (namespace, pod, container) (increase(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range])) / sum by (namespace, pod, container) (increase(container_cpu_cfs_periods_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range]) > 0) * 100) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "F",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "(label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")) * 0 + (1 + $req_headroom / 100)",
+          "refId": "G",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "(label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")) * 0 + (1 + $lim_headroom / 100)",
+          "refId": "H",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value #A": "Repliche",
+              "Value #B": "Request attuale",
+              "Value #C": "Limit attuale",
+              "Value #D": "Uso p",
+              "Value #E": "Picco uso",
+              "Value #F": "Throttling",
+              "Value #G": "f_req",
+              "Value #H": "f_lim"
+            },
+            "excludeByName": {},
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Uso p"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "f_req"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_rnd_d",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_raw"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "5"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Request consigliata_rnd_c",
+            "unary": {
+              "operator": "ceil",
+              "fieldName": "Request consigliata_rnd_d"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_rnd",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd_c"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "5"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_xy",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "fixed": "10"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Request consigliata_abs",
+            "unary": {
+              "operator": "abs",
+              "fieldName": "Request consigliata_xy"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_sum",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "fixed": "10"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_sum2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_sum"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_abs"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_sum2"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "2"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Picco uso"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "f_lim"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_rnd_d",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_raw"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "10"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Limit consigliato_rnd_c",
+            "unary": {
+              "operator": "ceil",
+              "fieldName": "Limit consigliato_rnd_d"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_rnd",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd_c"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "10"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_xy",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Limit consigliato_abs",
+            "unary": {
+              "operator": "abs",
+              "fieldName": "Limit consigliato_xy"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_sum",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_sum2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_sum"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_abs"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_sum2"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "2"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "util_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Uso p"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Utilizzo request",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "util_raw"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Esito",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Utilizzo request"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Request consigliata_raw": true,
+              "Request consigliata_rnd": true,
+              "Request consigliata_rnd_d": true,
+              "Request consigliata_rnd_c": true,
+              "Request consigliata_xy": true,
+              "Request consigliata_abs": true,
+              "Request consigliata_sum": true,
+              "Request consigliata_sum2": true,
+              "Limit consigliato_raw": true,
+              "Limit consigliato_rnd": true,
+              "Limit consigliato_rnd_d": true,
+              "Limit consigliato_rnd_c": true,
+              "Limit consigliato_xy": true,
+              "Limit consigliato_abs": true,
+              "Limit consigliato_sum": true,
+              "Limit consigliato_sum2": true,
+              "util_raw": true,
+              "Time": true,
+              "namespace": true,
+              "f_req": true,
+              "f_lim": true
+            },
+            "renameByName": {
+              "workload": "Workload",
+              "container": "Container",
+              "Uso p": "Uso p${percentile}"
+            },
+            "indexByName": {
+              "Workload": 0,
+              "Container": 1,
+              "Esito": 2,
+              "Repliche": 3,
+              "Request attuale": 4,
+              "Uso p": 5,
+              "Request consigliata": 6,
+              "Utilizzo request": 7,
+              "Limit attuale": 8,
+              "Picco uso": 9,
+              "Limit consigliato": 10,
+              "Throttling": 11,
+              "workload": 0,
+              "container": 1
+            },
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Utilizzo request",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "item"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workload"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Repliche"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Esito"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "⚠ Request mancante",
+                        "color": "orange",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 0,
+                      "to": 40,
+                      "result": {
+                        "text": "↓ Sovradimensionato",
+                        "color": "blue",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 40,
+                      "to": 100,
+                      "result": {
+                        "text": "✓ OK",
+                        "color": "green",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 100,
+                      "to": 1000000000000.0,
+                      "result": {
+                        "text": "↑ Sottodimensionato",
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Utilizzo request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 150
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 40
+                    },
+                    {
+                      "color": "orange",
+                      "value": 90
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request consigliata"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit consigliato"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request attuale"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso p${percentile}"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso p"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request consigliata"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit attuale"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Picco uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit consigliato"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Throttling"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 5
+                    },
+                    {
+                      "color": "red",
+                      "value": 20
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f_req"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f_lim"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Memoria  ·  request = p${percentile} working set +${req_headroom}%  ·  limit = picco +${lim_headroom}%",
+      "collapsed": false,
+      "id": 13,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Raccomandazioni memoria per workload / container",
+      "description": "Valori in MiB pronti da copiare (arrotondati a 16Mi, min 32Mi; limit mai sotto la request). Working set = la metrica usata dall'OOM killer. Per la memoria molti team usano limit = request (QoS Guaranteed).",
+      "id": 51,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${origin}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"memory\"}) / 1048576) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"memory\"}) / 1048576) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (quantile_over_time($percentile, container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range])) / 1048576) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (max_over_time(container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range])) / 1048576) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(max by (namespace, workload, container) ((max by (namespace, pod, container) (max_over_time(kube_pod_container_status_last_terminated_reason{namespace=\"$namespace\", container!=\"\", container!=\"POD\", reason=\"OOMKilled\"}[$__range]))) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "F",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "label_join(sum by (namespace, workload, container) ((sum by (namespace, pod, container) (increase(kube_pod_container_status_restarts_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__range]))) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (max_over_time(namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"}[$__range]))), \"item\", \" / \", \"workload\", \"container\")",
+          "refId": "G",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "(label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")) * 0 + (1 + $req_headroom / 100)",
+          "refId": "H",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "expr": "(label_join(count by (namespace, workload, container) ((max by (namespace, pod, container) (kube_pod_container_info{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"$workload\"})), \"item\", \" / \", \"workload\", \"container\")) * 0 + (1 + $lim_headroom / 100)",
+          "refId": "I",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value #A": "Repliche",
+              "Value #B": "Request attuale",
+              "Value #C": "Limit attuale",
+              "Value #D": "Uso p",
+              "Value #E": "Picco uso",
+              "Value #F": "OOM",
+              "Value #G": "Restart",
+              "Value #H": "f_req",
+              "Value #I": "f_lim"
+            },
+            "excludeByName": {},
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Uso p"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "f_req"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_rnd_d",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_raw"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "16"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Request consigliata_rnd_c",
+            "unary": {
+              "operator": "ceil",
+              "fieldName": "Request consigliata_rnd_d"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_rnd",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd_c"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "16"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_xy",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "fixed": "32"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Request consigliata_abs",
+            "unary": {
+              "operator": "abs",
+              "fieldName": "Request consigliata_xy"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_sum",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_rnd"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "fixed": "32"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata_sum2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_sum"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_abs"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Request consigliata",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata_sum2"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "2"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Picco uso"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "f_lim"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_rnd_d",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_raw"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "16"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Limit consigliato_rnd_c",
+            "unary": {
+              "operator": "ceil",
+              "fieldName": "Limit consigliato_rnd_d"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_rnd",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd_c"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "16"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_xy",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Limit consigliato_abs",
+            "unary": {
+              "operator": "abs",
+              "fieldName": "Limit consigliato_xy"
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_sum",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_rnd"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request consigliata"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato_sum2",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_sum"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_abs"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Limit consigliato",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit consigliato_sum2"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "2"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "pl_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Picco uso"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Limit attuale"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Picco / limit",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "pl_raw"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "util_raw",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Uso p"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Request attuale"
+                }
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Utilizzo request",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "util_raw"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "100"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Esito",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Utilizzo request"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1"
+              }
+            },
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Request consigliata_raw": true,
+              "Request consigliata_rnd": true,
+              "Request consigliata_rnd_d": true,
+              "Request consigliata_rnd_c": true,
+              "Request consigliata_xy": true,
+              "Request consigliata_abs": true,
+              "Request consigliata_sum": true,
+              "Request consigliata_sum2": true,
+              "Limit consigliato_raw": true,
+              "Limit consigliato_rnd": true,
+              "Limit consigliato_rnd_d": true,
+              "Limit consigliato_rnd_c": true,
+              "Limit consigliato_xy": true,
+              "Limit consigliato_abs": true,
+              "Limit consigliato_sum": true,
+              "Limit consigliato_sum2": true,
+              "pl_raw": true,
+              "util_raw": true,
+              "Time": true,
+              "namespace": true,
+              "f_req": true,
+              "f_lim": true
+            },
+            "renameByName": {
+              "workload": "Workload",
+              "container": "Container",
+              "Uso p": "Uso p${percentile}"
+            },
+            "indexByName": {
+              "Workload": 0,
+              "Container": 1,
+              "Esito": 2,
+              "OOM": 3,
+              "Repliche": 4,
+              "Request attuale": 5,
+              "Uso p": 6,
+              "Request consigliata": 7,
+              "Utilizzo request": 8,
+              "Limit attuale": 9,
+              "Picco uso": 10,
+              "Limit consigliato": 11,
+              "Picco / limit": 12,
+              "Restart": 13,
+              "workload": 0,
+              "container": 1
+            },
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Utilizzo request",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "—",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "item"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workload"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Repliche"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Esito"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "⚠ Request mancante",
+                        "color": "orange",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 0,
+                      "to": 40,
+                      "result": {
+                        "text": "↓ Sovradimensionato",
+                        "color": "blue",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 40,
+                      "to": 100,
+                      "result": {
+                        "text": "✓ OK",
+                        "color": "green",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 100,
+                      "to": 1000000000000.0,
+                      "result": {
+                        "text": "↑ Sottodimensionato",
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Utilizzo request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 150
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 40
+                    },
+                    {
+                      "color": "orange",
+                      "value": 90
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request consigliata"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit consigliato"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request attuale"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso p${percentile}"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uso p"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request consigliata"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit attuale"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Picco uso"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit consigliato"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:Mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Picco / limit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OOM"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "✖ OOMKilled",
+                        "color": "dark-red",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Restart"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f_req"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f_lim"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Dettaglio $workload",
+      "collapsed": true,
+      "id": 16,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "$workload · CPU per container (max tra repliche)",
+          "id": 14,
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 0,
+            "y": 40
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[$__rate_interval]))) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "A",
+              "legendFormat": "{{container}} uso",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            },
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"cpu\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "B",
+              "legendFormat": "{{container}} request",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            },
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"cpu\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "C",
+              "legendFormat": "{{container}} limit",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "suffix: core",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "opacity",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0
+              },
+              "decimals": 3
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*request.*"
+                },
+                "properties": [
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        10,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "orange"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*limit.*"
+                },
+                "properties": [
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        4,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "red"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            },
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max"
+              ]
+            }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "$workload · Memoria working set per container (max tra repliche)",
+          "id": 15,
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${origin}"
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 12,
+            "y": 40
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((max by (namespace, pod, container) (container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "A",
+              "legendFormat": "{{container}} uso",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            },
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((max by (namespace, pod, container) (kube_pod_container_resource_requests{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"memory\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "B",
+              "legendFormat": "{{container}} request",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            },
+            {
+              "datasource": {
+                "type": "grafana-azureprometheus-datasource",
+                "uid": "${origin}"
+              },
+              "expr": "max by (container) ((max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace=\"$namespace\", container!=\"\", container!=\"POD\", resource=\"memory\"})) * on (namespace, pod) group_left (workload) max by (namespace, pod, workload) (namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$workload\"}))",
+              "refId": "C",
+              "legendFormat": "{{container}} limit",
+              "editorMode": "code",
+              "range": true,
+              "instant": false,
+              "format": "time_series",
+              "exemplar": false
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "opacity",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*request.*"
+                },
+                "properties": [
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        10,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "orange"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*limit.*"
+                },
+                "properties": [
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        4,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "red"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            },
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max"
+              ]
+            }
+          }
+        }
+      ],
+      "repeat": "workload"
+    }
+  ]
+}
