@@ -99,10 +99,10 @@
         "label": "Budget mensile (€)",
         "type": "textbox",
         "hide": 0,
-        "query": "10000",
+        "query": "20000",
         "current": {
-          "text": "10000",
-          "value": "10000"
+          "text": "20000",
+          "value": "20000"
         },
         "options": []
       }
