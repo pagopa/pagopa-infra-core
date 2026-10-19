@@ -91,7 +91,7 @@ module "haproxy_ingress" {
   # ---- Resources (production sizing) ----
   resources = {
     requests_cpu    = "200m"
-    requests_memory = "256Mi"
+    requests_memory = "512Mi"
     limits_cpu      = "1000m"
     limits_memory   = "1Gi"
   }
