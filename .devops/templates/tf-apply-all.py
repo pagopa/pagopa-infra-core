@@ -306,7 +306,8 @@ def main():
 
   disable_opa_policy(repo_path)
   patch_terraform_script(repo_path)
-
+  run_command_streaming(
+    ['cat', 'scripts/terraform.sh'])
   # run command on each folder in order
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
