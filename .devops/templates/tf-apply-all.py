@@ -196,7 +196,7 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": f"Skipped: {len(skipped_folders)}",
+          "text": f"Skipped: {len(skipped_folders)}/{total_folders}",
           "emoji": True
         },
         "level": 4
@@ -205,10 +205,13 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": f"Failed: {len(failed_folders)}",
+          "text": f"Failed: {len(failed_folders)}/{total_folders}",
           "emoji": True
         },
         "level": 4
+      },
+      {
+        "type": "divider"
       },
       {
         "type": "container",
@@ -233,6 +236,9 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
         ]
       },
       {
+        "type": "divider"
+      },
+      {
         "type": "section",
         "text": {
           "type": "mrkdwn",
@@ -253,9 +259,8 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
     ]
   }
 
-  print(f"{bcolors.INFO}slack message: {message}{bcolors.ENDC}")
 
-  response = requests.post(webhook_url, data=message)
+  response = requests.post(webhook_url, json=message)
 
   print(f"{bcolors.INFO}Slack report sent. Response status code: {response.status_code}{bcolors.ENDC}")
   print(f"{bcolors.INFO}slack response {response.content}{bcolors.ENDC}")
