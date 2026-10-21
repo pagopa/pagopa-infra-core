@@ -78,7 +78,6 @@ stages:
   - stage: Execute
     displayName: Execute terraform on all folders in target env
     dependsOn: []
-    condition: and(succeeded())
     pool:
       name: '${{ variables.pool_name }}'
     jobs:
