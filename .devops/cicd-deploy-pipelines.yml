@@ -97,3 +97,4 @@ stages:
               AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ variables.aks_azure_devops_sa_ca_crt }}'
               AKS_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_azure_devops_sa_token }}'
               KV_NAME: '${{ variables.kv_name }}'
+              DRY_RUN: '${{ parameters.DRY_RUN }}'

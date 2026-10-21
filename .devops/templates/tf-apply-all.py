@@ -148,9 +148,8 @@ def patch_terraform_script(repo_path):
   with open(script_path, 'w') as f:
     f.write(content)
 
+
 def send_slack_report(apply_summaries, skipped_folders, failed_folders, webhook_url, build_url):
-
-
   total_folders = len(apply_summaries) + len(skipped_folders) + len(failed_folders)
   applied_folders = len(apply_summaries) - len(failed_folders) - len(skipped_folders)
 
@@ -295,6 +294,7 @@ def main():
   slack_webhook_url = sys.argv[3]
   build_url = sys.argv[4]
   dry_run = sys.argv[5].lower() == 'true'
+
   repo_path = "."
   azure_login()
   failed_folders = []
@@ -303,6 +303,9 @@ def main():
   total_folders = len(ordered_folders)
 
   print(f"{bcolors.INFO}Executing terraform with dry_run={dry_run}{bcolors.ENDC}")
+
+  disable_opa_policy(repo_path)
+  patch_terraform_script(repo_path)
 
   # run command on each folder in order
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
