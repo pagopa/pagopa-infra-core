@@ -10,7 +10,7 @@ parameters:
     type: string
     default: prod
     values:
-      - dev
+#      - dev
 #      - uat
       - prod
 
