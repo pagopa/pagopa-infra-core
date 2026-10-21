@@ -108,7 +108,7 @@ PLAN_RE = re.compile(r'Plan: \d+ to add, \d+ to change, \d+ to destroy\.')
 NO_CHANGES_RE = re.compile(r'No changes\. Your infrastructure matches the configuration\.')
 
 
-def extract_plan_summary(output):
+def extract_tf_summary(output):
   """Return the terraform plan result line(s), e.g. 'Plan: 0 to add, 90 to change, 0 to destroy.'"""
   clean = ANSI_RE.sub('', output or '')
   matches = PLAN_RE.findall(clean) + NO_CHANGES_RE.findall(clean)
@@ -149,9 +149,8 @@ def patch_terraform_script(repo_path):
     f.write(content)
 
 
-def send_slack_report(apply_summaries, skipped_folders, failed_folders, webhook_url, build_url):
-  total_folders = len(apply_summaries) + len(skipped_folders) + len(failed_folders)
-  applied_folders = len(apply_summaries) - len(failed_folders) - len(skipped_folders)
+def send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders, webhook_url, build_url):
+  applied_folders = len(apply_summaries) - len(failed_folders)
 
   apply_summary_message = []
   for folder, summary in apply_summaries.items():
@@ -289,7 +288,7 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
     f"{bcolors.INFO}Apply command in folder {folder_path}: {arguments}{bcolors.ENDC}")
 
   output = run_command_streaming(arguments, cwd=folder_path)
-  return extract_plan_summary(output)
+  return extract_tf_summary(output)
 
 
 def main():
@@ -310,8 +309,6 @@ def main():
 
   disable_opa_policy(repo_path)
   patch_terraform_script(repo_path)
-  run_command_streaming(
-    ['cat', 'scripts/terraform.sh'])
   # run command on each folder in order
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
@@ -328,7 +325,7 @@ def main():
       skipped_folders.append(folder)
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
-  send_slack_report(apply_summaries, skipped_folders, failed_folders,
+  send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders,
                     slack_webhook_url, f"{build_url}&view=logs")
 
   # report apply summary per folder
