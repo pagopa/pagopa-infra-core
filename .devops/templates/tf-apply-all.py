@@ -308,6 +308,9 @@ def main():
       skipped_folders.append(folder)
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
+  send_slack_report(plan_summaries, skipped_folders, failed_folders,
+                    slack_webhook_url, build_url)
+
   # report plan summary per folder
   if plan_summaries:
     print(f"\n{bcolors.INFO}=== Plan summary (env: {env}) ==={bcolors.ENDC}")
@@ -326,8 +329,6 @@ def main():
     for folder in failed_folders:
       print(f"{bcolors.RED}- {folder}{bcolors.ENDC}")
     exit(1)
-
-  send_slack_report(plan_summaries, skipped_folders, failed_folders, slack_webhook_url, build_url)
 
 if __name__ == '__main__':
   main()
