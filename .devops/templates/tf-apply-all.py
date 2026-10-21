@@ -143,7 +143,7 @@ def patch_terraform_script(repo_path):
     print(f"{bcolors.WARN}Warning: check_arguments call not found in other_actions(); no changes made.{bcolors.ENDC}")
     return
 
-  print(f"{bcolors.INFO}Patching {script_path}: removing check_arguments call from other_actions()...{bcolors.ENDC}")
+  print(f"Patching {script_path}: removing check_arguments call from other_actions()...")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
