@@ -51,49 +51,65 @@ stages:
         timeoutInMinutes: ${{ variables.TIME_OUT }}
         condition: succeeded()
         steps:
-          - checkout: self
-            workspaceRepo: true
-          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+          - template: ./templates/tf-apply-all.yml
             parameters:
-              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '$(Agent.BuildDirectory)'
+              ENV: 'dev'
+              SERVICE_CONNECTION: $(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)
               AKS_NAME: '$(TF_AKS_DEV_NAME)'
               AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              OUTPUT_CTX_NAME: 'weu'
-          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-            parameters:
-              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              WORKINGDIR: '$(Agent.BuildDirectory)'
-              AKS_NAME: '$(TF_SECOND_AKS_DEV_NAME)'
-              AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
-              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              OUTPUT_CTX_NAME: 'itn'
-          - task: AzureCLI@2
-            displayName: "Apply all folders"
-            inputs:
-              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-              addSpnToEnvironment: true
-              scriptLocation: inlineScript
-              scriptType: bash
-              inlineScript: |
-                set -e
-                echo "[INFO] Terraform setup variables"
-                export ARM_CLIENT_ID=${servicePrincipalId}
-                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-                export ARM_TENANT_ID=${tenantId}
-                if [ -n "${idToken}" ]; then
-                  export ARM_USE_OIDC=true
-                  export ARM_OIDC_TOKEN=${idToken}
-                elif [ -n "${servicePrincipalKey}" ]; then
-                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
-                else
-                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
-                  exit 1
-                fi
-                python3 -u .devops/templates/tf-apply-all.py dev $(Agent.BuildDirectory)
+
+
+#          - checkout: self
+#            workspaceRepo: true
+#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+#            parameters:
+#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+#              WORKINGDIR: '$(Agent.BuildDirectory)'
+#              AKS_NAME: '$(TF_AKS_DEV_NAME)'
+#              AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
+#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
+#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+#              OUTPUT_CTX_NAME: 'weu'
+#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+#            parameters:
+#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+#              WORKINGDIR: '$(Agent.BuildDirectory)'
+#              AKS_NAME: '$(TF_SECOND_AKS_DEV_NAME)'
+#              AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
+#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
+#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+#              OUTPUT_CTX_NAME: 'itn'
+#          - task: AzureKeyVault@2
+#            displayName: "Get slack webhook secret"
+#            inputs:
+#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+#              keyVaultName: 'pagopa-d-kv'
+#              secretsFilter: 'cicd-slack-webhook'
+#          - task: AzureCLI@2
+#            displayName: "Apply all folders"
+#            inputs:
+#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
+#              addSpnToEnvironment: true
+#              scriptLocation: inlineScript
+#              scriptType: bash
+#              inlineScript: |
+#                set -e
+#                echo "[INFO] Terraform setup variables"
+#                export ARM_CLIENT_ID=${servicePrincipalId}
+#                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+#                export ARM_TENANT_ID=${tenantId}
+#                if [ -n "${idToken}" ]; then
+#                  export ARM_USE_OIDC=true
+#                  export ARM_OIDC_TOKEN=${idToken}
+#                elif [ -n "${servicePrincipalKey}" ]; then
+#                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
+#                else
+#                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
+#                  exit 1
+#                fi
+#                python3 -u .devops/templates/tf-apply-all.py dev $(Agent.BuildDirectory)
 
   - stage: UAT
     displayName: UAT apply all folders
@@ -109,46 +125,54 @@ stages:
         timeoutInMinutes: ${{ variables.TIME_OUT }}
         condition: succeeded()
         steps:
-          - checkout: self
-            workspaceRepo: true
-          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+          - template: ./templates/tf-apply-all.yml
             parameters:
-              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-              WORKINGDIR: '$(Agent.BuildDirectory)'
+              ENV: 'uat'
+              SERVICE_CONNECTION: $(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)
               AKS_NAME: '$(TF_AKS_UAT_NAME)'
               AKS_API_SERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
               AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              OUTPUT_CTX_NAME: 'weu'
-          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-            parameters:
-              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-              WORKINGDIR: '$(Agent.BuildDirectory)'
-              AKS_NAME: '$(TF_SECOND_AKS_UAT_NAME)'
-              AKS_API_SERVER_URL: '$(TF_SECOND_UAT_AKS_APISERVER_URL)'
-              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              OUTPUT_CTX_NAME: 'itn'
-          - task: AzureCLI@2
-            displayName: "Apply all folders"
-            inputs:
-              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-              addSpnToEnvironment: true
-              scriptLocation: inlineScript
-              scriptType: bash
-              inlineScript: |
-                set -e
-                echo "[INFO] Terraform setup variables"
-                export ARM_CLIENT_ID=${servicePrincipalId}
-                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-                export ARM_TENANT_ID=${tenantId}
-                if [ -n "${idToken}" ]; then
-                  export ARM_USE_OIDC=true
-                  export ARM_OIDC_TOKEN=${idToken}
-                elif [ -n "${servicePrincipalKey}" ]; then
-                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
-                else
-                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
-                  exit 1
-                fi
-                python3 -u .devops/templates/tf-apply-all.py uat $(Agent.BuildDirectory)
+#          - checkout: self
+#            workspaceRepo: true
+#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+#            parameters:
+#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
+#              WORKINGDIR: '$(Agent.BuildDirectory)'
+#              AKS_NAME: '$(TF_AKS_UAT_NAME)'
+#              AKS_API_SERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
+#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
+#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
+#              OUTPUT_CTX_NAME: 'weu'
+#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+#            parameters:
+#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
+#              WORKINGDIR: '$(Agent.BuildDirectory)'
+#              AKS_NAME: '$(TF_SECOND_AKS_UAT_NAME)'
+#              AKS_API_SERVER_URL: '$(TF_SECOND_UAT_AKS_APISERVER_URL)'
+#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
+#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
+#              OUTPUT_CTX_NAME: 'itn'
+#          - task: AzureCLI@2
+#            displayName: "Apply all folders"
+#            inputs:
+#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
+#              addSpnToEnvironment: true
+#              scriptLocation: inlineScript
+#              scriptType: bash
+#              inlineScript: |
+#                set -e
+#                echo "[INFO] Terraform setup variables"
+#                export ARM_CLIENT_ID=${servicePrincipalId}
+#                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+#                export ARM_TENANT_ID=${tenantId}
+#                if [ -n "${idToken}" ]; then
+#                  export ARM_USE_OIDC=true
+#                  export ARM_OIDC_TOKEN=${idToken}
+#                elif [ -n "${servicePrincipalKey}" ]; then
+#                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
+#                else
+#                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
+#                  exit 1
+#                fi
+#                python3 -u .devops/templates/tf-apply-all.py uat $(Agent.BuildDirectory)

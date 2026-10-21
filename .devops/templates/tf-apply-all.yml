@@ -1,0 +1,78 @@
+parameters:
+    - name: ENV
+      displayName: 'Environment'
+      type: string
+      default: 'dev'
+      values:
+          - dev
+          - uat
+          - prod
+    - name: SERVICE_CONNECTION
+      displayName: 'Azure service connection name'
+      type: string
+    - name: AKS_NAME
+      displayName: 'AKS cluster name'
+      type: string
+    - name: AKS_API_SERVER_URL
+      displayName: 'AKS API server URL'
+      type: string
+    - name: AKS_AZURE_DEVOPS_SA_CA_CRT
+      displayName: 'AKS Azure DevOps service account CA certificate'
+      type: string
+    - name: AKS_AZURE_DEVOPS_SA_TOKEN
+      displayName: 'AKS Azure DevOps service account token'
+      type: string
+    - name: KV_NAME
+      displayName: 'Key vault name'
+      type: string
+
+steps:
+  - checkout: self
+    workspaceRepo: true
+  - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+    parameters:
+      AZURE_SERVICE_CONNECTION_NAME: ${{ parameters.SERVICE_CONNECTION }}
+      WORKINGDIR: '$(Agent.BuildDirectory)'
+      AKS_NAME: ${{ parameters.AKS_NAME }}
+      AKS_API_SERVER_URL: ${{ parameters.AKS_API_SERVER_URL }}
+      AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}
+      AKS_AZURE_DEVOPS_SA_TOKEN: ${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}
+      OUTPUT_CTX_NAME: 'weu'
+  - template: templates/azure-kubeconfig-generator/template.yaml@terraform
+    parameters:
+      AZURE_SERVICE_CONNECTION_NAME: ${{ parameters.SERVICE_CONNECTION }}
+      WORKINGDIR: '$(Agent.BuildDirectory)'
+      AKS_NAME: ${{ parameters.AKS_NAME }}
+      AKS_API_SERVER_URL: ${{ parameters.AKS_API_SERVER_URL }}
+      AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}
+      AKS_AZURE_DEVOPS_SA_TOKEN: ${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}
+      OUTPUT_CTX_NAME: 'itn'
+  - task: AzureKeyVault@2
+    displayName: "Get slack webhook secret"
+    inputs:
+      azureSubscription: ${{ parameters.SERVICE_CONNECTION }}
+      keyVaultName: ${{ parameters.KV_NAME }}
+      secretsFilter: 'cicd-slack-webhook'
+  - task: AzureCLI@2
+    displayName: "Apply all folders"
+    inputs:
+      azureSubscription: ${{ parameters.SERVICE_CONNECTION }}
+      addSpnToEnvironment: true
+      scriptLocation: inlineScript
+      scriptType: bash
+      inlineScript: |
+        set -e
+        echo "[INFO] Terraform setup variables"
+        export ARM_CLIENT_ID=${servicePrincipalId}
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=${tenantId}
+        if [ -n "${idToken}" ]; then
+          export ARM_USE_OIDC=true
+          export ARM_OIDC_TOKEN=${idToken}
+        elif [ -n "${servicePrincipalKey}" ]; then
+          export ARM_CLIENT_SECRET=${servicePrincipalKey}
+        else
+          echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
+          exit 1
+        fi
+        python3 -u .devops/templates/tf-apply-all.py ${{ parameters.ENV }} $(Agent.BuildDirectory) $(cicd-slack-webhook) '$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'

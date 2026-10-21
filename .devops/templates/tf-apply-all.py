@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import sys
+import requests
 
 class bcolors:
   SECTION = '\033[0;30;47m'
@@ -147,6 +148,114 @@ def patch_terraform_script(repo_path):
   with open(script_path, 'w') as f:
     f.write(content)
 
+def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_url, build_url):
+
+
+  total_folders = len(plan_summaries) + len(skipped_folders) + len(failed_folders)
+  applied_folders = len(plan_summaries) - len(failed_folders) - len(skipped_folders)
+
+  plan_summary_message = []
+  for folder, summary in plan_summaries.items():
+    print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
+    plan_summary_message.append({
+    "type": "text",
+    "text": f"{folder}: {summary}\n"
+  })
+
+  message = {
+    "blocks": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "CI/CD pagopa-infra-core",
+          "emoji": True
+        },
+        "level": 1
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "plain_text",
+            "text": "Esecuzione completata",
+            "emoji": True
+          }
+        ]
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": f"Applied: {applied_folders}/{total_folders}",
+          "emoji": True
+        },
+        "level": 4
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": f"Skipped: {len(skipped_folders)}",
+          "emoji": True
+        },
+        "level": 4
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": f"Failed: {len(failed_folders)}",
+          "emoji": True
+        },
+        "level": 4
+      },
+      {
+        "type": "container",
+        "block_id": "bkb_container_collapsible",
+        "title": {
+          "type": "plain_text",
+          "text": "Plan summary"
+        },
+        "is_collapsible": True,
+        "default_collapsed": True,
+        "child_blocks": [
+          {
+            "type": "rich_text",
+            "block_id": "rt-simple",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": plan_summary_message
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Pipeline logs: "
+        },
+        "accessory": {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Here",
+            "emoji": True
+          },
+          "value": "click_me_123",
+          "url": f"{build_url}",
+          "action_id": "button-action"
+        }
+      }
+    ]
+  }
+
+  response = requests.post(webhook_url, data=message)
+
+  return
 
 def apply_folder(repo_path, folder, config, env, k8s_config_folder):
   folder_path = os.path.join(repo_path, 'src', folder)
@@ -173,6 +282,8 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
 def main():
   env = sys.argv[1]
   k8s_config_folder = sys.argv[2]
+  slack_webhook_url = sys.argv[3]
+  build_url = sys.argv[4]
   repo_path = "."
   azure_login()
   failed_folders = []
@@ -215,6 +326,8 @@ def main():
     for folder in failed_folders:
       print(f"{bcolors.RED}- {folder}{bcolors.ENDC}")
     exit(1)
+
+  send_slack_report(plan_summaries, skipped_folders, failed_folders, slack_webhook_url, build_url)
 
 if __name__ == '__main__':
   main()
