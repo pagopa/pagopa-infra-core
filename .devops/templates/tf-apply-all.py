@@ -276,14 +276,18 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
   k8s_arguments = ['-var', f'k8s_kube_config_path_prefix={k8s_config_folder}']
   arguments_plan = ['./terraform.sh', 'plan', env_name]
   arguments_apply = ['./terraform.sh', 'apply', env_name, '-auto-approve']
+  arguments = arguments_plan if dry_run else arguments_apply
+
   if config.get('k8s', False):
     cluster_name = config.get('cluster_name_template', '').format(
       env_short=env[:1], env=env)
     run_command_streaming(
       ['kubectl', 'config', 'use-context', f"{config['k8s_context']}",
        '--kubeconfig', f"{k8s_config_folder}/config-{cluster_name}"])
-    arguments = arguments_plan if dry_run else arguments_apply
     arguments.extend(k8s_arguments)
+  print(
+    f"{bcolors.INFO}Apply command in folder {folder_path}: {arguments}{bcolors.ENDC}")
+
   output = run_command_streaming(arguments, cwd=folder_path)
   return extract_plan_summary(output)
 
