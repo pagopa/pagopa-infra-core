@@ -76,13 +76,13 @@ variables:
 name: "CI/CD dryRun: ${{parameters.DRY_RUN}} on ${{ parameters.ENV }} -  $(Date:yyyyMMdd).$(Rev:r)"
 stages:
   - stage: Execute
-    displayName: Execute terraform on all folders in target env
+    displayName: Execute terraform on all folders in target ${{ parameters.ENV }}
     dependsOn: []
     pool:
       name: '${{ variables.pool_name }}'
     jobs:
       - job: apply_all_folders
-        displayName: Apply all folders in target env
+        displayName: Apply all folders in target ${{ parameters.ENV }}
         strategy:
           parallel: 1
         timeoutInMinutes: ${{ variables.TIME_OUT }}

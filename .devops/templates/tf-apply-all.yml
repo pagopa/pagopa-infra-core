@@ -25,6 +25,13 @@ parameters:
     - name: KV_NAME
       displayName: 'Key vault name'
       type: string
+    - name: DRY_RUN
+      displayName: 'Dry run'
+      type: boolean
+      default: False
+      values:
+        - False
+        - True
 
 steps:
   - checkout: self
@@ -75,4 +82,4 @@ steps:
           echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
           exit 1
         fi
-        python3 -u .devops/templates/tf-apply-all.py ${{ parameters.ENV }} $(Agent.BuildDirectory) $(cicd-slack-webhook) '$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
+        python3 -u .devops/templates/tf-apply-all.py ${{ parameters.ENV }} $(Agent.BuildDirectory) $(cicd-slack-webhook) '$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)' ${{ parameters.DRY_RUN }}
