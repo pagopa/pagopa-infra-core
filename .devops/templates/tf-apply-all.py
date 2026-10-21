@@ -17,27 +17,27 @@ class bcolors:
 ordered_folders = {
   # "core": { "prefix": ""}, skipped, it contains only payment manager that is "in wait"
   "next-core/next-core-secrets": {"prefix": ""},
-  "next-core/next-core-common": { "prefix": ""},
-  "core-itn/core-itn-secrets": {"prefix": ""},
-  "core-itn/core-itn-common": {"prefix": ""},
-  "network/network-secrets": { "prefix": ""},
-  "network/network-common": { "prefix": ""},
-  "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
-  "next-aks": { "prefix": "", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks"},
-  "aks-leonardo": { "prefix": "itn", "k8s": True, "k8s_context": "itn", "cluster_name_template": "pagopa-{env_short}-itn-{env}-aks"},
-  "packer": { "prefix": ""},
-  "synthetic-monitoring": { "prefix": "weu"},
-  "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
-  "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
-  "audit-logs": { "prefix": "" },
-  "client-certs": { "prefix": "" },
-  "continuos-platform-alerting": { "prefix": "" },
-  "grafana-monitoring": { "prefix": "weu" },
-  "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
-  "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
-  "cloudo/cloudo-secrets": { "prefix": ""},
-  "cloudo/cloudo-core": { "prefix": ""},
-  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
+  # "next-core/next-core-common": { "prefix": ""},
+  # "core-itn/core-itn-secrets": {"prefix": ""},
+  # "core-itn/core-itn-common": {"prefix": ""},
+  # "network/network-secrets": { "prefix": ""},
+  # "network/network-common": { "prefix": ""},
+  # "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
+  # "next-aks": { "prefix": "", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks"},
+  # "aks-leonardo": { "prefix": "itn", "k8s": True, "k8s_context": "itn", "cluster_name_template": "pagopa-{env_short}-itn-{env}-aks"},
+  # "packer": { "prefix": ""},
+  # "synthetic-monitoring": { "prefix": "weu"},
+  # "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
+  # "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
+  # "audit-logs": { "prefix": "" },
+  # "client-certs": { "prefix": "" },
+  # "continuos-platform-alerting": { "prefix": "" },
+  # "grafana-monitoring": { "prefix": "weu" },
+  # "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
+  # "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
+  # "cloudo/cloudo-secrets": { "prefix": ""},
+  # "cloudo/cloudo-core": { "prefix": ""},
+  # "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
 }
 
 
@@ -148,16 +148,16 @@ def patch_terraform_script(repo_path):
   with open(script_path, 'w') as f:
     f.write(content)
 
-def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_url, build_url):
+def send_slack_report(apply_summaries, skipped_folders, failed_folders, webhook_url, build_url):
 
 
-  total_folders = len(plan_summaries) + len(skipped_folders) + len(failed_folders)
-  applied_folders = len(plan_summaries) - len(failed_folders) - len(skipped_folders)
+  total_folders = len(apply_summaries) + len(skipped_folders) + len(failed_folders)
+  applied_folders = len(apply_summaries) - len(failed_folders) - len(skipped_folders)
 
-  plan_summary_message = []
-  for folder, summary in plan_summaries.items():
+  apply_summary_message = []
+  for folder, summary in apply_summaries.items():
     print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
-    plan_summary_message.append({
+    apply_summary_message.append({
     "type": "text",
     "text": f"{folder}: {summary}\n"
   })
@@ -218,7 +218,7 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
         "block_id": "bkb_container_collapsible",
         "title": {
           "type": "plain_text",
-          "text": "Plan summary"
+          "text": "Apply summary"
         },
         "is_collapsible": True,
         "default_collapsed": True,
@@ -229,7 +229,7 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
             "elements": [
               {
                 "type": "rich_text_section",
-                "elements": plan_summary_message
+                "elements": apply_summary_message
               }
             ]
           }
@@ -260,13 +260,13 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
   }
 
   try:
-    response = requests.post(webhook_url, json=message)
+    requests.post(webhook_url, json=message)
   except Exception as e:
     print(f"{bcolors.ERROR}Error sending Slack report: {e}{bcolors.ENDC}")
 
 
 
-def apply_folder(repo_path, folder, config, env, k8s_config_folder):
+def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
   folder_path = os.path.join(repo_path, 'src', folder)
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f"{bcolors.WARN}Folder not found: {folder_path}{bcolors.ENDC}")
@@ -275,14 +275,15 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder):
 
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
   k8s_arguments = ['-var', f'k8s_kube_config_path_prefix={k8s_config_folder}']
-  arguments = ['./terraform.sh', 'plan', env_name]
+  arguments_plan = ['./terraform.sh', 'plan', env_name]
+  arguments_apply = ['./terraform.sh', 'apply', env_name, '-auto-approve']
   if config.get('k8s', False):
     cluster_name = config.get('cluster_name_template', '').format(
       env_short=env[:1], env=env)
     run_command_streaming(
       ['kubectl', 'config', 'use-context', f"{config['k8s_context']}",
        '--kubeconfig', f"{k8s_config_folder}/config-{cluster_name}"])
-
+    arguments = arguments_plan if dry_run else arguments_apply
     arguments.extend(k8s_arguments)
   output = run_command_streaming(arguments, cwd=folder_path)
   return extract_plan_summary(output)
@@ -293,21 +294,23 @@ def main():
   k8s_config_folder = sys.argv[2]
   slack_webhook_url = sys.argv[3]
   build_url = sys.argv[4]
+  dry_run = sys.argv[5].lower() == 'true'
   repo_path = "."
   azure_login()
   failed_folders = []
-  plan_summaries = {}
+  apply_summaries = {}
   skipped_folders = []
   total_folders = len(ordered_folders)
 
+  print(f"{bcolors.INFO}Executing terraform with dry_run={dry_run}{bcolors.ENDC}")
 
   # run command on each folder in order
   for folder_index, (folder, config) in enumerate(ordered_folders.items(), start=1):
     if env in config.get('limit_env', ["dev", "uat", "prod"]):
       try:
         print(f"##[group]{bcolors.SECTION}=== Applying [{folder_index}/{total_folders}] '{folder}' (env: {env}) ==={bcolors.ENDC}")
-        plan_summaries[folder] = apply_folder(repo_path, folder, config, env, k8s_config_folder)
-        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}': {plan_summaries[folder]}{bcolors.ENDC}")
+        apply_summaries[folder] = apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run)
+        print(f"{bcolors.OK}Successfully applied folder {folder_index}/{total_folders} '{folder}': {apply_summaries[folder]}{bcolors.ENDC}")
       except Exception as e:
         failed_folders.append(folder)
         print(f"{bcolors.ERROR}Error applying folder '{folder}': {e}{bcolors.ENDC}")
@@ -317,13 +320,13 @@ def main():
       skipped_folders.append(folder)
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
-  send_slack_report(plan_summaries, skipped_folders, failed_folders,
+  send_slack_report(apply_summaries, skipped_folders, failed_folders,
                     slack_webhook_url, f"{build_url}&view=logs")
 
-  # report plan summary per folder
-  if plan_summaries:
-    print(f"\n{bcolors.INFO}=== Plan summary (env: {env}) ==={bcolors.ENDC}")
-    for folder, summary in plan_summaries.items():
+  # report apply summary per folder
+  if apply_summaries:
+    print(f"\n{bcolors.INFO}=== Apply summary (env: {env}) ==={bcolors.ENDC}")
+    for folder, summary in apply_summaries.items():
       print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
 
   # report skipped and failed folders

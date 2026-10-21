@@ -3,20 +3,21 @@ trigger: none
 pr: none
 
 parameters:
-  - name: 'DEV'
-    displayName: 'Run on DEV environment'
+  - name: 'DRY_RUN'
+    displayName: 'Only run plan'
     type: boolean
     default: False
     values:
       - False
       - True
-  - name: 'UAT'
-    displayName: 'Run on UAT environment'
-    type: boolean
-    default: True
+  - name: ENV
+    displayName: 'Environment'
+    type: string
+    default: 'uat'
     values:
-      - False
-      - True
+      - dev
+      - uat
+      - prod
 
 
 pool:
@@ -32,17 +33,54 @@ resources:
 
 
 variables:
-  TIME_OUT: 180
-  WORKINGDIR: "."
+  - name: TIME_OUT
+    value: 180
+  - name: WORKINGDIR
+    value: "."
+  - name: service_connection
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)"
+  - name: aks_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_AKS_DEV_NAME)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_AKS_UAT_NAME)"
+  - name: aks_apiserver_url
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_APISERVER_URL)"
+  - name: aks_azure_devops_sa_ca_crt
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)"
+  - name: aks_azure_devops_sa_token
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)"
+  - name:  kv_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "pagopa-d-kv"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "pagopa-u-kv"
+  - name:  pool_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_POOL_NAME_DEV)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_POOL_NAME_UAT)"
 
-
+name: "CI/CD dryRun: ${{parameters.DRY_RUN}} on ${{ parameters.ENV }} -  $(Date:yyyyMMdd).$(Rev:r)"
 stages:
-  - stage: DEV
-    displayName: DEV apply all folders
+  - stage: Execute
+    displayName: Execute terraform on all folders in target env
     dependsOn: []
-    condition: and(succeeded(), eq(${{parameters.DEV}}, true))
+    condition: and(succeeded())
     pool:
-      name: '$(TF_POOL_NAME_DEV)'
+      name: '${{ variables.pool_name }}'
     jobs:
       - job: apply_all_folders
         displayName: Apply all folders in target env
@@ -53,128 +91,10 @@ stages:
         steps:
           - template: ./templates/tf-apply-all.yml
             parameters:
-              ENV: 'dev'
-              SERVICE_CONNECTION: $(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)
-              AKS_NAME: '$(TF_AKS_DEV_NAME)'
-              AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
-              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              KV_NAME: 'pagopa-d-kv'
-
-
-#          - checkout: self
-#            workspaceRepo: true
-#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-#            parameters:
-#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-#              WORKINGDIR: '$(Agent.BuildDirectory)'
-#              AKS_NAME: '$(TF_AKS_DEV_NAME)'
-#              AKS_API_SERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
-#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-#              OUTPUT_CTX_NAME: 'weu'
-#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-#            parameters:
-#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-#              WORKINGDIR: '$(Agent.BuildDirectory)'
-#              AKS_NAME: '$(TF_SECOND_AKS_DEV_NAME)'
-#              AKS_API_SERVER_URL: '$(TF_SECOND_DEV_AKS_APISERVER_URL)'
-#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
-#              OUTPUT_CTX_NAME: 'itn'
-#          - task: AzureKeyVault@2
-#            displayName: "Get slack webhook secret"
-#            inputs:
-#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-#              keyVaultName: 'pagopa-d-kv'
-#              secretsFilter: 'cicd-slack-webhook'
-#          - task: AzureCLI@2
-#            displayName: "Apply all folders"
-#            inputs:
-#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)'
-#              addSpnToEnvironment: true
-#              scriptLocation: inlineScript
-#              scriptType: bash
-#              inlineScript: |
-#                set -e
-#                echo "[INFO] Terraform setup variables"
-#                export ARM_CLIENT_ID=${servicePrincipalId}
-#                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-#                export ARM_TENANT_ID=${tenantId}
-#                if [ -n "${idToken}" ]; then
-#                  export ARM_USE_OIDC=true
-#                  export ARM_OIDC_TOKEN=${idToken}
-#                elif [ -n "${servicePrincipalKey}" ]; then
-#                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
-#                else
-#                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
-#                  exit 1
-#                fi
-#                python3 -u .devops/templates/tf-apply-all.py dev $(Agent.BuildDirectory)
-
-  - stage: UAT
-    displayName: UAT apply all folders
-    dependsOn: [ ]
-    condition: and(succeeded(), eq(${{parameters.UAT}}, true))
-    pool:
-      name: '$(TF_POOL_NAME_UAT)'
-    jobs:
-      - job: apply_all_folders
-        displayName: Apply all folders in target env
-        strategy:
-          parallel: 1
-        timeoutInMinutes: ${{ variables.TIME_OUT }}
-        condition: succeeded()
-        steps:
-          - template: ./templates/tf-apply-all.yml
-            parameters:
-              ENV: 'uat'
-              SERVICE_CONNECTION: $(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)
-              AKS_NAME: '$(TF_AKS_UAT_NAME)'
-              AKS_API_SERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
-              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-              KV_NAME: 'pagopa-u-kv'
-#          - checkout: self
-#            workspaceRepo: true
-#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-#            parameters:
-#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-#              WORKINGDIR: '$(Agent.BuildDirectory)'
-#              AKS_NAME: '$(TF_AKS_UAT_NAME)'
-#              AKS_API_SERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
-#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-#              OUTPUT_CTX_NAME: 'weu'
-#          - template: templates/azure-kubeconfig-generator/template.yaml@terraform
-#            parameters:
-#              AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-#              WORKINGDIR: '$(Agent.BuildDirectory)'
-#              AKS_NAME: '$(TF_SECOND_AKS_UAT_NAME)'
-#              AKS_API_SERVER_URL: '$(TF_SECOND_UAT_AKS_APISERVER_URL)'
-#              AKS_AZURE_DEVOPS_SA_CA_CRT: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-#              AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-#              OUTPUT_CTX_NAME: 'itn'
-#          - task: AzureCLI@2
-#            displayName: "Apply all folders"
-#            inputs:
-#              azureSubscription: '$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)'
-#              addSpnToEnvironment: true
-#              scriptLocation: inlineScript
-#              scriptType: bash
-#              inlineScript: |
-#                set -e
-#                echo "[INFO] Terraform setup variables"
-#                export ARM_CLIENT_ID=${servicePrincipalId}
-#                export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-#                export ARM_TENANT_ID=${tenantId}
-#                if [ -n "${idToken}" ]; then
-#                  export ARM_USE_OIDC=true
-#                  export ARM_OIDC_TOKEN=${idToken}
-#                elif [ -n "${servicePrincipalKey}" ]; then
-#                  export ARM_CLIENT_SECRET=${servicePrincipalKey}
-#                else
-#                  echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
-#                  exit 1
-#                fi
-#                python3 -u .devops/templates/tf-apply-all.py uat $(Agent.BuildDirectory)
+              ENV: '${{ parameters.ENV }}'
+              SERVICE_CONNECTION: '${{ variables.service_connection }}'
+              AKS_NAME: '${{ variables.aks_name }}'
+              AKS_API_SERVER_URL: '${{ variables.aks_apiserver_url }}'
+              AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ variables.aks_azure_devops_sa_ca_crt }}'
+              AKS_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_azure_devops_sa_token }}'
+              KV_NAME: '${{ variables.kv_name }}'
