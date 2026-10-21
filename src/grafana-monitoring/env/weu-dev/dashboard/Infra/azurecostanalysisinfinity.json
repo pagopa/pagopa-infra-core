@@ -1,43 +1,4 @@
 {
-  "title": "PagoPA - Costi Azure per dominio",
-  "uid": "pagopa-azure-costs",
-  "description": "Costi Azure dalla Cost Management Query API via Infinity. Solo 2 chiamate API per caricamento: tutti i pannelli riusano i risultati tramite il datasource '-- Dashboard --'.",
-  "tags": [
-    "azure",
-    "finops",
-    "cost-management",
-    "infinity"
-  ],
-  "editable": true,
-  "graphTooltip": 1,
-  "timezone": "browser",
-  "liveNow": false,
-  "preload": false,
-  "refresh": "",
-  "schemaVersion": 41,
-  "version": 1,
-  "fiscalYearStartMonth": 0,
-  "time": {
-    "from": "now/M",
-    "to": "now/M"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "1h",
-      "6h",
-      "12h"
-    ],
-    "nowDelay": ""
-  },
-  "links": [
-    {
-      "title": "Cost analysis (portale)",
-      "type": "link",
-      "targetBlank": true,
-      "icon": "external link",
-      "url": "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/costanalysis"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -54,81 +15,90 @@
       }
     ]
   },
-  "templating": {
-    "list": [
-      {
-        "name": "infinity_ds",
-        "label": "Datasource",
-        "type": "datasource",
-        "query": "yesoreyeram-infinity-datasource",
-        "regex": "",
-        "hide": 0,
-        "refresh": 1,
-        "current": {
-          "text": "pagopa-d-infinity",
-          "value": "pagopa-d-infinity"
-        },
-        "options": []
-      },
-      {
-        "name": "subscription",
-        "label": "Subscription ID",
-        "type": "textbox",
-        "hide": 0,
-        "query": "bbe47ad4-08b3-4925-94c5-1278e5819b86",
-        "current": {
-          "text": "bbe47ad4-08b3-4925-94c5-1278e5819b86",
-          "value": "bbe47ad4-08b3-4925-94c5-1278e5819b86"
-        },
-        "options": []
-      },
-      {
-        "name": "tagkey",
-        "label": "Tag",
-        "type": "textbox",
-        "hide": 0,
-        "query": "domain",
-        "current": {
-          "text": "domain",
-          "value": "domain"
-        },
-        "options": []
-      },
-      {
-        "name": "budget",
-        "label": "Budget mensile (€)",
-        "type": "textbox",
-        "hide": 0,
-        "query": "10000",
-        "current": {
-          "text": "10000",
-          "value": "10000"
-        },
-        "options": []
-      }
-    ]
-  },
+  "description": "Costi Azure dalla Cost Management Query API via Infinity (2 chiamate + 1 per il costo dei nodi) e stima del costo per namespace Kubernetes da Azure Managed Prometheus.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "external link",
+      "targetBlank": true,
+      "title": "Cost analysis (portale)",
+      "type": "link",
+      "url": "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/costanalysis"
+    }
+  ],
   "panels": [
     {
-      "type": "row",
-      "title": "Sorgenti dati - 2 chiamate Cost Management API (non spostare: gli altri pannelli le riusano)",
       "collapsed": true,
-      "id": 101,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 101,
       "panels": [
         {
-          "type": "table",
-          "title": "SRC 1 - Costo giornaliero per ${tagkey}",
-          "description": "Query Daily raggruppata per tag. Alimenta riepilogo, budget, forecast e trend.",
-          "id": 1,
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
             "uid": "${infinity_ds}"
+          },
+          "description": "Query Daily raggruppata per tag. Alimenta riepilogo, budget, forecast e trend.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "footer": {
+                  "reducers": []
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Date"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsLocalNoDateIfToday"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Cost"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "currencyEUR"
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -136,19 +106,14 @@
             "x": 0,
             "y": 1
           },
+          "id": 1,
+          "options": {
+            "cellHeight": "sm",
+            "showHeader": true
+          },
+          "pluginVersion": "12.4.8",
           "targets": [
             {
-              "datasource": {
-                "type": "yesoreyeram-infinity-datasource",
-                "uid": "${infinity_ds}"
-              },
-              "refId": "A",
-              "type": "json",
-              "source": "url",
-              "parser": "backend",
-              "format": "table",
-              "url": "https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.CostManagement/query?api-version=2023-11-01",
-              "root_selector": "(\n  $cols := properties.columns.name;\n  $recs := $map(properties.rows, function($r) { $merge($map($cols, function($c, $i) { {$c: $r[$i]} })) });\n  $p0 := ${__from};\n  $p1 := ${__to};\n  $bud := $number(\"${budget}\");\n  $period := $round(($p1 - $p0) / 86400000);\n  $days := $max([$count($keys($merge($map($recs.UsageDate, function($d) { {$string($d): 1} })))), 1]);\n  $tot := $sum($recs.Cost);\n  [$map($recs, function($x) {(\n    $s := $string($x.UsageDate);\n    $t := $toMillis($substring($s, 0, 4) & \"-\" & $substring($s, 4, 2) & \"-\" & $substring($s, 6, 2) & \"T00:00:00.000Z\");\n    $dop := $floor(($t - $p0) / 86400000) + 1;\n    {\n      \"Date\": $t,\n      \"Domain\": $x.TagValue ? $x.TagValue : \"(senza tag)\",\n      \"Cost\": $x.Cost,\n      \"Currency\": $x.Currency,\n      \"DailyAvg\": $x.Cost / $days,\n      \"ForecastCost\": $x.Cost * $period / $days,\n      \"SharePct\": $tot > 0 ? $x.Cost / $tot * 100 : 0,\n      \"BudgetPct\": $x.Cost / $bud * 100,\n      \"ForecastBudgetPct\": $x.Cost * $period / $days / $bud * 100,\n      \"DayOfPeriod\": $dop,\n      \"IdealCumulative\": $bud / $period * $dop,\n      \"Budget\": $bud\n    }\n  )})]\n)",
               "columns": [
                 {
                   "selector": "Date",
@@ -211,12 +176,22 @@
                   "type": "number"
                 }
               ],
-              "filters": [],
               "computed_columns": [],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${infinity_ds}"
+              },
+              "filters": [],
+              "format": "table",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "(\n  $cols := properties.columns.name;\n  $recs := $map(properties.rows, function($r) { $merge($map($cols, function($c, $i) { {$c: $r[$i]} })) });\n  $p0 := ${__from};\n  $p1 := ${__to};\n  $bud := $number(\"${budget}\");\n  $period := $round(($p1 - $p0) / 86400000);\n  $days := $max([$count($keys($merge($map($recs.UsageDate, function($d) { {$string($d): 1} })))), 1]);\n  $tot := $sum($recs.Cost);\n  [$map($recs, function($x) {(\n    $s := $string($x.UsageDate);\n    $t := $toMillis($substring($s, 0, 4) & \"-\" & $substring($s, 4, 2) & \"-\" & $substring($s, 6, 2) & \"T00:00:00.000Z\");\n    $dop := $floor(($t - $p0) / 86400000) + 1;\n    {\n      \"Date\": $t,\n      \"Domain\": $x.TagValue ? $x.TagValue : \"(senza tag)\",\n      \"Cost\": $x.Cost,\n      \"Currency\": $x.Currency,\n      \"DailyAvg\": $x.Cost / $days,\n      \"ForecastCost\": $x.Cost * $period / $days,\n      \"SharePct\": $tot > 0 ? $x.Cost / $tot * 100 : 0,\n      \"BudgetPct\": $x.Cost / $bud * 100,\n      \"ForecastBudgetPct\": $x.Cost * $period / $days / $bud * 100,\n      \"DayOfPeriod\": $dop,\n      \"IdealCumulative\": $bud / $period * $dop,\n      \"Budget\": $bud\n    }\n  )})]\n)",
+              "source": "url",
+              "type": "json",
+              "url": "https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.CostManagement/query?api-version=2023-11-01",
               "url_options": {
-                "method": "POST",
-                "body_type": "raw",
                 "body_content_type": "application/json",
+                "body_type": "raw",
                 "data": "{\n  \"type\": \"Usage\",\n  \"timeframe\": \"Custom\",\n  \"timePeriod\": {\n    \"from\": \"${__from:date:YYYY-MM-DDTHH:mm:ssZ}\",\n    \"to\": \"${__to:date:YYYY-MM-DDTHH:mm:ssZ}\"\n  },\n  \"dataset\": {\n    \"granularity\": \"Daily\",\n    \"aggregation\": { \"totalCost\": { \"name\": \"Cost\", \"function\": \"Sum\" } },\n    \"grouping\": [ { \"type\": \"TagKey\", \"name\": \"${tagkey}\" } ]\n  }\n}",
                 "headers": [
                   {
@@ -227,10 +202,20 @@
                     "key": "ClientType",
                     "value": "PagopaInfinity"
                   }
-                ]
+                ],
+                "method": "POST"
               }
             }
           ],
+          "title": "SRC 1 - Costo giornaliero per ${tagkey}",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${infinity_ds}"
+          },
+          "description": "Query senza granularità temporale raggruppata per risorsa/servizio/meter. Alimenta la sezione Risorse.",
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -264,42 +249,22 @@
               }
             ]
           },
-          "options": {
-            "showHeader": true,
-            "cellHeight": "sm",
-            "footer": {
-              "show": false
-            }
-          }
-        },
-        {
-          "type": "table",
-          "title": "SRC 2 - Dettaglio risorse (totale periodo)",
-          "description": "Query senza granularità temporale raggruppata per risorsa/servizio/meter. Alimenta la sezione Risorse.",
-          "id": 2,
-          "datasource": {
-            "type": "yesoreyeram-infinity-datasource",
-            "uid": "${infinity_ds}"
-          },
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
             "y": 1
           },
+          "id": 2,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            },
+            "showHeader": true
+          },
           "targets": [
             {
-              "datasource": {
-                "type": "yesoreyeram-infinity-datasource",
-                "uid": "${infinity_ds}"
-              },
-              "refId": "A",
-              "type": "json",
-              "source": "url",
-              "parser": "backend",
-              "format": "table",
-              "url": "https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.CostManagement/query?api-version=2023-11-01",
-              "root_selector": "(\n  $cols := properties.columns.name;\n  $recs := $map(properties.rows, function($r) { $merge($map($cols, function($c, $i) { {$c: $r[$i]} })) });\n  $tot := $sum($recs.Cost);\n  [$map($recs, function($x) {{\n    \"Resource\": $x.ResourceId ? $split($x.ResourceId, \"/\")[-1] : \"(non attribuito)\",\n    \"ResourceId\": $x.ResourceId,\n    \"Domain\": $x.TagValue ? $x.TagValue : \"(senza tag)\",\n    \"ResourceGroup\": $x.ResourceGroup ? $lowercase($x.ResourceGroup) : \"(nessuno)\",\n    \"ServiceName\": $x.ServiceName,\n    \"ServiceTier\": $x.ServiceTier,\n    \"Meter\": $x.Meter,\n    \"ChargeType\": $x.ChargeType,\n    \"Pricing\": $x.BenefitName ? \"Reservation / Savings plan\" : \"Pay-as-you-go\",\n    \"Benefit\": $x.BenefitName,\n    \"Cost\": $x.Cost,\n    \"SharePct\": $tot > 0 ? $x.Cost / $tot * 100 : 0\n  }})]\n)",
               "columns": [
                 {
                   "selector": "Resource",
@@ -362,12 +327,22 @@
                   "type": "number"
                 }
               ],
-              "filters": [],
               "computed_columns": [],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${infinity_ds}"
+              },
+              "filters": [],
+              "format": "table",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "(\n  $cols := properties.columns.name;\n  $recs := $map(properties.rows, function($r) { $merge($map($cols, function($c, $i) { {$c: $r[$i]} })) });\n  $tot := $sum($recs.Cost);\n  [$map($recs, function($x) {{\n    \"Resource\": $x.ResourceId ? $split($x.ResourceId, \"/\")[-1] : \"(non attribuito)\",\n    \"ResourceId\": $x.ResourceId,\n    \"Domain\": $x.TagValue ? $x.TagValue : \"(senza tag)\",\n    \"ResourceGroup\": $x.ResourceGroup ? $lowercase($x.ResourceGroup) : \"(nessuno)\",\n    \"ServiceName\": $x.ServiceName,\n    \"ServiceTier\": $x.ServiceTier,\n    \"Meter\": $x.Meter,\n    \"ChargeType\": $x.ChargeType,\n    \"Pricing\": $x.BenefitName ? \"Reservation / Savings plan\" : \"Pay-as-you-go\",\n    \"Benefit\": $x.BenefitName,\n    \"Cost\": $x.Cost,\n    \"SharePct\": $tot > 0 ? $x.Cost / $tot * 100 : 0\n  }})]\n)",
+              "source": "url",
+              "type": "json",
+              "url": "https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.CostManagement/query?api-version=2023-11-01",
               "url_options": {
-                "method": "POST",
-                "body_type": "raw",
                 "body_content_type": "application/json",
+                "body_type": "raw",
                 "data": "{\n  \"type\": \"Usage\",\n  \"timeframe\": \"Custom\",\n  \"timePeriod\": {\n    \"from\": \"${__from:date:YYYY-MM-DDTHH:mm:ssZ}\",\n    \"to\": \"${__to:date:YYYY-MM-DDTHH:mm:ssZ}\"\n  },\n  \"dataset\": {\n    \"granularity\": \"None\",\n    \"aggregation\": { \"totalCost\": { \"name\": \"Cost\", \"function\": \"Sum\" } },\n    \"grouping\": [\n      { \"type\": \"TagKey\", \"name\": \"${tagkey}\" },\n      { \"type\": \"Dimension\", \"name\": \"ResourceId\" },\n      { \"type\": \"Dimension\", \"name\": \"ResourceGroup\" },\n      { \"type\": \"Dimension\", \"name\": \"ServiceName\" },\n      { \"type\": \"Dimension\", \"name\": \"ServiceTier\" },\n      { \"type\": \"Dimension\", \"name\": \"Meter\" },\n      { \"type\": \"Dimension\", \"name\": \"ChargeType\" },\n      { \"type\": \"Dimension\", \"name\": \"BenefitName\" }\n    ],\n    \"orderBy\": [ { \"name\": \"Cost\", \"direction\": \"desc\" } ]\n  }\n}",
                 "headers": [
                   {
@@ -378,74 +353,56 @@
                     "key": "ClientType",
                     "value": "PagopaInfinity"
                   }
-                ]
+                ],
+                "method": "POST"
               }
             }
           ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "filterable": true
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Date"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "dateTimeAsLocalNoDateIfToday"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Cost"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "currencyEUR"
-                  }
-                ]
-              }
-            ]
-          },
-          "options": {
-            "showHeader": true,
-            "cellHeight": "sm",
-            "footer": {
-              "show": false
-            }
-          }
+          "title": "SRC 2 - Dettaglio risorse (totale periodo)",
+          "type": "table"
         }
-      ]
+      ],
+      "title": "Sorgenti dati - 2 chiamate Cost Management API (non spostare: gli altri pannelli le riusano)",
+      "type": "row"
     },
     {
-      "type": "row",
-      "title": "Riepilogo  (${__from:date:DD/MM/YYYY} - ${__to:date:DD/MM/YYYY})",
       "collapsed": false,
-      "id": 102,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 1
       },
-      "panels": []
+      "id": 102,
+      "panels": [],
+      "title": "Riepilogo  (${__from:date:DD/MM/YYYY} - ${__to:date:DD/MM/YYYY})",
+      "type": "row"
     },
     {
-      "type": "stat",
-      "title": "Speso nel periodo",
-      "description": "Costo effettivo (Actual cost) nel periodo selezionato.",
-      "id": 103,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "description": "Costo effettivo (Actual cost) nel periodo selezionato.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -453,39 +410,13 @@
         "x": 0,
         "y": 2
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
+      "id": 103,
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -493,23 +424,50 @@
           "fields": "/^Cost$/",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
+        "showPercentChange": false,
         "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      }
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Speso nel periodo",
+      "type": "stat"
     },
     {
-      "type": "stat",
-      "title": "Forecast fine periodo",
-      "description": "Media giornaliera dei giorni con dati x giorni del periodo selezionato. Con il range 'questo mese' è il forecast di fine mese.",
-      "id": 104,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "description": "Media giornaliera dei giorni con dati x giorni del periodo selezionato. Con il range 'questo mese' è il forecast di fine mese.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "purple",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -517,39 +475,13 @@
         "x": 4,
         "y": 2
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "purple"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
+      "id": 104,
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -557,23 +489,50 @@
           "fields": "/^ForecastCost$/",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
+        "showPercentChange": false,
         "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      }
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Forecast fine periodo",
+      "type": "stat"
     },
     {
-      "type": "stat",
-      "title": "Media giornaliera",
-      "description": "Speso / giorni con dati disponibili.",
-      "id": 105,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "description": "Speso / giorni con dati disponibili.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -581,39 +540,13 @@
         "x": 8,
         "y": 2
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
+      "id": 105,
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -621,23 +554,50 @@
           "fields": "/^DailyAvg$/",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
+        "showPercentChange": false,
         "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      }
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Media giornaliera",
+      "type": "stat"
     },
     {
-      "type": "stat",
-      "title": "Ultimo giorno disponibile",
-      "description": "Costo dell'ultimo giorno presente. Cost Management ha 8-24h di ritardo: l'ultimo giorno può essere parziale.",
-      "id": 106,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "description": "Costo dell'ultimo giorno presente. Cost Management ha 8-24h di ritardo: l'ultimo giorno può essere parziale.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -645,69 +605,13 @@
         "x": 12,
         "y": 2
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Date": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Cost": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Date",
-                "desc": false
-              }
-            ]
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
+      "id": 106,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -715,30 +619,11 @@
           "fields": "/^Cost \\(sum\\)$/",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "area",
+        "showPercentChange": false,
         "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      }
-    },
-    {
-      "type": "gauge",
-      "title": "Budget consumato",
-      "description": "Speso / budget mensile (variabile Budget).",
-      "id": 107,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
+        "wideLayout": true
       },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 16,
-        "y": 2
-      },
+      "pluginVersion": "12.4.8",
       "targets": [
         {
           "datasource": {
@@ -750,172 +635,21 @@
           "withTransforms": false
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 120,
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "sum"
-          ],
-          "fields": "/^BudgetPct$/",
-          "values": false
-        },
-        "showThresholdMarkers": true,
-        "showThresholdLabels": false,
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "type": "gauge",
-      "title": "Forecast vs budget",
-      "description": "Forecast di fine periodo / budget. Oltre 100% si sfora.",
-      "id": 108,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 20,
-        "y": 2
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 120,
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "sum"
-          ],
-          "fields": "/^ForecastBudgetPct$/",
-          "values": false
-        },
-        "showThresholdMarkers": true,
-        "showThresholdLabels": false,
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Burn-down budget (${budget} €)",
-      "id": 109,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "description": "Speso cumulato contro il ritmo ideale (budget distribuito uniformemente sui giorni del periodo).",
-      "gridPos": {
-        "h": 9,
-        "w": 10,
-        "x": 0,
-        "y": 7
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
+      "title": "Ultimo giorno disponibile",
       "transformations": [
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "Date": {
-                "operation": "groupby",
-                "aggregations": []
-              },
               "Cost": {
-                "operation": "aggregate",
                 "aggregations": [
                   "sum"
-                ]
+                ],
+                "operation": "aggregate"
               },
-              "IdealCumulative": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "lastNotNull"
-                ]
-              },
-              "Budget": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "lastNotNull"
-                ]
+              "Date": {
+                "aggregations": [],
+                "operation": "groupby"
               }
             }
           }
@@ -926,56 +660,223 @@
             "fields": {},
             "sort": [
               {
-                "field": "Date",
-                "desc": false
+                "desc": false,
+                "field": "Date"
               }
             ]
           }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "cumulativeFunctions",
-            "alias": "Speso cumulato",
-            "cumulative": {
-              "field": "Cost (sum)",
-              "reducer": "sum"
-            },
-            "reduce": {
-              "reducer": "sum"
-            }
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "IdealCumulative (lastNotNull)": "Ritmo ideale",
-              "Budget (lastNotNull)": "Budget"
-            },
-            "excludeByName": {
-              "Cost (sum)": true
-            },
-            "indexByName": {},
-            "includeByName": {}
-          }
         }
       ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Speso / budget mensile (variabile Budget).",
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyEUR",
+          "color": {
+            "mode": "thresholds"
+          },
           "decimals": 0,
+          "mappings": [],
+          "max": 120,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 2
+      },
+      "id": 107,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^BudgetPct$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Budget consumato",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Forecast di fine periodo / budget. Oltre 100% si sfora.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 120,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 2
+      },
+      "id": 108,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^ForecastBudgetPct$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Forecast vs budget",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Speso cumulato contro il ritmo ideale (budget distribuito uniformemente sui giorni del periodo).",
+      "fieldConfig": {
+        "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "lineWidth": 2,
             "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": true,
-            "axisSoftMin": 0
-          }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "currencyEUR"
         },
         "overrides": [
           {
@@ -987,8 +888,8 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
+                  "fixedColor": "blue",
+                  "mode": "fixed"
                 }
               },
               {
@@ -1010,18 +911,18 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "text"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 }
               },
               {
                 "id": "custom.lineStyle",
                 "value": {
-                  "fill": "dash",
                   "dash": [
                     10,
                     10
-                  ]
+                  ],
+                  "fill": "dash"
                 }
               },
               {
@@ -1039,18 +940,18 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "red"
+                  "fixedColor": "red",
+                  "mode": "fixed"
                 }
               },
               {
                 "id": "custom.lineStyle",
                 "value": {
-                  "fill": "dash",
                   "dash": [
                     4,
                     6
-                  ]
+                  ],
+                  "fill": "dash"
                 }
               },
               {
@@ -1061,33 +962,27 @@
           }
         ]
       },
-      "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        },
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Costo giornaliero per ${tagkey}",
-      "id": 110,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "description": "Barre impilate: altezza = costo totale del giorno, colori = ${tagkey}.",
       "gridPos": {
         "h": 9,
-        "w": 14,
-        "x": 10,
+        "w": 10,
+        "x": 0,
         "y": 7
       },
+      "id": 109,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.4.8",
       "targets": [
         {
           "datasource": {
@@ -1099,6 +994,182 @@
           "withTransforms": false
         }
       ],
+      "title": "Burn-down budget (${budget} €)",
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Budget": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Cost": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Date": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "IdealCumulative": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": false,
+                "field": "Date"
+              }
+            ]
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Speso cumulato",
+            "cumulative": {
+              "field": "Cost (sum)",
+              "reducer": "sum"
+            },
+            "mode": "cumulativeFunctions",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Cost (sum)": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Budget (lastNotNull)": "Budget",
+              "IdealCumulative (lastNotNull)": "Ritmo ideale"
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Barre impilate: altezza = costo totale del giorno, colori = ${tagkey}.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 0,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.Domain}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 10,
+        "y": 7
+      },
+      "id": 110,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Costo giornaliero per ${tagkey}",
       "transformations": [
         {
           "id": "filterFieldsByName",
@@ -1118,8 +1189,8 @@
             "fields": {},
             "sort": [
               {
-                "field": "Date",
-                "desc": false
+                "desc": false,
+                "field": "Date"
               }
             ]
           }
@@ -1137,156 +1208,56 @@
           }
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 0,
-          "displayName": "${__field.labels.Domain}",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "bars",
-            "fillOpacity": 85,
-            "lineWidth": 0,
-            "barAlignment": 0,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        },
-        "legend": {
-          "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "sum"
-          ],
-          "sortBy": "Total",
-          "sortDesc": true
-        }
-      }
+      "type": "timeseries"
     },
     {
-      "type": "row",
-      "title": "Per ${tagkey}",
       "collapsed": false,
-      "id": 111,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 16
       },
-      "panels": []
+      "id": 111,
+      "panels": [],
+      "title": "Per ${tagkey}",
+      "type": "row"
     },
     {
-      "type": "table",
-      "title": "Riepilogo per ${tagkey}",
-      "id": 112,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
       },
       "description": "Speso, media giornaliera, forecast di fine periodo e quota sul totale per ogni valore del tag.",
-      "gridPos": {
-        "h": 11,
-        "w": 15,
-        "x": 0,
-        "y": 17
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 1,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Domain": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Cost": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              },
-              "DailyAvg": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              },
-              "ForecastCost": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              },
-              "SharePct": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Cost (sum)",
-                "desc": true
-              }
-            ]
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "Domain": "${tagkey}",
-              "Cost (sum)": "Speso",
-              "DailyAvg (sum)": "Media / giorno",
-              "ForecastCost (sum)": "Forecast",
-              "SharePct (sum)": "Quota"
-            },
-            "excludeByName": {},
-            "indexByName": {},
-            "includeByName": {}
-          }
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 2,
           "custom": {
             "align": "auto",
-            "filterable": true
-          }
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "currencyEUR"
         },
         "overrides": [
           {
@@ -1304,8 +1275,8 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
+                  "fixedColor": "blue",
+                  "mode": "fixed"
                 }
               }
             ]
@@ -1325,8 +1296,8 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
+                  "fixedColor": "purple",
+                  "mode": "fixed"
                 }
               }
             ]
@@ -1356,8 +1327,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "gauge",
                   "mode": "lcd",
+                  "type": "gauge",
                   "valueDisplayMode": "text"
                 }
               },
@@ -1372,40 +1343,42 @@
                 "value": 260
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "include",
+                "names": [
+                  "Speso",
+                  "Media / giorno",
+                  "Forecast"
+                ]
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.footer.reducers",
+                "value": [
+                  "sum"
+                ]
+              }
+            ]
           }
         ]
       },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": true,
-          "reducer": [
-            "sum"
-          ],
-          "fields": [
-            "Speso",
-            "Media / giorno",
-            "Forecast"
-          ],
-          "countRows": false
-        }
-      }
-    },
-    {
-      "type": "piechart",
-      "title": "Quota per ${tagkey}",
-      "id": 113,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
       "gridPos": {
         "h": 11,
-        "w": 9,
-        "x": 15,
+        "w": 15,
+        "x": 0,
         "y": 17
       },
+      "id": 112,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.4.8",
       "targets": [
         {
           "datasource": {
@@ -1417,20 +1390,39 @@
           "withTransforms": false
         }
       ],
+      "title": "Riepilogo per ${tagkey}",
       "transformations": [
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "Domain": {
-                "operation": "groupby",
-                "aggregations": []
-              },
               "Cost": {
-                "operation": "aggregate",
                 "aggregations": [
                   "sum"
-                ]
+                ],
+                "operation": "aggregate"
+              },
+              "DailyAvg": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Domain": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ForecastCost": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "SharePct": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
               }
             }
           }
@@ -1441,28 +1433,74 @@
             "fields": {},
             "sort": [
               {
-                "field": "Cost (sum)",
-                "desc": true
+                "desc": true,
+                "field": "Cost (sum)"
               }
             ]
           }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Cost (sum)": "Speso",
+              "DailyAvg (sum)": "Media / giorno",
+              "Domain": "${tagkey}",
+              "ForecastCost (sum)": "Forecast",
+              "SharePct (sum)": "Quota"
+            }
+          }
         }
       ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 0,
           "color": {
             "mode": "palette-classic"
-          }
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "unit": "currencyEUR"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 11,
+        "w": 9,
+        "x": 15,
+        "y": 17
+      },
+      "id": 113,
       "options": {
-        "pieType": "donut",
         "displayLabels": [
           "percent"
         ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -1470,47 +1508,109 @@
           "fields": "/^Cost \\(sum\\)$/",
           "values": true
         },
-        "legend": {
-          "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "values": [
-            "value",
-            "percent"
-          ]
-        },
+        "sort": "desc",
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
-      }
+      },
+      "pluginVersion": "12.4.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Quota per ${tagkey}",
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Domain": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Cost (sum)"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "piechart"
     },
     {
-      "type": "row",
-      "title": "Risorse e servizi",
       "collapsed": false,
-      "id": 114,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 28
       },
-      "panels": []
+      "id": 114,
+      "panels": [],
+      "title": "Risorse e servizi",
+      "type": "row"
     },
     {
-      "type": "bargauge",
-      "title": "Top 15 servizi",
-      "id": 115,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 11,
         "w": 9,
         "x": 0,
         "y": 29
+      },
+      "id": 115,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 24,
+        "minVizHeight": 14,
+        "namePlacement": "left",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/^Cost \\(sum\\)$/",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
       "targets": [
         {
@@ -1523,20 +1623,21 @@
           "withTransforms": false
         }
       ],
+      "title": "Top 15 servizi",
       "transformations": [
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "ServiceName": {
-                "operation": "groupby",
-                "aggregations": []
-              },
               "Cost": {
-                "operation": "aggregate",
                 "aggregations": [
                   "sum"
-                ]
+                ],
+                "operation": "aggregate"
+              },
+              "ServiceName": {
+                "aggregations": [],
+                "operation": "groupby"
               }
             }
           }
@@ -1547,8 +1648,8 @@
             "fields": {},
             "sort": [
               {
-                "field": "Cost (sum)",
-                "desc": true
+                "desc": true,
+                "field": "Cost (sum)"
               }
             ]
           }
@@ -1560,40 +1661,23 @@
           }
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 0,
-          "min": 0,
-          "color": {
-            "mode": "continuous-BlPu"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "valueMode": "color",
-        "namePlacement": "left",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizHeight": 14,
-        "maxVizHeight": 24,
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "/^Cost \\(sum\\)$/",
-          "values": true
-        }
-      }
+      "type": "bargauge"
     },
     {
-      "type": "bargauge",
-      "title": "Top 15 resource group",
-      "id": 116,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "currencyEUR"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 11,
@@ -1601,6 +1685,22 @@
         "x": 9,
         "y": 29
       },
+      "id": 116,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 24,
+        "minVizHeight": 14,
+        "namePlacement": "left",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/^Cost \\(sum\\)$/",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
       "targets": [
         {
           "datasource": {
@@ -1612,20 +1712,21 @@
           "withTransforms": false
         }
       ],
+      "title": "Top 15 resource group",
       "transformations": [
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "ResourceGroup": {
-                "operation": "groupby",
-                "aggregations": []
-              },
               "Cost": {
-                "operation": "aggregate",
                 "aggregations": [
                   "sum"
-                ]
+                ],
+                "operation": "aggregate"
+              },
+              "ResourceGroup": {
+                "aggregations": [],
+                "operation": "groupby"
               }
             }
           }
@@ -1636,8 +1737,8 @@
             "fields": {},
             "sort": [
               {
-                "field": "Cost (sum)",
-                "desc": true
+                "desc": true,
+                "field": "Cost (sum)"
               }
             ]
           }
@@ -1649,85 +1750,21 @@
           }
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 0,
-          "min": 0,
-          "color": {
-            "mode": "continuous-BlPu"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "valueMode": "color",
-        "namePlacement": "left",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizHeight": 14,
-        "maxVizHeight": 24,
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "/^Cost \\(sum\\)$/",
-          "values": true
-        }
-      }
+      "type": "bargauge"
     },
     {
-      "type": "piechart",
-      "title": "Modello di pricing",
-      "id": 117,
       "datasource": {
         "type": "datasource",
         "uid": "-- Dashboard --"
       },
       "description": "Quota coperta da reservation / savings plan contro pay-as-you-go.",
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 18,
-        "y": 29
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 2,
-          "refId": "A",
-          "withTransforms": false
-        }
-      ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Pricing": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Cost": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              }
-            }
-          }
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyEUR",
-          "decimals": 0,
           "color": {
             "mode": "palette-classic"
-          }
+          },
+          "decimals": 0,
+          "unit": "currencyEUR"
         },
         "overrides": [
           {
@@ -1739,8 +1776,8 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "orange"
+                  "fixedColor": "orange",
+                  "mode": "fixed"
                 }
               }
             ]
@@ -1754,19 +1791,31 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
+                  "fixedColor": "green",
+                  "mode": "fixed"
                 }
               }
             ]
           }
         ]
       },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 29
+      },
+      "id": 117,
       "options": {
-        "pieType": "donut",
         "displayLabels": [
           "percent"
         ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "pieType": "donut",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -1774,31 +1823,10 @@
           "fields": "/^Cost \\(sum\\)$/",
           "values": true
         },
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom"
-        },
         "tooltip": {
           "mode": "single",
           "sort": "none"
         }
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Righe dettaglio",
-      "id": 118,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "description": "La Cost Management API restituisce max 5000 righe per pagina e Infinity non segue il nextLink. Se arrivi a 5000 il dettaglio è troncato: restringi il periodo o togli un raggruppamento.",
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 36
       },
       "targets": [
         {
@@ -1811,9 +1839,36 @@
           "withTransforms": false
         }
       ],
+      "title": "Modello di pricing",
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Pricing": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        }
+      ],
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "La Cost Management API restituisce max 5000 righe per pagina e Infinity non segue il nextLink. Se arrivi a 5000 il dettaglio è troncato: restringi il periodo o togli un raggruppamento.",
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
           "color": {
             "mode": "thresholds"
           },
@@ -1821,8 +1876,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "orange",
@@ -1833,11 +1887,23 @@
                 "value": 5000
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "id": 118,
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "count"
@@ -1845,29 +1911,9 @@
           "fields": "/^Cost$/",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
+        "showPercentChange": false,
         "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      }
-    },
-    {
-      "type": "table",
-      "title": "Top risorse",
-      "id": 119,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "description": "Costo per singola risorsa nel periodo. Click sul nome per aprirla nel portale.",
-      "gridPos": {
-        "h": 13,
-        "w": 24,
-        "x": 0,
-        "y": 40
+        "wideLayout": true
       },
       "targets": [
         {
@@ -1880,100 +1926,15 @@
           "withTransforms": false
         }
       ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Resource": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "ResourceId": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Domain": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "ResourceGroup": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "ServiceName": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "ServiceTier": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Pricing": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Cost": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              },
-              "SharePct": {
-                "operation": "aggregate",
-                "aggregations": [
-                  "sum"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Cost (sum)",
-                "desc": true
-              }
-            ]
-          }
-        },
-        {
-          "id": "limit",
-          "options": {
-            "limitField": 200
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "Resource": "Risorsa",
-              "Domain": "${tagkey}",
-              "ResourceGroup": "Resource group",
-              "ServiceName": "Servizio",
-              "ServiceTier": "Tier",
-              "Cost (sum)": "Costo",
-              "SharePct (sum)": "Quota"
-            },
-            "excludeByName": {},
-            "indexByName": {
-              "Resource": 0,
-              "Domain": 1,
-              "ResourceGroup": 2,
-              "ServiceName": 3,
-              "ServiceTier": 4,
-              "Pricing": 5,
-              "Cost (sum)": 6,
-              "SharePct (sum)": 7,
-              "ResourceId": 8
-            },
-            "includeByName": {}
-          }
-        }
-      ],
+      "title": "Righe dettaglio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Costo per singola risorsa nel periodo. Click sul nome per aprirla nel portale.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -1992,8 +1953,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Apri nel portale Azure",
                     "targetBlank": true,
+                    "title": "Apri nel portale Azure",
                     "url": "https://portal.azure.com/#resource${__data.fields.ResourceId}"
                   }
                 ]
@@ -2043,8 +2004,8 @@
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
+                  "fixedColor": "blue",
+                  "mode": "fixed"
                 }
               }
             ]
@@ -2074,8 +2035,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "gauge",
                   "mode": "basic",
+                  "type": "gauge",
                   "valueDisplayMode": "text"
                 }
               },
@@ -2107,7 +2068,6 @@
                 "id": "mappings",
                 "value": [
                   {
-                    "type": "value",
                     "options": {
                       "Pay-as-you-go": {
                         "color": "orange",
@@ -2117,7 +2077,8 @@
                         "color": "green",
                         "index": 1
                       }
-                    }
+                    },
+                    "type": "value"
                   }
                 ]
               }
@@ -2125,35 +2086,26 @@
           }
         ]
       },
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 119,
       "options": {
-        "showHeader": true,
         "cellHeight": "sm",
         "footer": {
-          "show": true,
-          "reducer": [
-            "sum"
-          ],
+          "countRows": false,
           "fields": [
             "Costo"
           ],
-          "countRows": false
-        }
-      }
-    },
-    {
-      "type": "table",
-      "title": "Pay-as-you-go: candidati a reservation / savings plan",
-      "id": 120,
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
-      },
-      "description": "Consumi (ChargeType = Usage) non coperti da benefit, raggruppati per servizio/tier/meter. Le righe in cima con molte risorse e costo stabile sono i candidati migliori.",
-      "gridPos": {
-        "h": 11,
-        "w": 24,
-        "x": 0,
-        "y": 53
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true
       },
       "targets": [
         {
@@ -2166,61 +2118,51 @@
           "withTransforms": false
         }
       ],
+      "title": "Top risorse",
       "transformations": [
-        {
-          "id": "filterByValue",
-          "options": {
-            "type": "include",
-            "match": "all",
-            "filters": [
-              {
-                "fieldName": "Pricing",
-                "config": {
-                  "id": "equal",
-                  "options": {
-                    "value": "Pay-as-you-go"
-                  }
-                }
-              },
-              {
-                "fieldName": "ChargeType",
-                "config": {
-                  "id": "equal",
-                  "options": {
-                    "value": "Usage"
-                  }
-                }
-              }
-            ]
-          }
-        },
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "ServiceName": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "ServiceTier": {
-                "operation": "groupby",
-                "aggregations": []
-              },
-              "Meter": {
-                "operation": "groupby",
-                "aggregations": []
-              },
               "Cost": {
-                "operation": "aggregate",
                 "aggregations": [
                   "sum"
-                ]
+                ],
+                "operation": "aggregate"
+              },
+              "Domain": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Pricing": {
+                "aggregations": [],
+                "operation": "groupby"
               },
               "Resource": {
-                "operation": "aggregate",
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ResourceGroup": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ResourceId": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ServiceName": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ServiceTier": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "SharePct": {
                 "aggregations": [
-                  "distinctCount"
-                ]
+                  "sum"
+                ],
+                "operation": "aggregate"
               }
             }
           }
@@ -2231,8 +2173,8 @@
             "fields": {},
             "sort": [
               {
-                "field": "Cost (sum)",
-                "desc": true
+                "desc": true,
+                "field": "Cost (sum)"
               }
             ]
           }
@@ -2240,24 +2182,45 @@
         {
           "id": "limit",
           "options": {
-            "limitField": 50
+            "limitField": 200
           }
         },
         {
           "id": "organize",
           "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Cost (sum)": 6,
+              "Domain": 1,
+              "Pricing": 5,
+              "Resource": 0,
+              "ResourceGroup": 2,
+              "ResourceId": 8,
+              "ServiceName": 3,
+              "ServiceTier": 4,
+              "SharePct (sum)": 7
+            },
             "renameByName": {
+              "Cost (sum)": "Costo",
+              "Domain": "${tagkey}",
+              "Resource": "Risorsa",
+              "ResourceGroup": "Resource group",
               "ServiceName": "Servizio",
               "ServiceTier": "Tier",
-              "Cost (sum)": "Costo PAYG",
-              "Resource (distinctCount)": "Risorse"
-            },
-            "excludeByName": {},
-            "indexByName": {},
-            "includeByName": {}
+              "SharePct (sum)": "Quota"
+            }
           }
         }
       ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "Consumi (ChargeType = Usage) non coperti da benefit, raggruppati per servizio/tier/meter. Le righe in cima con molte risorse e costo stabile sono i candidati migliori.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -2283,8 +2246,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "gauge",
                   "mode": "gradient",
+                  "type": "gauge",
                   "valueDisplayMode": "text"
                 }
               },
@@ -2310,6 +2273,550 @@
           }
         ]
       },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 120,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": [
+            "Costo PAYG"
+          ],
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 2,
+          "refId": "A",
+          "withTransforms": false
+        }
+      ],
+      "title": "Pay-as-you-go: candidati a reservation / savings plan",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": "Pay-as-you-go"
+                  }
+                },
+                "fieldName": "Pricing"
+              },
+              {
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": "Usage"
+                  }
+                },
+                "fieldName": "ChargeType"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Meter": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Resource": {
+                "aggregations": [
+                  "distinctCount"
+                ],
+                "operation": "aggregate"
+              },
+              "ServiceName": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ServiceTier": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Cost (sum)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 50
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Cost (sum)": "Costo PAYG",
+              "Resource (distinctCount)": "Risorse",
+              "ServiceName": "Servizio",
+              "ServiceTier": "Tier"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "id": 301,
+      "gridPos": {
+        "x": 0,
+        "y": 64,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [],
+      "title": "Kubernetes: costo stimato per namespace  ·  $k8s_cluster  ·  ${__from:date:DD/MM} - ${__to:date:DD/MM}"
+    },
+    {
+      "type": "stat",
+      "title": "Costo nodi cluster",
+      "description": "Costo reale del node resource group del cluster (MC_..._${k8s_cluster}_...) nel periodo, da Cost Management.",
+      "id": 302,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "vector($cluster_cost)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "decimals": 0,
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Allocato ai namespace",
+      "description": "Parte del costo dei nodi coperta dalle request dei pod.",
+      "id": 303,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "sum((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))) * $cluster_cost",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "decimals": 0,
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Idle stimato",
+      "description": "Capacità dei nodi pagata ma non richiesta da nessun pod (media del periodo). Alta = nodi sovradimensionati: valuta autoscaler, nodepool più piccoli o la dashboard Rightsizing.",
+      "id": 304,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "clamp_min(1 - sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))), 0) * 100",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "red",
+                "value": 40
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Costo idle",
+      "description": "Costo dei nodi corrispondente alla capacità non richiesta.",
+      "id": 305,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "clamp_min(1 - sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))), 0) * $cluster_cost",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "decimals": 0,
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "type": "table",
+      "title": "Costo stimato per namespace",
+      "id": 306,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "description": "Costo nodi x quota media di request (CPU e memoria pesate con 'Peso CPU') sulla capacità allocatable. È una stima di chargeback, non un dato di fatturazione.",
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 14,
+        "h": 13
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"}))) * $cluster_cost) or (label_replace(clamp_min(1 - sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))), 0), \"namespace\", \"Idle (capacità non richiesta)\", \"\", \"\") * $cluster_cost)",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "mean"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "Namespace",
+              "Mean": "Costo stimato"
+            },
+            "excludeByName": {},
+            "indexByName": {},
+            "includeByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Costo stimato",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "decimals": 2,
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Costo stimato"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "gradient",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-BlPu"
+                }
+              }
+            ]
+          }
+        ]
+      },
       "options": {
         "showHeader": true,
         "cellHeight": "sm",
@@ -2318,12 +2825,598 @@
           "reducer": [
             "sum"
           ],
+          "countRows": false,
           "fields": [
-            "Costo PAYG"
+            "Costo stimato"
+          ]
+        }
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Ripartizione costo nodi",
+      "id": 307,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 70,
+        "w": 10,
+        "h": 13
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"}))) * $cluster_cost) or (label_replace(clamp_min(1 - sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))), 0), \"namespace\", \"Idle (capacità non richiesta)\", \"\", \"\") * $cluster_cost)",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Idle (capacità non richiesta)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "reduceOptions": {
+          "calcs": [
+            "mean"
           ],
-          "countRows": false
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ],
+          "sortBy": "Value",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "sort": "desc"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Quota della capacità per namespace nel tempo",
+      "id": 308,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "description": "Percentuale della capacità dei nodi richiesta da ciascun namespace (area grigia = idle).",
+      "gridPos": {
+        "x": 0,
+        "y": 83,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "(($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"}))) * 100",
+          "refId": "A",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "clamp_min(1 - sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))), 0) * 100",
+          "refId": "B",
+          "legendFormat": "Idle (capacità non richiesta)",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Idle (capacità non richiesta)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 25
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean"
+          ],
+          "sortBy": "Mean",
+          "sortDesc": true
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Capacità richiesta vs disponibile",
+      "id": 309,
+      "datasource": {
+        "type": "grafana-azureprometheus-datasource",
+        "uid": "${prom_ds}"
+      },
+      "description": "Quanto della capacità dei nodi è richiesta dai pod (CPU, memoria e quota pesata usata per i costi) e quanti nodi ci sono. Se il numero di nodi sale ma la quota richiesta resta bassa, l'idle cresce.",
+      "gridPos": {
+        "x": 0,
+        "y": 92,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "sum by (cluster) (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"})) / sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"}) * 100",
+          "refId": "A",
+          "legendFormat": "CPU richiesta",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "sum by (cluster) (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"})) / sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"}) * 100",
+          "refId": "B",
+          "legendFormat": "Memoria richiesta",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "sum by (cluster) ((($cpu_weight / 100) * (sum by (cluster, namespace) (namespace_cpu:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"cpu\"})) + (1 - $cpu_weight / 100) * (sum by (cluster, namespace) (namespace_memory:kube_pod_container_resource_requests:sum{cluster=~\"$k8s_cluster\"}) / on (cluster) group_left () sum by (cluster) (kube_node_status_allocatable{cluster=~\"$k8s_cluster\", resource=\"memory\"})))) * 100",
+          "refId": "C",
+          "legendFormat": "Quota pesata (costi)",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "grafana-azureprometheus-datasource",
+            "uid": "${prom_ds}"
+          },
+          "expr": "count(kube_node_info{cluster=~\"$k8s_cluster\"})",
+          "refId": "D",
+          "legendFormat": "Nodi",
+          "editorMode": "code",
+          "range": true,
+          "instant": false,
+          "format": "time_series",
+          "interval": "1h",
+          "exemplar": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisSoftMax": 100
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Quota pesata (costi)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Nodi"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": null
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 20
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
         }
       }
     }
-  ]
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "azure",
+    "finops",
+    "cost-management",
+    "infinity"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "pagopa-d-infinity",
+          "value": "bewz4xphqa70ge"
+        },
+        "label": "Datasource",
+        "name": "infinity_ds",
+        "options": [],
+        "query": "yesoreyeram-infinity-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "bbe47ad4-08b3-4925-94c5-1278e5819b86",
+          "value": "bbe47ad4-08b3-4925-94c5-1278e5819b86"
+        },
+        "label": "Subscription ID",
+        "name": "subscription",
+        "options": [
+          {
+            "selected": true,
+            "text": "bbe47ad4-08b3-4925-94c5-1278e5819b86",
+            "value": "bbe47ad4-08b3-4925-94c5-1278e5819b86"
+          }
+        ],
+        "query": "bbe47ad4-08b3-4925-94c5-1278e5819b86",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": "domain",
+          "value": "domain"
+        },
+        "label": "Tag",
+        "name": "tagkey",
+        "options": [
+          {
+            "selected": true,
+            "text": "domain",
+            "value": "domain"
+          }
+        ],
+        "query": "domain",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": "10000",
+          "value": "10000"
+        },
+        "label": "Budget mensile (€)",
+        "name": "budget",
+        "options": [
+          {
+            "selected": true,
+            "text": "10000",
+            "value": "10000"
+          }
+        ],
+        "query": "10000",
+        "type": "textbox"
+      },
+      {
+        "name": "prom_ds",
+        "label": "Prometheus cluster",
+        "type": "datasource",
+        "query": "grafana-azureprometheus-datasource",
+        "regex": "aks.*",
+        "refresh": 1,
+        "hide": 0,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "k8s_cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azureprometheus-datasource",
+          "uid": "${prom_ds}"
+        },
+        "definition": "label_values(kube_node_info, cluster)",
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_node_info, cluster)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "regex": "",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "cluster_cost",
+        "label": "Costo nodi (€)",
+        "type": "query",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "${infinity_ds}"
+        },
+        "hide": 0,
+        "description": "Costo reale del node resource group del cluster (MC_<rg>_<cluster>_<region>, trovato in automatico): VM, dischi, LB, IP.",
+        "refresh": 2,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "regex": "",
+        "current": {},
+        "options": [],
+        "definition": "Cost Management: costo MC_*_${k8s_cluster}_*",
+        "query": {
+          "queryType": "infinity",
+          "query": "",
+          "infinityQuery": {
+            "refId": "variable",
+            "type": "json",
+            "source": "url",
+            "parser": "backend",
+            "format": "table",
+            "url": "https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.CostManagement/query?api-version=2023-11-01",
+            "root_selector": "(\n  $cols := properties.columns.name;\n  $ci := $filter([0..($count($cols) - 1)], function($n) { $cols[$n] = \"Cost\" })[0];\n  $gi := $filter([0..($count($cols) - 1)], function($n) { $lowercase($cols[$n]) = \"resourcegroupname\" or $lowercase($cols[$n]) = \"resourcegroup\" })[0];\n  $cl := \"_\" & $lowercase(\"${k8s_cluster}\") & \"_\";\n  $isNodeRg := function($n) { $substring($lowercase($n), 0, 3) = \"mc_\" and $contains($lowercase($n), $cl) };\n  $tot := $reduce(properties.rows, function($acc, $r) { $acc + ($isNodeRg($r[$gi]) ? $r[$ci] : 0) }, 0);\n  [{ \"value\": $string($round($tot ? $tot : 0, 2)) }]\n)",
+            "columns": [
+              {
+                "selector": "value",
+                "text": "value",
+                "type": "string"
+              }
+            ],
+            "filters": [],
+            "url_options": {
+              "method": "POST",
+              "body_type": "raw",
+              "body_content_type": "application/json",
+              "data": "{\n  \"type\": \"ActualCost\",\n  \"timeframe\": \"Custom\",\n  \"timePeriod\": {\n    \"from\": \"${__from:date:YYYY-MM-DDTHH:mm:ssZ}\",\n    \"to\": \"${__to:date:YYYY-MM-DDTHH:mm:ssZ}\"\n  },\n  \"dataset\": {\n    \"granularity\": \"None\",\n    \"aggregation\": { \"totalCost\": { \"name\": \"Cost\", \"function\": \"Sum\" } },\n    \"grouping\": [ { \"type\": \"Dimension\", \"name\": \"ResourceGroupName\" } ]\n  }\n}",
+              "headers": [
+                {
+                  "key": "x-ms-command-name",
+                  "value": "CostAnalysis"
+                },
+                {
+                  "key": "ClientType",
+                  "value": "PagopaInfinity"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "cpu_weight",
+        "label": "Peso CPU %",
+        "type": "custom",
+        "hide": 0,
+        "description": "Quanto pesa la CPU rispetto alla memoria nella ripartizione del costo dei nodi.",
+        "query": "30,50,70",
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "50",
+          "value": "50"
+        },
+        "options": [
+          {
+            "text": "30",
+            "value": "30",
+            "selected": false
+          },
+          {
+            "text": "50",
+            "value": "50",
+            "selected": true
+          },
+          {
+            "text": "70",
+            "value": "70",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now/M",
+    "to": "now/M"
+  },
+  "timepicker": {
+    "nowDelay": "",
+    "refresh_intervals": [
+      "1h",
+      "6h",
+      "12h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "PagoPA - Costi Azure per dominio",
+  "uid": "pagopa-azure-costs",
+  "version": 1,
+  "weekStart": ""
 }
