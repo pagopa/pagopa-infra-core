@@ -253,6 +253,8 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
     ]
   }
 
+  print(f"{bcolors.INFO}slack message: {message}{bcolors.ENDC}")
+
   response = requests.post(webhook_url, data=message)
 
   print(f"{bcolors.INFO}Slack report sent. Response status code: {response.status_code}{bcolors.ENDC}")
