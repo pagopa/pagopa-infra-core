@@ -17,27 +17,27 @@ class bcolors:
 ordered_folders = {
   # "core": { "prefix": ""}, skipped, it contains only payment manager that is "in wait"
   "next-core/next-core-secrets": {"prefix": ""},
-  # "next-core/next-core-common": { "prefix": ""},
-  # "core-itn/core-itn-secrets": {"prefix": ""},
-  # "core-itn/core-itn-common": {"prefix": ""},
-  # "network/network-secrets": { "prefix": ""},
-  # "network/network-common": { "prefix": ""},
-  # "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
-  # "next-aks": { "prefix": "", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks"},
-  # "aks-leonardo": { "prefix": "itn", "k8s": True, "k8s_context": "itn", "cluster_name_template": "pagopa-{env_short}-itn-{env}-aks"},
-  # "packer": { "prefix": ""},
-  # "synthetic-monitoring": { "prefix": "weu"},
-  # "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
-  # "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
-  # "audit-logs": { "prefix": "" },
-  # "client-certs": { "prefix": "" },
-  # "continuos-platform-alerting": { "prefix": "" },
-  # "grafana-monitoring": { "prefix": "weu" },
-  # "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
-  # "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
-  # "cloudo/cloudo-secrets": { "prefix": ""},
-  # "cloudo/cloudo-core": { "prefix": ""},
-  # "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
+  "next-core/next-core-common": { "prefix": ""},
+  "core-itn/core-itn-secrets": {"prefix": ""},
+  "core-itn/core-itn-common": {"prefix": ""},
+  "network/network-secrets": { "prefix": ""},
+  "network/network-common": { "prefix": ""},
+  "aks-platform": { "prefix": "weu", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks" },
+  "next-aks": { "prefix": "", "k8s": True, "k8s_context": "weu", "cluster_name_template": "pagopa-{env_short}-weu-{env}-aks"},
+  "aks-leonardo": { "prefix": "itn", "k8s": True, "k8s_context": "itn", "cluster_name_template": "pagopa-{env_short}-itn-{env}-aks"},
+  "packer": { "prefix": ""},
+  "synthetic-monitoring": { "prefix": "weu"},
+  "db-security/db-security-common": { "prefix": "", "limit_env": ["dev", "prod"]},
+  "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
+  "audit-logs": { "prefix": "" },
+  "client-certs": { "prefix": "" },
+  "continuos-platform-alerting": { "prefix": "" },
+  "grafana-monitoring": { "prefix": "weu" },
+  "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
+  "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
+  "cloudo/cloudo-secrets": { "prefix": ""},
+  "cloudo/cloudo-core": { "prefix": ""},
+  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
 }
 
 
@@ -259,13 +259,12 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
     ]
   }
 
+  try:
+    response = requests.post(webhook_url, json=message)
+  except Exception as e:
+    print(f"{bcolors.ERROR}Error sending Slack report: {e}{bcolors.ENDC}")
 
-  response = requests.post(webhook_url, json=message)
 
-  print(f"{bcolors.INFO}Slack report sent. Response status code: {response.status_code}{bcolors.ENDC}")
-  print(f"{bcolors.INFO}slack response {response.content}{bcolors.ENDC}")
-
-  return
 
 def apply_folder(repo_path, folder, config, env, k8s_config_folder):
   folder_path = os.path.join(repo_path, 'src', folder)
@@ -319,7 +318,7 @@ def main():
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
   send_slack_report(plan_summaries, skipped_folders, failed_folders,
-                    slack_webhook_url, build_url)
+                    slack_webhook_url, f"{build_url}&view=logs")
 
   # report plan summary per folder
   if plan_summaries:
