@@ -17,7 +17,7 @@ class bcolors:
 ordered_folders = {
   # "core": { "prefix": ""}, skipped, it contains only payment manager that is "in wait"
   "next-core/next-core-secrets": {"prefix": ""},
-  "next-core/next-core-common": { "prefix": ""},
+  # "next-core/next-core-common": { "prefix": ""},
   # "core-itn/core-itn-secrets": {"prefix": ""},
   # "core-itn/core-itn-common": {"prefix": ""},
   # "network/network-secrets": { "prefix": ""},
@@ -256,7 +256,7 @@ def send_slack_report(plan_summaries, skipped_folders, failed_folders, webhook_u
   response = requests.post(webhook_url, data=message)
 
   print(f"{bcolors.INFO}Slack report sent. Response status code: {response.status_code}{bcolors.ENDC}")
-  print(f"{bcolors.INFO}slack response {response}{bcolors.ENDC}")
+  print(f"{bcolors.INFO}slack response {response.content}{bcolors.ENDC}")
 
   return
 
