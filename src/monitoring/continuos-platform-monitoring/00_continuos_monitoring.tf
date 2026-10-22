@@ -1,12 +1,31 @@
+# per i tipi con parent_type elenca i padri, altrimenti direttamente le risorse
 data "azurerm_resources" "sub_resources" {
   for_each = local.namespace_commands_map
-  type     = each.key
-#   required_tags = {
-#     icinga2 = "true"
-#   }
+  type     = try(each.value.parent_type, each.key)
 }
 
+# risorse figlie lette dal padre (non compaiono in azurerm_resources)
+data "azapi_resource_list" "children" {
+  for_each               = local.parent_resources
+  type                   = "${each.value.type}@${local.latest_stable[each.value.type]}"
+  parent_id              = each.value.parent_id
+  response_export_values = ["value"]
+}
 
+# endpoint e route dei profili Front Door, per associare i custom domain all'endpoint
+data "azapi_resource_list" "afd_endpoints" {
+  for_each               = local.afd_profiles
+  type                   = "Microsoft.Cdn/profiles/afdEndpoints@${local.latest_stable[each.value.type]}"
+  parent_id              = each.value.parent_id
+  response_export_values = ["value"]
+}
+
+data "azapi_resource_list" "afd_routes" {
+  for_each               = local.afd_endpoints
+  type                   = "Microsoft.Cdn/profiles/afdEndpoints/routes@${local.latest_stable["Microsoft.Cdn/profiles/customdomains"]}"
+  parent_id              = each.key
+  response_export_values = ["value"]
+}
 
 data "azapi_resource_action" "provider" {
   for_each               = toset([for k in keys(local.namespace_commands_map) : split("/", k)[0]])
@@ -16,84 +35,53 @@ data "azapi_resource_action" "provider" {
   response_export_values = ["resourceTypes"]
 }
 
-locals {
-  # es. "Microsoft.Network/virtualNetworks" => ["2024-05-01", "2024-03-01", ...]
-  api_versions = {
-    for k, r in data.azurerm_resources.sub_resources : k => flatten([
-      for rt in data.azapi_resource_action.provider[split("/", r.type)[0]].output.resourceTypes :
-      rt.apiVersions
-      if lower(rt.resourceType) == lower(trimprefix(r.type, "${split("/", r.type)[0]}/"))
-    ])
-  }
-
-  # ultima versione stabile (esclude le preview)
-  latest_stable = {
-    for k, v in local.api_versions : k => reverse(sort([for x in v : x if !strcontains(x, "preview")]))[0]
-  }
-
-  resource_names_flat = merge([
-    for k, v in data.azurerm_resources.sub_resources : {
-      for r in v.resources : "${k}-${r.name}" => {
-        name = r.name
-        type = r.type
-        id   = r.id
-        domain = try(r.tags.domain,"notag")
-      }
-    }
-  ]...)
-
-  resources_full = {
-    for k, v in local.resource_names_flat : k => merge(v, {
-      icinga2_command = local.namespace_commands_map[v.type].icinga2_command
-      property_value  = data.azapi_resource.this[k].output.value
-    })
-  }
-
-  bp_resources = {
-    for k, v in local.resources_full :
-    replace(k, "/[^A-Za-z0-9_.-]/", "_") => {
-      host   = v.property_value
-      domain = replace(v.domain, "/[^A-Za-z0-9_.-]/", "_")
-    } if v.property_value != null
-  }
-
-  # dominio => lista dei nodi
-  bp_domains = {
-    for node, r in local.bp_resources : r.domain => node...
-  }
-
-  bp_content = templatefile("${path.module}/bp.tftpl", {
-    resources = local.bp_resources
-    domains   = local.bp_domains
-  })
-}
-
 data "azapi_resource" "this" {
-  for_each  = local.resource_names_flat
-  type      = "${each.value.type}@${local.latest_stable[each.value.type]}"
-  
+  for_each    = local.resource_names_flat
+  type        = "${each.value.type}@${local.latest_stable[each.value.type]}"
   resource_id = each.value.id
   response_export_values = {
-    value = "${local.namespace_commands_map[each.value.type].resource_properties}"
+    value = local.namespace_commands_map[each.value.type].resource_properties
   }
 }
 
-
- output "bp" {
-      value = local.bp_content
-  
- }
-
-
-resource "icinga2_host" "web-server" {
- for_each = data.azapi_resource.this
- address =  each.value.output.value
- hostname = each.value.output.value
- check_command = "ping4"
- zone = "master"
+# il provider icinga2 non supporta l'update di host e servizi: ogni modifica
+# alla configurazione ne forza la ricreazione
+resource "terraform_data" "azure_hosts_config" {
+  for_each = local.hosts_flat
+  input    = each.value
 }
 
-resource "icinga2_hostgroup" "my-hostgroup" {
-  name         = "terraform-hostgroup-1"
-  display_name = "Terraform Test HostGroup"
+# include anche la config dell'host: se l'host viene ricreato, Icinga ne cancella
+# i servizi, quindi vanno ricreati anche loro
+resource "terraform_data" "azure_services_config" {
+  for_each = local.services_flat
+  input = {
+    service = each.value
+    host    = local.hosts_flat[each.value.host_key]
+  }
+}
+
+resource "icinga2_host" "azure_hosts" {
+  for_each      = local.hosts_flat
+  hostname      = each.value.hostname
+  address       = each.value.address
+  check_command = each.value.check_command
+  zone          = "master"
+  vars          = each.value.vars
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.azure_hosts_config[each.key]]
+  }
+}
+
+resource "icinga2_service" "azure_services" {
+  for_each      = local.services_flat
+  hostname      = icinga2_host.azure_hosts[each.value.host_key].hostname
+  name          = each.value.name
+  check_command = each.value.check_command
+  vars          = each.value.vars
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.azure_services_config[each.key]]
+  }
 }

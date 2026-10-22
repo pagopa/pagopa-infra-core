@@ -151,3 +151,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_azurewebsi
   resource_group_name   = data.azurerm_private_dns_zone.privatelink_azurewebsite_azure_com.resource_group_name
   tags                  = module.tag_config.tags
 }
+
+# TODO: Rimuovere
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_azurewebsite_azure_com_vnet_link_itn" {
+  name                  = local.vnet_italy_name
+  virtual_network_id    = data.azurerm_virtual_network.vnet_itn_compute.id
+  private_dns_zone_name = data.azurerm_private_dns_zone.privatelink_azurewebsite_azure_com.name
+  resource_group_name   = data.azurerm_private_dns_zone.privatelink_azurewebsite_azure_com.resource_group_name
+  tags                  = module.tag_config.tags
+}

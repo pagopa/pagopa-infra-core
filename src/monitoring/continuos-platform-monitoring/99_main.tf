@@ -8,7 +8,7 @@ terraform {
     }
 
     icinga2 = {
-      source = "Icinga/icinga2"
+      source  = "Icinga/icinga2"
       version = "= 0.7.1"
     }
 
@@ -21,9 +21,9 @@ terraform {
 }
 
 provider "icinga2" {
-  api_url              = "https://10.3.144.5:5665/v1"
-  api_user             = "icingadb-web-teo"
-  api_password         = ""
+  api_url                  = "https://10.3.144.5:5665/v1"
+  api_user                 = "icingadb-web-teo"
+  api_password             = ""
   insecure_skip_tls_verify = true
 }
 
@@ -40,13 +40,3 @@ provider "azurerm" {
 }
 
 data "azurerm_subscription" "current" {}
-
-data "azurerm_client_config" "current" {}
-
-
-
-
-module "__v4__" {
-  # v8.1.3
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=49d12bd64b144b516f104fb50683b432f1c798ef"
-}
