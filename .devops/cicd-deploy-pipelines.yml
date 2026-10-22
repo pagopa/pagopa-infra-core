@@ -42,36 +42,50 @@ variables:
       value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_PROD)"
   - name: aks_name
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_AKS_DEV_NAME)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_AKS_UAT_NAME)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_AKS_PROD_NAME)"
   - name: aks_apiserver_url
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_DEV_AKS_APISERVER_URL)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_UAT_AKS_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_APISERVER_URL)"
   - name: aks_azure_devops_sa_ca_crt
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_AZURE_DEVOPS_SA_CACRT)"
   - name: aks_azure_devops_sa_token
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)"
   - name:  kv_name
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "pagopa-d-kv"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "pagopa-u-kv"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "pagopa-p-kv"
   - name:  pool_name
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_POOL_NAME_DEV)"
     ${{ if eq(parameters.ENV, 'uat') }}:
       value: "$(TF_POOL_NAME_UAT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_POOL_NAME_PROD)"
 
 name: "CICD dryRun=${{parameters.DRY_RUN}} on ${{ parameters.ENV }} -  $(Date:yyyyMMdd).$(Rev:r)"
 stages:
