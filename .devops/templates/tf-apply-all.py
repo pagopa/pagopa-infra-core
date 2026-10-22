@@ -167,8 +167,7 @@ def patch_terraform_script(repo_path):
 
 
 def send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders, webhook_url, build_url, dry_run):
-  applied_folders = len(apply_summaries) - len(failed_folders)
-
+  applied_folders = len(apply_summaries)
   apply_summary_message = []
   for folder, summary in apply_summaries.items():
     print(f"{bcolors.BLU}- {folder}: {summary}{bcolors.ENDC}")
