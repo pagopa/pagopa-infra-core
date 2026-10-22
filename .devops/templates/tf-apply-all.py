@@ -279,9 +279,7 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
 
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
   k8s_arguments = ['-var', f'k8s_kube_config_path_prefix={k8s_config_folder}']
-  arguments_plan = ['./terraform.sh', 'plan', env_name]
-  arguments_apply = ['./terraform.sh', 'apply', env_name, '-auto-approve']
-  arguments = arguments_plan if dry_run else arguments_apply
+  arguments = ['./terraform.sh', 'plan' if dry_run else 'apply', env_name]
 
   if config.get('k8s', False):
     cluster_name = config.get('cluster_name_template', '').format(
