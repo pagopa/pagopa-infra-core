@@ -124,7 +124,7 @@ def disable_opa_policy(repo_path):
 
 
 def patch_terraform_script(repo_path):
-  """Strip check_arguments and the apply confirmation prompt from other_actions() in scripts/terraform.sh."""
+  """Patch scripts/terraform.sh for non-interactive pipeline runs (no prompts, service principal user lookup)."""
   script_path = os.path.join(repo_path, 'scripts', 'terraform.sh')
   if not os.path.isfile(script_path):
     return
@@ -151,12 +151,17 @@ def patch_terraform_script(repo_path):
     if count == 0:
       print(f"{bcolors.WARN}Warning: pattern {pattern!r} not found in other_actions(); skipped.{bcolors.ENDC}")
 
-  if patched_block == original_block:
-    print(f"{bcolors.WARN}Warning: no changes made to other_actions().{bcolors.ENDC}")
-    return
-
-  print(f"Patching {script_path}: removing check_arguments call and apply confirmation from other_actions()...")
   content = content.replace(original_block, patched_block, 1)
+
+  # 'az ad signed-in-user' only works with delegated auth; use the current az account (service principal) instead
+  content, count = re.subn(
+    r'az ad signed-in-user show --query userPrincipalName -o tsv',
+    'az account show --query user.name -o tsv',
+    content)
+  if count == 0:
+    print(f"{bcolors.WARN}Warning: 'az ad signed-in-user' call not found in terraform.sh; skipped.{bcolors.ENDC}")
+
+  print(f"Patching {script_path}: removing check_arguments/apply confirmation and fixing current user lookup...")
   with open(script_path, 'w') as f:
     f.write(content)
 
