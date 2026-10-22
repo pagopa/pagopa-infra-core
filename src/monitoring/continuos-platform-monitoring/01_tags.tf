@@ -1,5 +1,5 @@
 module "tag_config" {
   source      = "../../tag_config"
-  domain      = var.domain
+  domain      = local.domain
   environment = var.env
 }

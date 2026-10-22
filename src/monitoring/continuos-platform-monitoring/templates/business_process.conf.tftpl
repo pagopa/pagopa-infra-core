@@ -1,0 +1,18 @@
+### Business Process Config File ###
+#
+# Title           : ${title}
+# Description     : Generato da Terraform, non modificare a mano
+# AddToMenu       : yes
+#
+###################################
+
+# Host: Hoststatus + tutti i servizi dell'host
+%{ for host, h in hosts ~}
+${host} = ${join(" & ", h.checks)}
+%{ endfor ~}
+
+# Domini: primo livello del Business Process
+%{ for domain, hosts in domains ~}
+${domain} = ${join(" & ", hosts)}
+display 1;${domain};${domain}
+%{ endfor ~}
