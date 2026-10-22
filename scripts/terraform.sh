@@ -16,7 +16,7 @@ else
   FILE_ACTION=false
 fi
 
-set -e
+set -x
 
 # Define colors and styles
 # fixme find a way to color output on local and on devops agent, where tput returns an error
