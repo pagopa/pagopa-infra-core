@@ -149,7 +149,7 @@ def patch_terraform_script(repo_path):
     f.write(content)
 
 
-def send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders, webhook_url, build_url):
+def send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders, webhook_url, build_url, dry_run):
   applied_folders = len(apply_summaries) - len(failed_folders)
 
   apply_summary_message = []
@@ -172,14 +172,8 @@ def send_slack_report(total_folders, apply_summaries, skipped_folders, failed_fo
         "level": 1
       },
       {
-        "type": "context",
-        "elements": [
-          {
-            "type": "plain_text",
-            "text": "Esecuzione completata",
-            "emoji": True
-          }
-        ]
+        "type": "markdown",
+        "text": f"Esecuzione **{'plan' if dry_run else 'apply'}** completata",
       },
       {
         "type": "header",
