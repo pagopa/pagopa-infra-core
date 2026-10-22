@@ -153,10 +153,15 @@ def patch_terraform_script(repo_path):
 
   content = content.replace(original_block, patched_block, 1)
 
-  # 'az ad signed-in-user' only works with delegated auth; use the current az account (service principal) instead
+  # 'az ad signed-in-user' only works with delegated auth: resolve the service principal display name,
+  # falling back to the az account name (app id or UPN) if the lookup fails
   content, count = re.subn(
-    r'az ad signed-in-user show --query userPrincipalName -o tsv',
-    'az account show --query user.name -o tsv',
+    r'current_user=\$\(az ad signed-in-user show --query userPrincipalName -o tsv\)',
+    lambda _: (
+      'current_account=$(az account show --query user.name -o tsv)\n'
+      '  current_user=$(az ad sp show --id "$current_account" --query displayName -o tsv 2>/dev/null)\n'
+      '  current_user=${current_user:-$current_account}'
+    ),
     content)
   if count == 0:
     print(f"{bcolors.WARN}Warning: 'az ad signed-in-user' call not found in terraform.sh; skipped.{bcolors.ENDC}")
