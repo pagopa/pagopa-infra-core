@@ -124,7 +124,7 @@ def disable_opa_policy(repo_path):
 
 
 def patch_terraform_script(repo_path):
-  """Strip the call to check_arguments from other_actions() in scripts/terraform.sh."""
+  """Strip check_arguments and the apply confirmation prompt from other_actions() in scripts/terraform.sh."""
   script_path = os.path.join(repo_path, 'scripts', 'terraform.sh')
   if not os.path.isfile(script_path):
     return
@@ -137,13 +137,25 @@ def patch_terraform_script(repo_path):
     raise RuntimeError("Could not locate other_actions() function in terraform.sh")
 
   original_block = match.group(0)
-  patched_block = re.sub(r'^[ \t]*check_arguments[ \t]*\n', '', original_block, count=1, flags=re.MULTILINE)
+  patched_block = original_block
+  patches = [
+    # remove the check_arguments call
+    (r'^[ \t]*check_arguments[ \t]*\n', ''),
+    # remove the interactive apply confirmation prompt
+    (r'^[ \t]*read[ \t]+-p[ \t]+"[^\n]*apply_confirmation[ \t]*\n', ''),
+    # always proceed with the apply, regardless of user response
+    (r'if \[ "\$apply_confirmation" == "yes" \]; then', 'if true; then'),
+  ]
+  for pattern, replacement in patches:
+    patched_block, count = re.subn(pattern, replacement, patched_block, count=1, flags=re.MULTILINE)
+    if count == 0:
+      print(f"{bcolors.WARN}Warning: pattern {pattern!r} not found in other_actions(); skipped.{bcolors.ENDC}")
 
   if patched_block == original_block:
-    print(f"{bcolors.WARN}Warning: check_arguments call not found in other_actions(); no changes made.{bcolors.ENDC}")
+    print(f"{bcolors.WARN}Warning: no changes made to other_actions().{bcolors.ENDC}")
     return
 
-  print(f"Patching {script_path}: removing check_arguments call from other_actions()...")
+  print(f"Patching {script_path}: removing check_arguments call and apply confirmation from other_actions()...")
   content = content.replace(original_block, patched_block, 1)
   with open(script_path, 'w') as f:
     f.write(content)
