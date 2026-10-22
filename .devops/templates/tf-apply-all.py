@@ -320,7 +320,7 @@ def main():
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
   send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders,
-                    slack_webhook_url, f"{build_url}&view=logs")
+                    slack_webhook_url, f"{build_url}&view=logs", dry_run)
 
   # report apply summary per folder
   if apply_summaries:
