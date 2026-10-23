@@ -2,14 +2,21 @@
 trigger: none
 pr: none
 
+schedules:
+- cron: "0 8 1-7 * 1" # 8 am every first monday of the month
+  branches:
+    include: [ "main" ] # which branches the schedule applies to
+  always: true
+- cron: "0 8 15-21 * 1" # 8 am every third monday of the month
+  branches:
+    include: [ "main" ] # which branches the schedule applies to
+  always: true
+
 parameters:
   - name: 'DRY_RUN'
     displayName: 'Only run plan'
     type: boolean
-    default: False
-    values:
-      - False
-      - True
+    default: True
   - name: ENV
     displayName: 'Environment'
     type: string
