@@ -47,6 +47,36 @@ locals {
       }]
     }
   ]
+
+  # CORS header above depends on the request Origin: without Vary a browser
+  # reuses a copy cached for one FE origin on another FE and blocks the SDK.
+  # The short max-age replaces heuristic caching (the blobs send no Cache-Control),
+  # so an SDK update does not leave a stale hfsdk.js next to a fresh hash
+  npg_sdk_cache_rules = [{
+    name              = "NpgSdkVaryOriginAndCacheControl"
+    order             = 14
+    behavior_on_match = "Continue"
+
+    url_path_conditions = [{
+      operator         = "BeginsWith"
+      match_values     = ["/npg-uat/", "/npg-prod/"]
+      negate_condition = false
+      transforms       = ["Lowercase"]
+    }]
+
+    modify_response_header_actions = [
+      {
+        action = "Append"
+        name   = "Vary"
+        value  = "Origin"
+      },
+      {
+        action = "Overwrite"
+        name   = "Cache-Control"
+        value  = "public, max-age=300"
+      }
+    ]
+  }]
 }
 
 /**
@@ -194,7 +224,8 @@ module "assets_cdn_platform_frontdoor" {
     # are a known and closed set, so the header is restricted to their origins
     # instead of using a wildcard. Also scoped to the /npg-*/ folders, so the rest
     # of this shared CDN is left untouched. See local.npg_sdk_cors_origins.
-    local.npg_sdk_cors_rules
+    local.npg_sdk_cors_rules,
+    local.npg_sdk_cache_rules
   )
 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
