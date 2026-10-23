@@ -297,12 +297,12 @@ function check_conftest_output(){
 function clean_audit_files() {
   file_name=$1
   # cleanup temporary files
-  rm "$file_name.plan" 2>/dev/null
-  rm "$file_name.apply" 2>/dev/null
-  rm "$file_name.tfplan" 2>/dev/null
-  rm "$file_name.json" 2>/dev/null
-  rm "$file_name.jq" 2>/dev/null
-  rm "$file_name.opa" 2>/dev/null
+  rm -f "$file_name.plan" 2>/dev/null
+  rm -f "$file_name.apply" 2>/dev/null
+  rm -f "$file_name.tfplan" 2>/dev/null
+  rm -f "$file_name.json" 2>/dev/null
+  rm -f "$file_name.jq" 2>/dev/null
+  rm -f "$file_name.opa" 2>/dev/null
 
 }
 

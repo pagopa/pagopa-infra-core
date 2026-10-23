@@ -545,7 +545,5 @@
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_test"></a> [test](#output\_test) | n/a |
+No outputs.
 <!-- END_TF_DOCS -->
