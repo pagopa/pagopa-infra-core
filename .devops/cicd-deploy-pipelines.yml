@@ -7,7 +7,7 @@ schedules:
   branches:
     include: [ "test-schedule-trigger" ] # which branches the schedule applies to
   always: true
-- cron: "0 8 19-25 * 6" # 8 am every third monday of the month
+- cron: "0 8 15-21 * 6" # 8 am every third monday of the month
   branches:
     include: [ "test-schedule-trigger" ] # which branches the schedule applies to
   always: true
