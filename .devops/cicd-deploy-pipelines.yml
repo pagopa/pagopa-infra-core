@@ -16,7 +16,7 @@ parameters:
   - name: 'DRY_RUN'
     displayName: 'Only run plan'
     type: boolean
-    default: False
+    default: True
   - name: ENV
     displayName: 'Environment'
     type: string
