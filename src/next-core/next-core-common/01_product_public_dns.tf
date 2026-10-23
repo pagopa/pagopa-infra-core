@@ -169,10 +169,6 @@ locals {
   }
 }
 
-output "test" {
-  value = local.txt_records_flattened
-}
-
 resource "azurerm_dns_zone" "public_product_dns_zone" {
   for_each            = local.products_dns_zones
   name                = join(".", var.env_short == "p" ? [each.key, var.external_domain] : [var.env, each.key, var.external_domain])

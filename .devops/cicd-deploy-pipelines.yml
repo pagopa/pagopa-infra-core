@@ -1,0 +1,121 @@
+# only manual
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 8 1-7 * 1" # 8 am every first monday of the month
+  branches:
+    include: [ "main" ] # which branches the schedule applies to
+  always: true
+- cron: "0 8 15-21 * 1" # 8 am every third monday of the month
+  branches:
+    include: [ "main" ] # which branches the schedule applies to
+  always: true
+
+parameters:
+  - name: 'DRY_RUN'
+    displayName: 'Only run plan'
+    type: boolean
+    default: True
+  - name: ENV
+    displayName: 'Environment'
+    type: string
+    default: 'uat'
+    values:
+      - dev
+      - uat
+      - prod
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v6.21.0
+      endpoint: "io-azure-devops-github-ro"
+
+
+variables:
+  - name: TIME_OUT
+    value: 180
+  - name: WORKINGDIR
+    value: "."
+  - name: service_connection
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_DEV)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_UAT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_AZURE_SERVICE_CONNECTION_APPLY_NAME_PROD)"
+  - name: aks_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_AKS_DEV_NAME)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_AKS_UAT_NAME)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_AKS_PROD_NAME)"
+  - name: aks_apiserver_url
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_APISERVER_URL)"
+  - name: aks_azure_devops_sa_ca_crt
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_AZURE_DEVOPS_SA_CACRT)"
+  - name: aks_azure_devops_sa_token
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)"
+  - name:  kv_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "pagopa-d-kv"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "pagopa-u-kv"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "pagopa-p-kv"
+  - name:  pool_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_POOL_NAME_DEV)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_POOL_NAME_UAT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_POOL_NAME_PROD)"
+
+name: "CICD dryRun=${{parameters.DRY_RUN}} on ${{ parameters.ENV }} -  $(Date:yyyyMMdd).$(Rev:r)"
+stages:
+  - stage: Execute
+    displayName: Execute terraform on all folders in target ${{ parameters.ENV }}
+    dependsOn: []
+    pool:
+      name: '${{ variables.pool_name }}'
+    jobs:
+      - job: apply_all_folders
+        displayName: Apply all folders in target ${{ parameters.ENV }}
+        strategy:
+          parallel: 1
+        timeoutInMinutes: ${{ variables.TIME_OUT }}
+        condition: succeeded()
+        steps:
+          - template: ./templates/tf-apply-all.yml
+            parameters:
+              ENV: '${{ parameters.ENV }}'
+              SERVICE_CONNECTION: '${{ variables.service_connection }}'
+              AKS_NAME: '${{ variables.aks_name }}'
+              AKS_API_SERVER_URL: '${{ variables.aks_apiserver_url }}'
+              AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ variables.aks_azure_devops_sa_ca_crt }}'
+              AKS_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_azure_devops_sa_token }}'
+              KV_NAME: '${{ variables.kv_name }}'
+              DRY_RUN: '${{ parameters.DRY_RUN }}'

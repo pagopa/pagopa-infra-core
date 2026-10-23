@@ -87,7 +87,7 @@ stages:
               SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
       - job: create_user_nodo_storico
         pool: $(poolImage)
-        displayName: "Create read user in nodo db"
+        displayName: "Create read user in nodo storico db"
         variables:
           READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
           READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
