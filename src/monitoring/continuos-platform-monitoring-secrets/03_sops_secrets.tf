@@ -1,8 +1,3 @@
-moved {
-  from = data.external.external2
-  to   = data.external.terrasops
-}
-
 data "external" "terrasops" {
   program = [
     "bash", "terrasops.sh"

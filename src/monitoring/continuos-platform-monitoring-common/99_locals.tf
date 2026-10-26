@@ -8,7 +8,7 @@ locals {
   product              = "${local.prefix}-${var.env_short}"
   project              = "${local.product}-${var.location_short}-${local.domain}"
   location             = "italynorth"
-  icinga_image_version = "v2"
+  icinga_image_version = "v3"
 
   # ---------------------------------------------------------------------------
   # Icinga VM

@@ -1,6 +1,6 @@
 locals {
   prefix         = "pagopa"
-  domain         = "monitor"
+  domain         = "cpm"
   location       = "italynorth"
   location_short = "itn"
   input_file     = "./secret/${var.env}/configs.json"
