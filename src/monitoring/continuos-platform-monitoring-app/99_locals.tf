@@ -9,6 +9,9 @@ locals {
   core_key_vault_name                = "${local.project}-kv"
   core_key_vault_resource_group_name = "${local.project}-sec-rg"
 
+  kv_domain_name = "${local.prefix}-${var.env_short}-${var.location_short}-monitor-kv"
+  kv_domain_rg   = "${local.prefix}-${var.env_short}-${var.location_short}-monitor-sec-rg"
+
   application_owners = [
     "matteo.alongi@pagopa.it",
     "marco.mari@pagopa.it",

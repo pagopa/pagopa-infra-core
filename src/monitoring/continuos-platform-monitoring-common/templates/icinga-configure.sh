@@ -18,6 +18,8 @@ done
 
 # local only API user, used by Icinga DB Web to send commands to Icinga 2
 ICINGA_API_PASSWORD="$(openssl rand -hex 32)"
+# local only database user of the x509 module
+X509_DB_PASSWORD="$(openssl rand -hex 32)"
 
 # write stdin to <path> with <owner:group> and <mode>
 write_file() {
@@ -35,6 +37,7 @@ CREATE DATABASE IF NOT EXISTS icingaweb2;
 CREATE USER IF NOT EXISTS 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB_PASSWORD}';
 ALTER USER 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB_PASSWORD}';
 GRANT ALL ON icingaweb2.* TO 'icingaweb2'@'localhost';
+ALTER USER 'x509'@'localhost' IDENTIFIED BY '${X509_DB_PASSWORD}';
 SQL
 
 # import the Icinga Web 2 schema only once
@@ -101,7 +104,12 @@ systemctl restart icingadb
 # https://icinga.com/docs/icinga-db-web/latest/doc/03-Configuration/
 # -----------------------------------------------------------------------------
 icingacli setup config directory --group icingaweb2
-install -d -o root -g icingaweb2 -m 2770 /etc/icingaweb2/modules/icingadb
+install -d -o root -g icingaweb2 -m 2770 \
+  /etc/icingaweb2/modules/icingadb \
+  /etc/icingaweb2/modules/x509 \
+  /etc/icingaweb2/modules/businessprocess \
+  /etc/icingaweb2/modules/businessprocess/processes \
+  /etc/icingaweb2/modules/sso
 
 write_file root:icingaweb2 0660 /etc/icingaweb2/resources.ini <<EOF
 [icingaweb_db]
@@ -120,6 +128,15 @@ host = "localhost"
 dbname = "icingadb"
 username = "icingadb"
 password = "${ICINGADB_DB_PASSWORD}"
+charset = "utf8mb4"
+
+[x509]
+type = "db"
+db = "mysql"
+host = "localhost"
+dbname = "x509"
+username = "x509"
+password = "${X509_DB_PASSWORD}"
 charset = "utf8mb4"
 EOF
 
@@ -173,4 +190,12 @@ username = "icingaweb2"
 password = "${ICINGA_API_PASSWORD}"
 EOF
 
-icingacli module enable icingadb
+write_file root:icingaweb2 0660 /etc/icingaweb2/modules/x509/config.ini <<EOF
+[backend]
+resource = "x509"
+EOF
+
+# sso providers (/etc/icingaweb2/modules/sso/providers.ini) are configured later
+for module in icingadb businessprocess x509 sso; do
+  icingacli module enable "$module"
+done
