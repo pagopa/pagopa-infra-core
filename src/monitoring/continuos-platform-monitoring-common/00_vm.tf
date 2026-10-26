@@ -13,6 +13,14 @@ resource "azurerm_network_interface" "icinga" {
   tags = module.tag_config.tags
 }
 
+resource "azurerm_key_vault_secret" "icinga_vm_private_ip" {
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+  name         = "icinga-vm-private-ip"
+  value        = module.vm_icinga_subnet.first_ip_address
+
+  tags = module.tag_config.tags
+}
+
 resource "azurerm_linux_virtual_machine" "icinga" {
   name                            = "${local.project}-icinga-vm"
   location                        = azurerm_resource_group.custom_image_rg.location
