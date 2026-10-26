@@ -49,3 +49,5 @@ __import_apim
 /pagopa-infra-core.iml
 **/secret.json
 *-BCK
+**/dist
+**/node_modules
