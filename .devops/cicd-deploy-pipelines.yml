@@ -5,18 +5,18 @@ pr: none
 schedules:
 - cron: "0 6 1-7 * 1" # 6 am UTC every first monday of the month
   branches:
-    include: [ "test-schedule-trigger" ] # which branches the schedule applies to
+    include: [ "main" ]
   always: true
 - cron: "0 6 15-21 * 1" # 6 am UTC every third monday of the month
   branches:
-    include: [ "test-schedule-trigger" ] # which branches the schedule applies to
+    include: [ "main" ]
   always: true
 
 parameters:
   - name: 'DRY_RUN'
     displayName: 'Only run plan'
     type: boolean
-    default: True
+    default: False
   - name: ENV
     displayName: 'Environment'
     type: string
