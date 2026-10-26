@@ -6,11 +6,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
-    
-    icinga2 = {
-      source  = "Icinga/icinga2"
-      version = "= 0.7.1"
-    }
 
     azapi = {
       source  = "azure/azapi"
@@ -22,14 +17,6 @@ terraform {
     }
   }
   backend "azurerm" {}
-}
-
-
-provider "icinga2" {
-  api_url                  = "https://10.3.144.5:5665/v1"
-  api_user                 = "icingadb-web-teo"
-  api_password             = ""
-  insecure_skip_tls_verify = true
 }
 
 provider "azurerm" {
