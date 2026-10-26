@@ -3,20 +3,20 @@ trigger: none
 pr: none
 
 schedules:
-- cron: "0 8 1-7 * 1" # 8 am every first monday of the month
+- cron: "0 6 1-7 * 1" # 6 am UTC every first monday of the month
   branches:
-    include: [ "main" ] # which branches the schedule applies to
+    include: [ "main" ]
   always: true
-- cron: "0 8 15-21 * 1" # 8 am every third monday of the month
+- cron: "0 6 15-21 * 1" # 6 am UTC every third monday of the month
   branches:
-    include: [ "main" ] # which branches the schedule applies to
+    include: [ "main" ]
   always: true
 
 parameters:
   - name: 'DRY_RUN'
     displayName: 'Only run plan'
     type: boolean
-    default: True
+    default: False
   - name: ENV
     displayName: 'Environment'
     type: string
