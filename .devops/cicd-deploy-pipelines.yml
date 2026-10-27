@@ -7,7 +7,7 @@ schedules:
   branches:
     include: [ "test-yaml-fix" ]
   always: true
-- cron: "0 6 15 * 1" # 6 am UTC every third monday of the month
+- cron: "0 6 15-21 * 1" # 6 am UTC every third monday of the month
   branches:
     include: [ "test-yaml-fix" ]
   always: true
