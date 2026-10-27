@@ -12,6 +12,7 @@ schedules:
     include: [ "main" ]
   always: true
 
+
 parameters:
   - name: 'DRY_RUN'
     displayName: 'Only run plan'
