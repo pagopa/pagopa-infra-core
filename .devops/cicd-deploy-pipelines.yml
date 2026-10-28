@@ -4,10 +4,12 @@ pr: none
 
 schedules:
 - cron: "0 6 1-7 * 1" # 6 am UTC every first monday of the month
+  displayName: First monday
   branches:
     include: [ "test-yaml-fix" ]
   always: true
 - cron: "0 6 15-21 * 1" # 6 am UTC every third monday of the month
+  displayName: Third monday
   branches:
     include: [ "test-yaml-fix" ]
   always: true
