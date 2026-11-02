@@ -1,7 +1,7 @@
 resource "azurerm_network_interface" "icinga" {
   name                = "${local.project}-icinga-nic"
-  location            = azurerm_resource_group.custom_image_rg.location
-  resource_group_name = azurerm_resource_group.custom_image_rg.name
+  location            = azurerm_resource_group.icinga_rg.location
+  resource_group_name = azurerm_resource_group.icinga_rg.name
 
   ip_configuration {
     name                          = "internal"
@@ -23,8 +23,8 @@ resource "azurerm_key_vault_secret" "icinga_vm_private_ip" {
 
 resource "azurerm_linux_virtual_machine" "icinga" {
   name                            = "${local.project}-icinga-vm"
-  location                        = azurerm_resource_group.custom_image_rg.location
-  resource_group_name             = azurerm_resource_group.custom_image_rg.name
+  location                        = azurerm_resource_group.icinga_rg.location
+  resource_group_name             = azurerm_resource_group.icinga_rg.name
   size                            = local.icinga_vm_size
   admin_username                  = "icingaadmin"
   admin_password                  = data.azurerm_key_vault_secret.icinga_vm_admin_password.value
@@ -44,7 +44,7 @@ resource "azurerm_linux_virtual_machine" "icinga" {
 }
 
 resource "azurerm_virtual_machine_run_command" "icinga_configure" {
-  name               = "icinga-configure"
+  name               = "icinga-configure-${local.icinga_configure_hash}"
   location           = azurerm_linux_virtual_machine.icinga.location
   virtual_machine_id = azurerm_linux_virtual_machine.icinga.id
 
@@ -71,6 +71,11 @@ resource "azurerm_virtual_machine_run_command" "icinga_configure" {
   protected_parameter {
     name  = "ICINGAWEB_ADMIN_PASSWORD"
     value = data.azurerm_key_vault_secret.icingaweb_admin_password.value
+  }
+
+  protected_parameter {
+    name  = "ICINGA_API_TERRAFORM_PASSWORD"
+    value = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
   }
 
   tags = module.tag_config.tags
