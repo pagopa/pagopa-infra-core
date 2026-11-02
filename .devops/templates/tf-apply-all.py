@@ -300,7 +300,9 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
   print(
     f"{bcolors.INFO}Apply command in folder {folder_path}: {arguments}{bcolors.ENDC}")
 
-  output = run_command_streaming(arguments, cwd=folder_path)
+  # terraform.sh calls 'terraform apply' without -auto-approve outside the audit branch (non-prod envs)
+  cmd_env = {**os.environ, 'TF_CLI_ARGS_apply': '-auto-approve'}
+  output = run_command_streaming(arguments, cwd=folder_path, env=cmd_env)
   return extract_tf_summary(output)
 
 
