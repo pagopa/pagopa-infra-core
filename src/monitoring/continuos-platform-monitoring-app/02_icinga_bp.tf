@@ -1,15 +1,12 @@
-data "azurerm_virtual_machine" "icinga" {
-  name                = "payment-superset"
-  resource_group_name = "test-matteo"
+data "azurerm_virtual_machine" "icinga_vm" {
+  name                = "${local.project}-icinga-vm"
+  resource_group_name = "${local.project}-icinga-rg"
 }
 
-# Scrive la config del Business Process direttamente sul filesystem della VM
-# Il contenuto è incluso nello script, quindi ogni modifica a bp_content
-# aggiorna la run command e la riesegue.
-resource "azurerm_virtual_machine_run_command" "icinga_bp" {
-  name               = "icinga-bp-${local.bp_name}"
-  location           = data.azurerm_virtual_machine.icinga.location
-  virtual_machine_id = data.azurerm_virtual_machine.icinga.id
+resource "azurerm_virtual_machine_run_command" "icinga_vm_bp" {
+  name               = "${local.project}-icinga-vm-bp-${local.bp_name}"
+  location           = data.azurerm_virtual_machine.icinga_vm.location
+  virtual_machine_id = data.azurerm_virtual_machine.icinga_vm.id
 
   source {
     script = <<-EOT
@@ -21,6 +18,14 @@ resource "azurerm_virtual_machine_run_command" "icinga_bp" {
       chmod 0660 "$TMP"
       mv -f "$TMP" ${local.bp_file}
       echo "written ${local.bp_file} (sha256 ${sha256(local.bp_content)})"
+
+      # tema Icinga Web per la vista a tile, impostato come default in icinga-configure.sh
+      mkdir -p ${local.bp_theme_dir}
+      TMP=$(mktemp ${local.bp_theme_dir}/.bp-tiles.XXXXXX)
+      echo '${base64encode(local.bp_theme)}' | base64 -d > "$TMP"
+      chmod 0644 "$TMP"
+      mv -f "$TMP" ${local.bp_theme_file}
+      echo "written ${local.bp_theme_file} (sha256 ${sha256(local.bp_theme)})"
     EOT
   }
 

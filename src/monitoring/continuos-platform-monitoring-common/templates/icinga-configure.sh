@@ -10,9 +10,10 @@ set -euo pipefail
 : "${ICINGAWEB_DB_PASSWORD:?ICINGAWEB_DB_PASSWORD must be set}"
 : "${ICINGAWEB_ADMIN_USER:?ICINGAWEB_ADMIN_USER must be set}"
 : "${ICINGAWEB_ADMIN_PASSWORD:?ICINGAWEB_ADMIN_PASSWORD must be set}"
+: "${ICINGA_API_TERRAFORM_PASSWORD:?ICINGA_API_TERRAFORM_PASSWORD must be set}"
 
 # alphanumeric only: values go straight into SQL and config files
-for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD; do
+for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
   [[ "${!var}" =~ ^[A-Za-z0-9]+$ ]] || { echo "$var must be alphanumeric" >&2; exit 1; }
 done
 
@@ -20,6 +21,10 @@ done
 ICINGA_API_PASSWORD="$(openssl rand -hex 32)"
 # local only database user of the x509 module
 X509_DB_PASSWORD="$(openssl rand -hex 32)"
+# local only database user of Icinga Director
+DIRECTOR_DB_PASSWORD="$(openssl rand -hex 32)"
+# local only API user, used by Icinga Director to deploy its configuration
+DIRECTOR_API_PASSWORD="$(openssl rand -hex 32)"
 
 # write stdin to <path> with <owner:group> and <mode>
 write_file() {
@@ -38,6 +43,10 @@ CREATE USER IF NOT EXISTS 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB
 ALTER USER 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB_PASSWORD}';
 GRANT ALL ON icingaweb2.* TO 'icingaweb2'@'localhost';
 ALTER USER 'x509'@'localhost' IDENTIFIED BY '${X509_DB_PASSWORD}';
+CREATE DATABASE IF NOT EXISTS director CHARACTER SET 'utf8mb4' COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'director'@'localhost' IDENTIFIED BY '${DIRECTOR_DB_PASSWORD}';
+ALTER USER 'director'@'localhost' IDENTIFIED BY '${DIRECTOR_DB_PASSWORD}';
+GRANT ALL ON director.* TO 'director'@'localhost';
 SQL
 
 # import the Icinga Web 2 schema only once
@@ -62,8 +71,30 @@ SQL
 # Icinga 2
 # https://icinga.com/docs/icinga-2/latest/doc/02-installation/02-Ubuntu/
 # -----------------------------------------------------------------------------
-# certificates use the VM hostname, so the API is set up here and not in the image
-icinga2 api setup
+# certificates use the VM hostname, so the API is set up here and not in the image.
+# The short hostname is used as CN: the Azure FQDN exceeds the 64 chars X.509 limit
+icinga2 api setup --cn "$(hostname -s)"
+
+# api setup names the local zone after the CN: hosts created by Terraform
+# (continuos-platform-monitoring-app) are placed in the "master" zone
+sed -i 's/^const ZoneName = .*/const ZoneName = "master"/' /etc/icinga2/constants.conf
+
+write_file root:nagios 0640 /etc/icinga2/zones.conf <<EOF
+object Endpoint NodeName {
+}
+
+object Zone ZoneName {
+  endpoints = [ NodeName ]
+}
+
+object Zone "global-templates" {
+  global = true
+}
+
+object Zone "director-global" {
+  global = true
+}
+EOF
 
 write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-icingaweb2.conf <<EOF
 object ApiUser "icingaweb2" {
@@ -72,10 +103,68 @@ object ApiUser "icingaweb2" {
 }
 EOF
 
+# API user used by Terraform (continuos-platform-monitoring-app) to manage hosts and services
+write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-terraform.conf <<EOF
+object ApiUser "terraform" {
+  password    = "${ICINGA_API_TERRAFORM_PASSWORD}"
+  permissions = [ "objects/query/*", "objects/create/*", "objects/modify/*", "objects/delete/*", "status/query" ]
+}
+EOF
+
+# https://icinga.com/docs/icinga-director/latest/doc/02-Installation/
+write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-director.conf <<EOF
+object ApiUser "director" {
+  password    = "${DIRECTOR_API_PASSWORD}"
+  permissions = [ "*" ]
+}
+EOF
+
+# the packaged services.conf applies ping4/ping6/ssh to every host with an address,
+# so also to the Azure resources created by Terraform, which do not answer ICMP.
+# Only the checks of the Icinga node itself are kept
+write_file root:nagios 0640 /etc/icinga2/conf.d/services.conf <<'EOF'
+apply Service "icinga" {
+  import "generic-service"
+  check_command = "icinga"
+  assign where host.name == NodeName
+}
+
+apply Service "disk" {
+  import "generic-service"
+  check_command = "disk"
+  assign where host.name == NodeName
+}
+
+apply Service "load" {
+  import "generic-service"
+  check_command = "load"
+  assign where host.name == NodeName
+}
+
+apply Service "procs" {
+  import "generic-service"
+  check_command = "procs"
+  assign where host.name == NodeName
+}
+
+apply Service "swap" {
+  import "generic-service"
+  check_command = "swap"
+  assign where host.name == NodeName
+}
+
+apply Service "users" {
+  import "generic-service"
+  check_command = "users"
+  assign where host.name == NodeName
+}
+EOF
+
 icinga2 feature enable icingadb
 
 systemctl enable --now icingadb-redis
 systemctl enable icinga2
+icinga2 daemon -C
 systemctl restart icinga2
 
 # -----------------------------------------------------------------------------
@@ -103,10 +192,13 @@ systemctl restart icingadb
 # https://icinga.com/docs/icinga-web/latest/doc/05-Authentication/
 # https://icinga.com/docs/icinga-db-web/latest/doc/03-Configuration/
 # -----------------------------------------------------------------------------
-icingacli setup config directory --group icingaweb2
+# same result as "icingacli setup config directory", the setup module is not packaged
 install -d -o root -g icingaweb2 -m 2770 \
+  /etc/icingaweb2 \
+  /etc/icingaweb2/modules \
   /etc/icingaweb2/modules/icingadb \
   /etc/icingaweb2/modules/x509 \
+  /etc/icingaweb2/modules/director \
   /etc/icingaweb2/modules/businessprocess \
   /etc/icingaweb2/modules/businessprocess/processes \
   /etc/icingaweb2/modules/sso
@@ -138,11 +230,24 @@ dbname = "x509"
 username = "x509"
 password = "${X509_DB_PASSWORD}"
 charset = "utf8mb4"
+
+[director_db]
+type = "db"
+db = "mysql"
+host = "localhost"
+dbname = "director"
+username = "director"
+password = "${DIRECTOR_DB_PASSWORD}"
+charset = "utf8mb4"
 EOF
 
 write_file root:icingaweb2 0660 /etc/icingaweb2/config.ini <<EOF
 [global]
 config_resource = "icingaweb_db"
+
+; theme installed by continuos-platform-monitoring-app (02_icinga_bp.tf)
+[themes]
+default = "bp-tiles"
 
 [logging]
 log = "syslog"
@@ -195,7 +300,38 @@ write_file root:icingaweb2 0660 /etc/icingaweb2/modules/x509/config.ini <<EOF
 resource = "x509"
 EOF
 
+write_file root:icingaweb2 0660 /etc/icingaweb2/modules/director/config.ini <<EOF
+[db]
+resource = "director_db"
+EOF
+
+write_file root:icingaweb2 0660 /etc/icingaweb2/modules/director/kickstart.ini <<EOF
+[config]
+endpoint = "$(hostname -s)"
+host = "127.0.0.1"
+port = "5665"
+username = "director"
+password = "${DIRECTOR_API_PASSWORD}"
+EOF
+
 # sso providers (/etc/icingaweb2/modules/sso/providers.ini) are configured later
-for module in icingadb businessprocess x509 sso; do
+for module in icingadb businessprocess x509 director sso; do
   icingacli module enable "$module"
 done
+
+# trusted root CAs of the system store, needed to validate the scanned chains.
+# Already imported certificates are skipped, so it is safe to re-run
+# https://icinga.com/docs/icinga-certificate-monitoring/latest/doc/03-Configuration/#importing-ca-certificates
+icingacli x509 import --file /etc/ssl/certs/ca-certificates.crt
+
+# -----------------------------------------------------------------------------
+# Icinga Director
+# https://icinga.com/docs/icinga-director/latest/doc/03-Automation/
+# -----------------------------------------------------------------------------
+# creates or upgrades the schema, then imports endpoint, zones and ITL commands
+# from the Icinga 2 API. Kickstart is re-run to store the new API password
+icingacli director migration run --verbose
+icingacli director kickstart run
+
+systemctl enable icinga-director
+systemctl restart icinga-director

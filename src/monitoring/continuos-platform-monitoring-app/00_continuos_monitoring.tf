@@ -61,8 +61,7 @@ resource "terraform_data" "azure_services_config" {
   }
 }
 
-resource "icinga2_host" "azure_hosts" {
-  provider = icinga2.old
+resource "icinga2_host" "hosts" {
 
   for_each      = local.hosts_flat
   hostname      = each.value.hostname
@@ -76,11 +75,9 @@ resource "icinga2_host" "azure_hosts" {
   }
 }
 
-resource "icinga2_service" "azure_services" {
-  provider = icinga2.old
-
+resource "icinga2_service" "services" {
   for_each      = local.services_flat
-  hostname      = icinga2_host.azure_hosts[each.value.host_key].hostname
+  hostname      = icinga2_host.hosts[each.value.host_key].hostname
   name          = each.value.name
   check_command = each.value.check_command
   vars          = each.value.vars

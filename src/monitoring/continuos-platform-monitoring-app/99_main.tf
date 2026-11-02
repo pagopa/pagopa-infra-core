@@ -9,13 +9,14 @@ terraform {
 
     icinga2 = {
       source  = "Icinga/icinga2"
-      version = "= 0.7.1"
+      version = "~> 0.7"
     }
 
     azapi = {
       source  = "azure/azapi"
-      version = ">= 2.13.0"
+      version = "~> 2.13"
     }
+
     azuread = {
       source  = "hashicorp/azuread"
       version = "~> 3.4"
@@ -25,17 +26,9 @@ terraform {
 }
 
 provider "icinga2" {
-  alias                    = "old"
-  api_url                  = "https://10.3.144.5:5665/v1"
-  api_user                 = "icingadb-web-teo"
-  api_password             = "CHANGEME"
-  insecure_skip_tls_verify = true
-}
-
-provider "icinga2" {
-  api_url                  = data.azurerm_key_vault_secret.icinga_vm_private_ip.value
-  api_user                 = "admin"
-  api_password             = data.azurerm_key_vault_secret.icinga_web_admin_password.value
+  api_url                  = "https://${data.azurerm_key_vault_secret.icinga_vm_private_ip.value}:5665/v1"
+  api_user                 = "terraform"
+  api_password             = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
   insecure_skip_tls_verify = true
 }
 

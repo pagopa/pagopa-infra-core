@@ -3,14 +3,14 @@ locals {
   # General
   # ---------------------------------------------------------------------------
   prefix                             = "pagopa"
-  domain                             = "core"
+  domain                             = "cpm"
   product                            = "${local.prefix}-${var.env_short}"
   project                            = "${local.product}-${var.location_short}-${local.domain}"
-  core_key_vault_name                = "${local.project}-kv"
-  core_key_vault_resource_group_name = "${local.project}-sec-rg"
+  core_key_vault_name                = "${local.product}-${var.location_short}-core-kv"
+  core_key_vault_resource_group_name = "${local.product}-${var.location_short}-core-sec-rg"
 
-  kv_domain_name = "${local.prefix}-${var.env_short}-${var.location_short}-monitor-kv"
-  kv_domain_rg   = "${local.prefix}-${var.env_short}-${var.location_short}-monitor-sec-rg"
+  kv_domain_name = "${local.project}-kv"
+  kv_domain_rg   = "${local.project}-sec-rg"
 
   application_owners = [
     "matteo.alongi@pagopa.it",
@@ -226,6 +226,11 @@ locals {
   bp_dir      = "/etc/icingaweb2/modules/businessprocess/processes"
   bp_file     = "${local.bp_dir}/${local.bp_name}.conf"
   bp_sanitize = "/[^A-Za-z0-9_.-]/"
+
+  # tema della vista a tile
+  bp_theme      = file("${path.module}/templates/bp-tiles.less")
+  bp_theme_dir  = "/usr/share/icingaweb2/public/css/themes"
+  bp_theme_file = "${local.bp_theme_dir}/bp-tiles.less"
 
   # host => dominio + check ("<host>;Hoststatus" e "<host>;<servizio>")
   bp_hosts = {

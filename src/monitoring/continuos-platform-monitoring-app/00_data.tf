@@ -27,3 +27,8 @@ data "azurerm_key_vault_secret" "icinga_web_admin_password" {
   name         = "icinga-web-admin-password"
   key_vault_id = data.azurerm_key_vault.kv_domain.id
 }
+
+data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
+  name         = "icinga-api-terraform-password"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
