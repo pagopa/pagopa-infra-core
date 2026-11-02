@@ -99,15 +99,9 @@ steps:
         export ARM_TENANT_ID=${tenantId}
         if [ -n "${idToken}" ]; then
           export ARM_USE_OIDC=true
-          # idToken expires after ~5 minutes: let the provider request a fresh OIDC token at each login
-          if [ -n "${AZURESUBSCRIPTION_SERVICE_CONNECTION_ID}" ] && [ -n "${SYSTEM_OIDCREQUESTURI}" ]; then
-            export ARM_OIDC_REQUEST_TOKEN=${SYSTEM_ACCESSTOKEN}
-            export ARM_OIDC_REQUEST_URL=${SYSTEM_OIDCREQUESTURI}
-            export ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID=${AZURESUBSCRIPTION_SERVICE_CONNECTION_ID}
-          else
-            echo "[WARN] Service connection id not available: falling back to static OIDC token (valid ~5 minutes)"
-            export ARM_OIDC_TOKEN=${idToken}
-          fi
+          # idToken expires after ~5 minutes: tf-apply-all.py refreshes ARM_OIDC_TOKEN before each folder
+          export ARM_OIDC_TOKEN=${idToken}
+          export OIDC_SERVICE_CONNECTION_ID=${AZURESUBSCRIPTION_SERVICE_CONNECTION_ID}
         elif [ -n "${servicePrincipalKey}" ]; then
           export ARM_CLIENT_SECRET=${servicePrincipalKey}
         else
