@@ -86,6 +86,34 @@ variables:
       value: "$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)"
     ${{ if eq(parameters.ENV, 'prod') }}:
       value: "$(TF_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)"
+  - name: aks_itn_name
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_SECOND_AKS_DEV_NAME)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_SECOND_AKS_UAT_NAME)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_SECOND_AKS_PROD_NAME)"
+  - name: aks_itn_apiserver_url
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_SECOND_AKS_DEV_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_SECOND_AKS_UAT_APISERVER_URL)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_SECOND_AKS_PROD_APISERVER_URL)"
+  - name: aks_itn_azure_devops_sa_ca_crt
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_CACRT)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_SECOND_PROD_AKS_AZURE_DEVOPS_SA_CACRT)"
+  - name: aks_itn_azure_devops_sa_token
+    ${{ if eq(parameters.ENV, 'dev') }}:
+      value: "$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'uat') }}:
+      value: "$(TF_SECOND_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)"
+    ${{ if eq(parameters.ENV, 'prod') }}:
+      value: "$(TF_SECOND_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)"
   - name:  kv_name
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "pagopa-d-kv"
@@ -124,6 +152,10 @@ stages:
               AKS_API_SERVER_URL: '${{ variables.aks_apiserver_url }}'
               AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ variables.aks_azure_devops_sa_ca_crt }}'
               AKS_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_azure_devops_sa_token }}'
+              AKS_ITN_NAME: '${{ variables.aks_itn_name }}'
+              AKS_ITN_API_SERVER_URL: '${{ variables.aks_itn_apiserver_url }}'
+              AKS_ITN_AZURE_DEVOPS_SA_CA_CRT: '${{ variables.aks_itn_azure_devops_sa_ca_crt }}'
+              AKS_ITN_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_itn_azure_devops_sa_token }}'
               KV_NAME: '${{ variables.kv_name }}'
               DRY_RUN: '${{ parameters.DRY_RUN }}'
               SLACK_REPORT: '${{ parameters.SLACK_REPORT }}'
