@@ -74,6 +74,8 @@ steps:
       AKS_AZURE_DEVOPS_SA_TOKEN: ${{ parameters.AKS_ITN_AZURE_DEVOPS_SA_TOKEN }}
       OUTPUT_CTX_NAME: 'itn'
   - template: templates/terraform-setup/template.yaml@terraform
+    parameters:
+      USE_SOPS: true
   - task: AzureKeyVault@2
     displayName: "Get slack webhook secret"
     inputs:
