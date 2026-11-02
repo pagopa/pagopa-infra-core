@@ -32,6 +32,13 @@ parameters:
       values:
         - False
         - True
+    - name: SLACK_REPORT
+      displayName: 'Send slack report'
+      type: boolean
+      default: True
+      values:
+        - False
+        - True
 
 steps:
   - checkout: self
@@ -82,4 +89,4 @@ steps:
           echo "[ERROR] Missing Azure service connection credentials in AzureCLI environment."
           exit 1
         fi
-        python3 -u .devops/templates/tf-apply-all.py ${{ parameters.ENV }} $(Agent.BuildDirectory) $(cicd-slack-webhook) '$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)' ${{ parameters.DRY_RUN }}
+        python3 -u .devops/templates/tf-apply-all.py ${{ parameters.ENV }} $(Agent.BuildDirectory) $(cicd-slack-webhook) '$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)' ${{ parameters.DRY_RUN }} ${{ parameters.SLACK_REPORT }}
