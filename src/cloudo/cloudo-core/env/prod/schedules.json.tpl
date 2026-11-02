@@ -41,6 +41,16 @@
         "enabled": true,
         "oncall": false,
         "team": "infra"
+      },
+      {
+        "name": "[acr] Purge old images",
+        "cron": "0 0 5 3 * *",
+        "runbook": "azure/acr_purge.py",
+        "run_args": "--registry pagopapcommonacr,pagopapitncoreacr,pagopapitncoreacrbck,pagopapweucoreacrbck --keep 3 --ago-days 1 --workers 5 --execute",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false,
+        "team": "infra"
       }
     ]
   }
