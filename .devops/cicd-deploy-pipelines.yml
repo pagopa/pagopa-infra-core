@@ -95,11 +95,11 @@ variables:
       value: "$(TF_SECOND_AKS_PROD_NAME)"
   - name: aks_itn_apiserver_url
     ${{ if eq(parameters.ENV, 'dev') }}:
-      value: "$(TF_SECOND_AKS_DEV_APISERVER_URL)"
+      value: "$(TF_SECOND_DEV_AKS_APISERVER_URL)"
     ${{ if eq(parameters.ENV, 'uat') }}:
-      value: "$(TF_SECOND_AKS_UAT_APISERVER_URL)"
+      value: "$(TF_SECOND_UAT_AKS_APISERVER_URL)"
     ${{ if eq(parameters.ENV, 'prod') }}:
-      value: "$(TF_SECOND_AKS_PROD_APISERVER_URL)"
+      value: "$(TF_SECOND_PROD_AKS_APISERVER_URL)"
   - name: aks_itn_azure_devops_sa_ca_crt
     ${{ if eq(parameters.ENV, 'dev') }}:
       value: "$(TF_SECOND_DEV_AKS_AZURE_DEVOPS_SA_CACRT)"
