@@ -2,8 +2,8 @@
 # Icinga VM
 # -----------------------------------------------------------------------------
 data "azurerm_key_vault" "domain_kv" {
-  name                = "${local.product}-${var.location_short}-monitor-kv"
-  resource_group_name = "${local.product}-${var.location_short}-monitor-sec-rg"
+  name                = "${local.project}-kv"
+  resource_group_name = "${local.project}-sec-rg"
 }
 
 data "azurerm_key_vault_secret" "icinga_vm_admin_password" {
@@ -23,5 +23,10 @@ data "azurerm_key_vault_secret" "icingaweb_db_password" {
 
 data "azurerm_key_vault_secret" "icingaweb_admin_password" {
   name         = "icinga-web-admin-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
+  name         = "icinga-api-terraform-password"
   key_vault_id = data.azurerm_key_vault.domain_kv.id
 }
