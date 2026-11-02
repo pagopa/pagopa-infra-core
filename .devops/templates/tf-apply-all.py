@@ -65,6 +65,26 @@ def azure_login():
   run_command(cmd)
 
 
+def refresh_oidc_token():
+  """Get a fresh Azure DevOps OIDC token (valid ~5 minutes) and export it as ARM_OIDC_TOKEN."""
+  request_uri = os.environ.get('SYSTEM_OIDCREQUESTURI')
+  access_token = os.environ.get('SYSTEM_ACCESSTOKEN')
+  connection_id = os.environ.get('OIDC_SERVICE_CONNECTION_ID')
+  if not (os.environ.get('ARM_USE_OIDC') and request_uri and access_token and connection_id):
+    return
+  try:
+    response = requests.post(
+      request_uri,
+      params={'api-version': '7.1', 'serviceConnectionId': connection_id},
+      headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'},
+      timeout=30)
+    response.raise_for_status()
+    os.environ['ARM_OIDC_TOKEN'] = response.json()['oidcToken']
+    print(f"{bcolors.INFO}OIDC token refreshed{bcolors.ENDC}")
+  except Exception as e:
+    print(f"{bcolors.WARN}Warning: unable to refresh OIDC token, using the existing one: {e}{bcolors.ENDC}")
+
+
 def run_command(cmd, cwd=None, env=None):
   result = subprocess.run(
     cmd,
@@ -284,6 +304,7 @@ def apply_folder(repo_path, folder, config, env, k8s_config_folder, dry_run):
   if not os.path.isdir(folder_path):
     raise FileNotFoundError(f"{bcolors.WARN}Folder not found: {folder_path}{bcolors.ENDC}")
 
+  refresh_oidc_token()
 
 
   env_name = f"{config['prefix']}-{env}" if config['prefix'] else env
