@@ -310,6 +310,7 @@ def main():
   slack_webhook_url = sys.argv[3]
   build_url = sys.argv[4]
   dry_run = sys.argv[5].lower() == 'true'
+  slack_report = sys.argv[6].lower() == 'true'
 
   repo_path = "."
   azure_login()
@@ -338,8 +339,9 @@ def main():
       skipped_folders.append(folder)
       print(f"{bcolors.INFO}Skipping '{folder}' for env: '{env}'. Exclusion configured{bcolors.ENDC}")
 
-  send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders,
-                    slack_webhook_url, f"{build_url}&view=logs", dry_run, env)
+  if slack_report:
+    send_slack_report(total_folders, apply_summaries, skipped_folders, failed_folders,
+                      slack_webhook_url, f"{build_url}&view=logs", dry_run, env)
 
   # report apply summary per folder
   if apply_summaries:

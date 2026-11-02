@@ -20,6 +20,10 @@ parameters:
     displayName: 'Only run plan'
     type: boolean
     default: False
+  - name: 'SLACK_REPORT'
+    displayName: 'Send slack report'
+    type: boolean
+    default: True
   - name: ENV
     displayName: 'Environment'
     type: string
@@ -122,3 +126,4 @@ stages:
               AKS_AZURE_DEVOPS_SA_TOKEN: '${{ variables.aks_azure_devops_sa_token }}'
               KV_NAME: '${{ variables.kv_name }}'
               DRY_RUN: '${{ parameters.DRY_RUN }}'
+              SLACK_REPORT: '${{ parameters.SLACK_REPORT }}'
