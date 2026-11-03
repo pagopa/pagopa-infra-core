@@ -6,7 +6,7 @@ resource "azurerm_resource_group" "aks_rg" {
 }
 
 locals {
-  non_prod_aks_admin_groups = var.env_short == "d" ? [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id, data.azuread_group.adgroup_externals.object_id, data.azuread_group.adgroup_dev_externals[0].object_id] : [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id, data.azuread_group.adgroup_externals.object_id]
+  non_prod_aks_admin_groups = var.env_short == "p" ? [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id, data.azuread_group.adgroup_externals.object_id] : [data.azuread_group.adgroup_admin.object_id, data.azuread_group.adgroup_developers.object_id, data.azuread_group.adgroup_externals.object_id, data.azuread_group.adgroup_dev_externals[0].object_id]
   stdout_excluded_namespaces = setsubtract(
     toset(data.kubernetes_all_namespaces.all_ns.namespaces),
     toset(var.aks_stdout_logs_namespace_whitelist)
