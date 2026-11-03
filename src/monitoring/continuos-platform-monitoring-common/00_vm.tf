@@ -78,5 +78,20 @@ resource "azurerm_virtual_machine_run_command" "icinga_configure" {
     value = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
   }
 
+  # Icinga for Kubernetes: "<chiave>=<nome cluster>" separati da spazi, il
+  # kubeconfig (base64) di ogni cluster in AKS_KUBECONFIG_<CHIAVE>
+  parameter {
+    name  = "AKS_CLUSTERS"
+    value = join(" ", [for k, m in local.aks_icinga : "${k}=${m.aks_name}"])
+  }
+
+  dynamic "protected_parameter" {
+    for_each = local.aks_icinga
+    content {
+      name  = "AKS_KUBECONFIG_${upper(protected_parameter.key)}"
+      value = base64encode(protected_parameter.value.kubeconfig)
+    }
+  }
+
   tags = module.tag_config.tags
 }

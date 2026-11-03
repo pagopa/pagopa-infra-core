@@ -25,5 +25,25 @@ locals {
     data.azurerm_key_vault_secret.icingaweb_db_password.version,
     data.azurerm_key_vault_secret.icingaweb_admin_password.version,
     data.azurerm_key_vault_secret.icinga_api_terraform_password.version,
+    [for k, m in local.aks_icinga : m.kubeconfig_hash],
   ])), 0, 8)
+
+  # ---------------------------------------------------------------------------
+  # AKS
+  # ---------------------------------------------------------------------------
+  # cluster monitorati da Icinga, stessa naming di aks-platform
+  # (<product>-<location>-<env>-aks); kubeconfig in <prefix>/config-<nome>
+  aks_clusters = {
+    for i in ["itn", "weu"] : i => {
+      name                = "${local.product}-${i}-${var.env}-aks"
+      resource_group_name = "${local.product}-${i}-${var.env}-aks-rg"
+      kube_config_path    = "${var.k8s_kube_config_path_prefix}/config-${local.product}-${i}-${var.env}-aks"
+    }
+  }
+
+  # chiave di local.aks_clusters => modulo aks_icinga (03_aks_icinga.tf)
+  aks_icinga = {
+    itn = module.aks_icinga_itn
+    weu = module.aks_icinga_weu
+  }
 }

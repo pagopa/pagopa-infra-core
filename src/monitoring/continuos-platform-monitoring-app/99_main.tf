@@ -21,6 +21,11 @@ terraform {
       source  = "hashicorp/azuread"
       version = "~> 3.4"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.31"
+    }
   }
   backend "azurerm" {}
 }
@@ -41,6 +46,16 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
+}
+
+provider "kubernetes" {
+  alias       = "itn"
+  config_path = local.aks_clusters["itn"].kube_config_path
+}
+
+provider "kubernetes" {
+  alias       = "weu"
+  config_path = local.aks_clusters["weu"].kube_config_path
 }
 
 data "azurerm_subscription" "current" {}
