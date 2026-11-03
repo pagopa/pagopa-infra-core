@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-10-05T08:16:40Z",
+  "emissionsUnit": "kgCO2e",
+  "carbonScope": "Scope1, Scope2, Scope3",
+  "series": [
+    {
+      "slug": "pagopa-platform",
+      "name": "pagoPA platform",
+      "file": "pagopa-platform/latest.json"
+    }
+  ]
+}
