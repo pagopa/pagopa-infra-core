@@ -31,13 +31,13 @@ ordered_folders = {
   "db-security/db-security-configuration": { "prefix": "", "limit_env": ["dev", "prod"]},
   "audit-logs": { "prefix": "" },
   "client-certs": { "prefix": "" },
-  "continuos-platform-alerting": { "prefix": "" },
   "grafana-monitoring": { "prefix": "weu" },
   "release-notes-agent/rn-agent-secrets": { "prefix": "", "limit_env": ["dev"]},
   "release-notes-agent/rn-agent-common": { "prefix": "", "limit_env": ["dev"] },
   "cloudo/cloudo-secrets": { "prefix": ""},
   "cloudo/cloudo-core": { "prefix": ""},
-  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]}
+  "tf-audit": { "prefix": "weu", "limit_env": ["prod"]},
+  "continuos-platform-alerting": {"prefix": ""},
 }
 
 
