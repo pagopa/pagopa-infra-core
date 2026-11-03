@@ -25,6 +25,9 @@ apt update
 apt -y install icinga2 icingacli icingadb icingadb-redis icingadb-web icingaweb2 icinga-director monitoring-plugins
 # Icinga Web modules: SSO (OIDC), Business Process, Certificate Monitoring
 apt -y install icinga-businessprocess icinga-x509
+# Icinga for Kubernetes: daemon + Icinga Web module (same version as icinga-configure.sh)
+ICINGA_KUBERNETES_VERSION="0.4.0-1+ubuntu$(. /etc/os-release; echo "$VERSION_ID")"
+apt -y install "icinga-kubernetes=${ICINGA_KUBERNETES_VERSION}" "icinga-kubernetes-web=${ICINGA_KUBERNETES_VERSION}"
 
 # icinga-sso-web is not yet published for this release (only icinga-noble):
 # the package is architecture independent, so install the noble build
