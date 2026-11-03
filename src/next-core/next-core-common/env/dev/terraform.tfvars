@@ -352,7 +352,7 @@ eventhubs_03 = [
     name              = "nodo-dei-pagamenti-biz-evt"
     partitions        = 1 # in PROD shall be changed
     message_retention = 1 # in PROD shall be changed
-    consumers         = ["pagopa-biz-evt-rx", "pagopa-biz-evt-rx-test", "pagopa-biz-evt-rx-io", "pagopa-biz-evt-rx-pdnd", "pagopa-biz-evt-rx-views"]
+    consumers         = ["pagopa-biz-evt-rx", "pagopa-biz-evt-rx-test", "pagopa-biz-evt-rx-io", "pagopa-biz-evt-rx-pdnd", "pagopa-biz-evt-rx-views", "pagopa-biz-evt-rx-send"]
     keys = [
       {
         name   = "pagopa-biz-evt-tx"
@@ -392,6 +392,12 @@ eventhubs_03 = [
       },
       {
         name   = "pagopa-biz-evt-rx-views"
+        listen = true
+        send   = false
+        manage = false
+      },
+      {
+        name   = "pagopa-biz-evt-rx-send"
         listen = true
         send   = false
         manage = false
@@ -443,6 +449,12 @@ eventhubs_03 = [
         manage = false
       },
       {
+        name   = "pagopa-biz-evt-tx-send"
+        listen = false
+        send   = true
+        manage = false
+      },
+      {
         name   = "pagopa-biz-evt-rx"
         listen = true
         send   = false
@@ -459,7 +471,7 @@ eventhubs_03 = [
         listen = true
         send   = false
         manage = false
-      }
+      },
     ]
   },
   {
