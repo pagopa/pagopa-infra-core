@@ -32,3 +32,14 @@ data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
   name         = "icinga-api-terraform-password"
   key_vault_id = data.azurerm_key_vault.kv_domain.id
 }
+
+# token Bearer dei servizi (bearer_token_secret in 99_locals.tf)
+data "azurerm_key_vault_secrets" "kv_domain" {
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+data "azurerm_key_vault_secret" "bearer_tokens" {
+  for_each     = local.bearer_token_secrets
+  name         = each.key
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}

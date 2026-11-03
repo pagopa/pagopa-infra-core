@@ -8,12 +8,15 @@
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
 | <a name="requirement_azuread"></a> [azuread](#requirement\_azuread) | ~> 3.4 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.0 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.31 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | PAYMCLOUD-1192_packer_vm_custom_image |
+| <a name="module_aks_icinga_itn"></a> [aks\_icinga\_itn](#module\_aks\_icinga\_itn) | ./modules/aks_icinga | n/a |
+| <a name="module_aks_icinga_weu"></a> [aks\_icinga\_weu](#module\_aks\_icinga\_weu) | ./modules/aks_icinga | n/a |
 | <a name="module_azure_custom_image"></a> [azure\_custom\_image](#module\_azure\_custom\_image) | ./.terraform/modules/__v4__/azure_vm_custom_image | n/a |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 | <a name="module_vm_icinga_subnet"></a> [vm\_icinga\_subnet](#module\_vm\_icinga\_subnet) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
@@ -41,6 +44,7 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_env"></a> [env](#input\_env) | n/a | `string` | n/a | yes |
 | <a name="input_env_short"></a> [env\_short](#input\_env\_short) | n/a | `string` | n/a | yes |
+| <a name="input_k8s_kube_config_path_prefix"></a> [k8s\_kube\_config\_path\_prefix](#input\_k8s\_kube\_config\_path\_prefix) | n/a | `string` | `"~/.kube"` | no |
 | <a name="input_location_short"></a> [location\_short](#input\_location\_short) | One of wue, neu | `string` | n/a | yes |
 
 ## Outputs
