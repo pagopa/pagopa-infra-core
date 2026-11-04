@@ -25,8 +25,8 @@ law_retention_in_days = 30
 law_daily_quota_gb    = 10
 self_alert_enabled    = false
 check_position_body = {
-  fiscal_code   = "66666666666"
-  notice_number = "310115803416020234"
+  fiscal_code   = "15376371009"
+  notice_number = "351000000000000000"
 }
 verify_payment_internal_expected_outcome = "KO"
 nexi_node_ip_postgres                    = "10.79.20.63"
