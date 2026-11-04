@@ -30,3 +30,8 @@ data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
   name         = "icinga-api-terraform-password"
   key_vault_id = data.azurerm_key_vault.domain_kv.id
 }
+
+data "azurerm_private_dns_zone" "internal_platform" {
+  name                = local.internal_dns_zone_name
+  resource_group_name = local.internal_dns_zone_rg
+}

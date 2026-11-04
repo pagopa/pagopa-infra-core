@@ -18,6 +18,11 @@ locals {
   vnet_tools_name = "${local.product}-${local.location_short}-spoke-tools-vnet"
   vnet_tools_rg   = "${local.product}-${local.location_short}-network-hub-spoke-rg"
 
+  # private DNS zone internal.<env>.platform.pagopa.it (internal.platform.pagopa.it in prod)
+  internal_dns_zone_name = var.env_short != "p" ? "internal.${var.env}.platform.pagopa.it" : "internal.platform.pagopa.it"
+  internal_dns_zone_rg   = "${local.product}-vnet-rg"
+  icinga_dns_record_name = "icinga"
+
   # identifies the Icinga configuration run, see 00_vm.tf
   icinga_configure_hash = substr(sha256(jsonencode([
     filesha256("${path.module}/templates/icinga-configure.sh"),
