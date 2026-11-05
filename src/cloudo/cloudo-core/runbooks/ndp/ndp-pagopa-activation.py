@@ -8,6 +8,7 @@ from azure.mgmt.apimanagement.models import NamedValueCreateContract
 import json
 from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
+import argparse
 
 SUBSCRIPTIONS = {
   "d" : "bbe47ad4-08b3-4925-94c5-1278e5819b86",
@@ -81,18 +82,17 @@ def update_apim_named_values(client, values: dict):
     exit(1)
 
 def main():
-  cloudo_playload = os.environ.get('CLOUDO_PAYLOAD')
-  if not cloudo_playload:
-    print("No payload found in environment variable 'CLOUDO_PAYLOAD'")
-    exit(1)
+  parser = argparse.ArgumentParser(
+    description="NDP PagoPA Activation Runbook - Activates or deactivates the NDP PagoPA decoupler switches in Azure API Management"
+  )
+  parser.add_argument("--ndp-instance", "-n", default=None,
+                      help="NDP instance to activate/deactivate (e.g., 'toNexi' or 'toPagopa')")
 
-  cloudo_playload_j = json.loads(cloudo_playload)
-  runbook_payload = cloudo_playload_j.get("payload")
-  if isinstance(runbook_payload, str):
-    runbook_payload = json.loads(runbook_payload)
+  args = parser.parse_args()
 
-  print(f"received payload: {runbook_payload}")
-  switch = runbook_payload.get("switch")
+  switch = args.ndp_instance
+
+  print(f"received switch: {switch}")
 
   apim_client = build_apim_client()
 
