@@ -47,7 +47,7 @@ aks_system_node_pool = {
   node_tags       = { node_tag_1 : "1" },
 }
 aks_user_node_pool = {
-  enabled         = true,
+  enabled         = false,
   name            = "pauaksleousr",
   vm_size         = "Standard_D8ds_v5",
   os_disk_type    = "Ephemeral",

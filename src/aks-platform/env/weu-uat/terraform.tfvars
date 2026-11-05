@@ -37,7 +37,7 @@ aks_system_node_pool = {
 }
 
 aks_user_node_pool = {
-  enabled         = true
+  enabled         = false
   name            = "user01"
   vm_size         = "Standard_D8ds_v5"
   os_disk_type    = "Ephemeral"
