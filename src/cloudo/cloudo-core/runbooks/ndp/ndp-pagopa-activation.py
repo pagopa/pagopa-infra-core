@@ -29,12 +29,12 @@ SWITCH_TO_PAGOPA = "toPagopa"
 
 SWITCH = {
   SWITCH_TO_NEXI : {
-    "enable-nm3-decoupler-switch": False,
+    "enable-nm3-decoupler-switch": True,
     "enable-routing-decoupler-switch": False,
   },
   SWITCH_TO_PAGOPA : {
-    "enable-nm3-decoupler-switch": False,
-    "enable-routing-decoupler-switch": False,
+    "enable-nm3-decoupler-switch": True,
+    "enable-routing-decoupler-switch": True,
   }
 
 }
@@ -66,7 +66,7 @@ def update_apim_named_values(client, values: dict):
     for name, value in values.items():
       update = NamedValueCreateContract(
         display_name=name,
-        value=value,
+        value=str(value).lower(),
         secret=False
       )
       print(f"updating: {name}")
