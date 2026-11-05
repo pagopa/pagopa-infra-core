@@ -471,7 +471,7 @@ eventhubs_03 = [
         listen = true
         send   = false
         manage = false
-      },
+      }
     ]
   },
   {
