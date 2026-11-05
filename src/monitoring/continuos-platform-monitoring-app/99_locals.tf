@@ -313,51 +313,53 @@ locals {
   ]...)
 
   # ---------------------------------------------------------------------------
-  # Business Process Icinga: <bp_name> > dominio > host > check
+  # Business Process Icinga: <bp_name> > dominio > host / namespace > check
   # ---------------------------------------------------------------------------
-  bp_name     = "Terraform"
+  # titolo mostrato in Icinga Web; bp_name (nome del file e del run command)
+  # ammette solo alfanumerici, punti, trattini e underscore
+  bp_title    = "pagoPa Platform"
+  bp_sanitize = "/[^A-Za-z0-9_.-]/"
+  bp_name     = replace(local.bp_title, local.bp_sanitize, "_")
   bp_dir      = "/etc/icingaweb2/modules/businessprocess/processes"
   bp_file     = "${local.bp_dir}/${local.bp_name}.conf"
-  bp_sanitize = "/[^A-Za-z0-9_.-]/"
 
-  # tema della vista a tile
-  bp_theme      = file("${path.module}/templates/bp-tiles.less")
-  bp_theme_dir  = "/usr/share/icingaweb2/public/css/themes"
-  bp_theme_file = "${local.bp_theme_dir}/bp-tiles.less"
-
-  # host => dominio + check ("<host>;Hoststatus" e "<host>;<servizio>"), più un
-  # nodo k8s_<dominio> con i check dei namespace del dominio su tutti i cluster
-  bp_hosts = merge(
-    {
-      for k, v in local.resources_full :
-      replace(v.icinga_name, local.bp_sanitize, "_") => {
-        domain = replace(v.domain, local.bp_sanitize, "_")
-        checks = concat(
-          ["${v.icinga_name};Hoststatus"],
-          [for s in local.services_flat : "${v.icinga_name};${s.name}" if s.host_key == k]
-        )
-      } if v.property_value != null
-    },
-    {
-      for domain, checks in {
-        for s in local.aks_namespace_services : s.domain => "${local.resources_full[s.host_key].icinga_name};${s.name}"...
-      } :
-      "k8s_${replace(domain, local.bp_sanitize, "_")}" => {
-        domain = replace(domain, local.bp_sanitize, "_")
-        checks = checks
-      }
+  # namespace => nodo con il solo check del namespace e un titolo leggibile
+  # ("namespace ACA on WEU"): il provider icinga2 non gestisce display_name e
+  # Icinga Web mostrerebbe "<servizio> on <host>"
+  bp_namespaces = {
+    for k, s in local.aks_namespace_services :
+    replace("k8s_${k}", local.bp_sanitize, "_") => {
+      title  = "namespace ${upper(s.vars.k8s_namespace)} on ${upper(regex("^([a-z0-9]+)-namespace-", k)[0])}"
+      domain = replace(s.domain, local.bp_sanitize, "_")
+      check  = "${local.resources_full[s.host_key].icinga_name};${s.name}"
     }
-  )
+  }
 
-  # dominio => lista degli host
+  # host => dominio + check ("<host>;Hoststatus" e "<host>;<servizio>")
+  bp_hosts = {
+    for k, v in local.resources_full :
+    replace(v.icinga_name, local.bp_sanitize, "_") => {
+      domain = replace(v.domain, local.bp_sanitize, "_")
+      checks = concat(
+        ["${v.icinga_name};Hoststatus"],
+        [for s in local.services_flat : "${v.icinga_name};${s.name}" if s.host_key == k]
+      )
+    } if v.property_value != null
+  }
+
+  # dominio => host e namespace AKS del dominio (su tutti i cluster)
   bp_domains = {
-    for node, h in local.bp_hosts : h.domain => node...
+    for x in concat(
+      [for node, h in local.bp_hosts : { domain = h.domain, node = node }],
+      [for node, n in local.bp_namespaces : { domain = n.domain, node = node }]
+    ) : x.domain => x.node...
   }
 
   # contenuto del file .conf caricato su Icinga Web 2
   bp_content = templatefile("${path.module}/templates/business_process.conf.tftpl", {
-    title   = local.bp_name
-    hosts   = local.bp_hosts
-    domains = local.bp_domains
+    title      = local.bp_title
+    hosts      = local.bp_hosts
+    namespaces = local.bp_namespaces
+    domains    = local.bp_domains
   })
 }

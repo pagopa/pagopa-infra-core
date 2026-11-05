@@ -46,5 +46,5 @@ data "azurerm_subscription" "current" {}
 
 module "__v4__" {
   # https://github.com/pagopa/terraform-azurerm-v4/releases/tag/v10.45.0
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=PAYMCLOUD-1192_packer_vm_custom_image"
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4.git?ref=feat/entra-oidc-application"
 }

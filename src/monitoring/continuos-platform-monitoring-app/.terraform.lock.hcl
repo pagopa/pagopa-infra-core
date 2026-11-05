@@ -3,7 +3,7 @@
 
 provider "registry.terraform.io/azure/azapi" {
   version     = "2.13.0"
-  constraints = ">= 2.13.0"
+  constraints = "~> 2.13"
   hashes = [
     "h1:NaAmhEceEaukKVTu2mLPu31QegWj9o/rKy1euzOJ18A=",
     "zh:05df91a17cbb653627833746127d622502c3f502eee384aadb34e9dda1156ffd",
@@ -84,7 +84,7 @@ provider "registry.terraform.io/hashicorp/kubernetes" {
 
 provider "registry.terraform.io/icinga/icinga2" {
   version     = "0.7.1"
-  constraints = "0.7.1"
+  constraints = "~> 0.7"
   hashes = [
     "h1:17iQ6d93GKfJOY1XX0w0RZD1KJ/8hUOvGs0lpPesXzQ=",
     "zh:176314b169761376e4f308e028012b9c88cbf951bd853d099e0481bd0ce689c6",

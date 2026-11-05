@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Identità di Icinga nei cluster AKS (vedi modules/aks_icinga)
+# Identità di Icinga nei cluster AKS
 # -----------------------------------------------------------------------------
 module "aks_icinga_itn" {
   source = "./modules/aks_icinga"
