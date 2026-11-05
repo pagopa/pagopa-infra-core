@@ -540,18 +540,12 @@ eventhubs_03 = [
   },
   {
     name              = "nodo-dei-pagamenti-biz-evt-send"
-    partitions        = 1 # in PROD shall be changed
-    message_retention = 1 # in PROD shall be changed
+    partitions        = 32
+    message_retention = 7
     consumers         = ["pagopa-biz-evt-rx-send"]
     keys = [
       {
         name   = "pagopa-biz-evt-tx-send-filter"
-        listen = false
-        send   = true
-        manage = false
-      },
-      {
-        name   = "pagopa-biz-evt-test-tx-send"
         listen = false
         send   = true
         manage = false

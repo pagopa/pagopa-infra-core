@@ -519,12 +519,6 @@ eventhubs_03 = [
         manage = false
       },
       {
-        name   = "pagopa-biz-evt-test-tx-send"
-        listen = false
-        send   = true
-        manage = false
-      },
-      {
         name   = "pagopa-biz-evt-rx-send"
         listen = true
         send   = false
