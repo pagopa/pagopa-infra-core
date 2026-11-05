@@ -16,9 +16,25 @@ resource "azurerm_network_interface" "icinga" {
 resource "azurerm_key_vault_secret" "icinga_vm_private_ip" {
   key_vault_id = data.azurerm_key_vault.domain_kv.id
   name         = "icinga-vm-private-ip"
-  value        = module.vm_icinga_subnet.first_ip_address
+  value        = azurerm_network_interface.icinga.private_ip_address
 
   tags = module.tag_config.tags
+}
+
+resource "azurerm_user_assigned_identity" "icinga" {
+  name                = "${local.project}-icinga-vm-identity"
+  location            = azurerm_resource_group.icinga_rg.location
+  resource_group_name = azurerm_resource_group.icinga_rg.name
+
+  tags = module.tag_config.tags
+}
+
+resource "azurerm_key_vault_access_policy" "icinga_vm" {
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+  tenant_id    = data.azurerm_subscription.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.icinga.principal_id
+
+  secret_permissions = ["Get", "List"]
 }
 
 resource "azurerm_linux_virtual_machine" "icinga" {
@@ -36,6 +52,11 @@ resource "azurerm_linux_virtual_machine" "icinga" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "StandardSSD_LRS"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.icinga.id]
   }
 
   tags = module.tag_config.tags
@@ -56,6 +77,44 @@ resource "azurerm_virtual_machine_run_command" "icinga_configure" {
   parameter {
     name  = "ICINGAWEB_ADMIN_USER"
     value = "admin"
+  }
+
+  # Apache HTTPS virtual host, certificate synced from domain_kv by icinga-tls-sync
+  # with the managed identity of the VM
+  parameter {
+    name  = "ICINGA_FQDN"
+    value = local.icinga_fqdn
+  }
+
+  parameter {
+    name  = "TLS_SECRET_URL"
+    value = local.icinga_tls_secret_url
+  }
+
+  parameter {
+    name  = "TLS_MSI_CLIENT_ID"
+    value = azurerm_user_assigned_identity.icinga.client_id
+  }
+
+  # Icinga Web login with Entra ID (04_sso.tf), owners of the application as administrators
+  parameter {
+    name  = "SSO_TENANT_ID"
+    value = data.azurerm_subscription.current.tenant_id
+  }
+
+  parameter {
+    name  = "SSO_CLIENT_ID"
+    value = module.icinga_app.azure_client_id
+  }
+
+  parameter {
+    name  = "SSO_ADMIN_USERS"
+    value = join(",", local.application_owners)
+  }
+
+  protected_parameter {
+    name  = "SSO_CLIENT_SECRET"
+    value = module.icinga_app.azure_client_secret
   }
 
   protected_parameter {
@@ -94,4 +153,7 @@ resource "azurerm_virtual_machine_run_command" "icinga_configure" {
   }
 
   tags = module.tag_config.tags
+
+  # icinga-tls-sync reads the certificate from domain_kv
+  depends_on = [azurerm_key_vault_access_policy.icinga_vm]
 }

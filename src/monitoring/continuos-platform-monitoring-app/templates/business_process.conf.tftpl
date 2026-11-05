@@ -11,6 +11,12 @@
 ${host} = ${join(" & ", h.checks)}
 %{ endfor ~}
 
+# Namespace AKS: un nodo per check, con il titolo (display 0 = non di primo livello)
+%{ for node, n in namespaces ~}
+${node} = ${n.check}
+display 0;${node};${n.title}
+%{ endfor ~}
+
 # Domini: primo livello del Business Process
 %{ for domain, hosts in domains ~}
 ${domain} = ${join(" & ", hosts)}
