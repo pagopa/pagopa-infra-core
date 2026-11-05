@@ -3,7 +3,7 @@ set -euo pipefail
 
 # -----------------------------------------------------------------------------
 # Icinga - configure Icinga 2, Icinga DB and Icinga Web 2
-# Runs via azurerm_virtual_machine_run_command (00_vm.tf) on top of the Packer
+# Runs via azurerm_virtual_machine_run_command (03_vm.tf) on top of the Packer
 # image built by script-custom.sh. Idempotent: re-run to apply new passwords.
 # -----------------------------------------------------------------------------
 : "${ICINGADB_DB_PASSWORD:?ICINGADB_DB_PASSWORD must be set}"
@@ -11,11 +11,29 @@ set -euo pipefail
 : "${ICINGAWEB_ADMIN_USER:?ICINGAWEB_ADMIN_USER must be set}"
 : "${ICINGAWEB_ADMIN_PASSWORD:?ICINGAWEB_ADMIN_PASSWORD must be set}"
 : "${ICINGA_API_TERRAFORM_PASSWORD:?ICINGA_API_TERRAFORM_PASSWORD must be set}"
+: "${ICINGA_FQDN:?ICINGA_FQDN must be set}"
+: "${TLS_SECRET_URL:?TLS_SECRET_URL must be set}"
+: "${TLS_MSI_CLIENT_ID:?TLS_MSI_CLIENT_ID must be set}"
+: "${SSO_TENANT_ID:?SSO_TENANT_ID must be set}"
+: "${SSO_CLIENT_ID:?SSO_CLIENT_ID must be set}"
+: "${SSO_CLIENT_SECRET:?SSO_CLIENT_SECRET must be set}"
+: "${SSO_ADMIN_USERS:?SSO_ADMIN_USERS must be set}"
 
 # alphanumeric only: values go straight into SQL and config files
 for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
   [[ "${!var}" =~ ^[A-Za-z0-9]+$ ]] || { echo "$var must be alphanumeric" >&2; exit 1; }
 done
+
+# values go into the Apache and systemd configuration
+[[ "$ICINGA_FQDN" =~ ^[a-z0-9.-]+$ ]] || { echo "invalid ICINGA_FQDN: $ICINGA_FQDN" >&2; exit 1; }
+[[ "$TLS_SECRET_URL" =~ ^https://[a-z0-9-]+\.vault\.azure\.net/secrets/[A-Za-z0-9-]+$ ]] || { echo "invalid TLS_SECRET_URL: $TLS_SECRET_URL" >&2; exit 1; }
+for var in TLS_MSI_CLIENT_ID SSO_TENANT_ID SSO_CLIENT_ID; do
+  [[ "${!var}" =~ ^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$ ]] || { echo "invalid $var: ${!var}" >&2; exit 1; }
+done
+
+# values go into the Icinga Web ini files (double quoted)
+[[ "$SSO_CLIENT_SECRET" =~ ^[A-Za-z0-9~._-]+$ ]] || { echo "SSO_CLIENT_SECRET contains unexpected characters" >&2; exit 1; }
+[[ "$SSO_ADMIN_USERS" =~ ^[A-Za-z0-9._@-]+(,[A-Za-z0-9._@-]+)*$ ]] || { echo "invalid SSO_ADMIN_USERS: $SSO_ADMIN_USERS" >&2; exit 1; }
 
 # Icinga for Kubernetes: "<key>=<cluster name> ...", kubeconfig (base64) in AKS_KUBECONFIG_<KEY>
 AKS_CLUSTERS="${AKS_CLUSTERS:-}"
@@ -445,9 +463,9 @@ write_file root:icingaweb2 0660 /etc/icingaweb2/config.ini <<EOF
 [global]
 config_resource = "icingaweb_db"
 
-; theme installed by continuos-platform-monitoring-app (02_icinga_bp.tf)
+; "pagopa" module, installed by azurerm_virtual_machine_run_command.icinga_theme (05_theme.tf)
 [themes]
-default = "bp-tiles"
+default = "pagopa/default"
 
 [logging]
 log = "syslog"
@@ -474,6 +492,12 @@ users = "${ICINGAWEB_ADMIN_USER}"
 permissions = "*"
 groups = "Administrators"
 ; valori mostrati come *** (token Bearer dei check AKS, password dei check)
+icingadb/protect/variables = "http_header,*pass*,*token*"
+
+; Entra ID users (preferred_username, see sso/providers.ini)
+[SSO Administrators]
+users = "${SSO_ADMIN_USERS}"
+permissions = "*"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 EOF
 
@@ -521,7 +545,23 @@ username = "director"
 password = "${DIRECTOR_API_PASSWORD}"
 EOF
 
-# sso providers (/etc/icingaweb2/modules/sso/providers.ini) are configured later
+# "Login with Microsoft Entra ID" button on the login page, Entra ID application
+# in 04_sso.tf. offline_access gives the refresh token used to renew the
+# session when the tokens expire, groups are not mapped (no groups claim)
+# https://icinga.com/docs/icinga-sso/latest/doc/03-Configuration/
+write_file root:icingaweb2 0660 /etc/icingaweb2/modules/sso/providers.ini <<EOF
+[entra]
+name = "Microsoft Entra ID"
+base_url = "https://login.microsoftonline.com/${SSO_TENANT_ID}/v2.0/.well-known/openid-configuration"
+client_id = "${SSO_CLIENT_ID}"
+client_secret = "${SSO_CLIENT_SECRET}"
+scopes = "openid profile email offline_access"
+redirect_url = "https://${ICINGA_FQDN}/icingaweb2/sso/oidc/redirection-endpoint"
+username_claim = "preferred_username"
+map_groups = "n"
+groups_claim = "groups"
+EOF
+
 for module in icingadb businessprocess x509 director sso kubernetes; do
   icingacli module enable "$module"
 done
@@ -540,5 +580,187 @@ icingacli x509 import --file /etc/ssl/certs/ca-certificates.crt
 icingacli director migration run --verbose
 icingacli director kickstart run
 
+# deploys the pending changes (all of them at the first run); skipped when the
+# configuration checksum matches the last deployment. --wait fails the run if
+# Icinga 2 doesn't activate the configuration
+icingacli director config deploy --wait 60
+
 systemctl enable icinga-director
 systemctl restart icinga-director
+
+# -----------------------------------------------------------------------------
+# TLS certificate of Icinga Web, synced from domain_kv by icinga-tls-sync
+# Same unit at the first configuration (started below, before Apache) and at
+# every certificate renewal (icinga-tls-sync.timer, hourly). Each version gets
+# its own directory, "current" is swapped atomically so certificate and key
+# always change together, then Apache is reloaded
+# -----------------------------------------------------------------------------
+write_file root:root 0600 /etc/default/icinga-tls-sync <<EOF
+TLS_SECRET_URL=${TLS_SECRET_URL}
+TLS_MSI_CLIENT_ID=${TLS_MSI_CLIENT_ID}
+ICINGA_FQDN=${ICINGA_FQDN}
+EOF
+
+write_file root:root 0755 /usr/local/sbin/icinga-tls-sync <<'EOF'
+#!/usr/bin/env bash
+# Installs the latest version of the TLS certificate of Icinga Web from Key Vault
+# Idempotent: exits without changes when the installed version is the latest one
+set -euo pipefail
+umask 077
+
+: "${TLS_SECRET_URL:?TLS_SECRET_URL must be set}"
+: "${TLS_MSI_CLIENT_ID:?TLS_MSI_CLIENT_ID must be set}"
+: "${ICINGA_FQDN:?ICINGA_FQDN must be set}"
+
+DIR=/var/lib/icinga-tls
+KEEP=2 # installed versions kept on disk
+VHOST=/etc/apache2/sites-enabled/icingaweb2-ssl.conf
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+mkdir -p "$DIR"
+work="$(mktemp -d "$DIR/.tmp.XXXXXX")"
+trap 'rm -rf "$work"' EXIT
+
+# access token of the user assigned identity, the identity endpoint may not be
+# ready yet at the first boot
+token="$(curl -sS --fail --max-time 30 --retry 10 --retry-connrefused --retry-delay 5 -H Metadata:true \
+  "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net&client_id=${TLS_MSI_CLIENT_ID}" |
+  jq -er .access_token)"
+
+# versionless URL: always the latest version. The header is read from stdin,
+# so the token doesn't show up in the process list
+curl -sS --fail --max-time 30 --retry 5 --retry-delay 5 -H @- -o "$work/secret.json" \
+  "${TLS_SECRET_URL}?api-version=7.4" <<<"Authorization: Bearer ${token}"
+unset token
+
+version="$(jq -er '.id | split("/") | last' "$work/secret.json")"
+[[ "$version" =~ ^[0-9a-f]{32}$ ]] || die "unexpected secret version: $version"
+[[ "$(jq -r .contentType "$work/secret.json")" == "application/x-pkcs12" ]] || die "secret is not a PKCS12 certificate"
+
+if [[ "$(cat "$DIR/installed-version" 2>/dev/null)" == "$version" && -s "$DIR/current/fullchain.pem" ]]; then
+  echo "version $version already installed"
+  exit 0
+fi
+echo "installing version $version"
+
+# certificates exported by Key Vault have no password
+jq -er .value "$work/secret.json" | base64 -d > "$work/cert.pfx"
+rm -f "$work/secret.json"
+openssl pkcs12 -in "$work/cert.pfx" -passin pass: -nocerts -nodes | openssl pkey -out "$work/privkey.pem"
+# leaf: the certificate bound to the private key (localKeyID), then the chain
+openssl pkcs12 -in "$work/cert.pfx" -passin pass: -nokeys -clcerts | openssl x509 -out "$work/leaf.pem"
+openssl pkcs12 -in "$work/cert.pfx" -passin pass: -nokeys -cacerts |
+  awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' > "$work/chain.pem"
+
+# checks before touching the installed certificate
+[[ "$(openssl pkey -in "$work/privkey.pem" -pubout | sha256sum)" == "$(openssl x509 -in "$work/leaf.pem" -noout -pubkey | sha256sum)" ]] ||
+  die "private key doesn't match the certificate"
+openssl x509 -in "$work/leaf.pem" -noout -checkhost "$ICINGA_FQDN" | grep -q "does match" ||
+  die "certificate isn't valid for $ICINGA_FQDN"
+openssl x509 -in "$work/leaf.pem" -noout -checkend 0 > /dev/null || die "certificate is expired"
+openssl x509 -in "$work/leaf.pem" -noout -subject -enddate
+
+rm -rf "${DIR:?}/$version"
+mkdir "$DIR/$version"
+cat "$work/leaf.pem" "$work/chain.pem" > "$DIR/$version/fullchain.pem"
+mv "$work/privkey.pem" "$DIR/$version/privkey.pem"
+
+previous="$(readlink "$DIR/current" || true)"
+ln -sfn "$version" "$DIR/current.new"
+mv -Tf "$DIR/current.new" "$DIR/current"
+
+# Apache uses the certificate only after its virtual host is configured
+if [[ -e "$VHOST" ]]; then
+  if ! apachectl configtest; then
+    if [[ -n "$previous" ]]; then
+      ln -sfn "$previous" "$DIR/current.new"
+      mv -Tf "$DIR/current.new" "$DIR/current"
+    fi
+    die "Apache configuration test failed, restored version ${previous:-none}"
+  fi
+  systemctl reload apache2
+fi
+
+echo "$version" > "$DIR/installed-version.new"
+mv -f "$DIR/installed-version.new" "$DIR/installed-version"
+
+# keeps the newest $KEEP versions, always including the current one
+current="$(readlink "$DIR/current")"
+find "$DIR" -mindepth 1 -maxdepth 1 -type d -regextype posix-extended -regex '.*/[0-9a-f]{32}' -printf '%T@ %f\n' |
+  sort -rn | tail -n +$((KEEP + 1)) | cut -d' ' -f2 |
+  while read -r old; do
+    [[ "$old" == "$current" ]] || rm -rf "${DIR:?}/$old"
+  done
+echo "version $version installed"
+EOF
+
+write_file root:root 0644 /etc/systemd/system/icinga-tls-sync.service <<'EOF'
+[Unit]
+Description=Sync the TLS certificate of Icinga Web from Key Vault
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/icinga-tls-sync
+ExecStart=/usr/local/sbin/icinga-tls-sync
+TimeoutStartSec=10min
+ProtectSystem=full
+PrivateTmp=yes
+NoNewPrivileges=yes
+EOF
+
+write_file root:root 0644 /etc/systemd/system/icinga-tls-sync.timer <<'EOF'
+[Unit]
+Description=Hourly sync of the TLS certificate of Icinga Web from Key Vault
+
+[Timer]
+OnBootSec=5min
+OnCalendar=hourly
+RandomizedDelaySec=10min
+# runs missed while the VM was stopped are executed at the next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload
+# synchronous (oneshot): a failure stops this script before Apache is configured
+systemctl start icinga-tls-sync.service
+systemctl enable --now icinga-tls-sync.timer
+
+# -----------------------------------------------------------------------------
+# Apache: HTTPS for Icinga Web, certificate of icinga-tls-sync
+# -----------------------------------------------------------------------------
+a2enmod -q ssl rewrite headers
+
+write_file root:root 0644 /etc/apache2/sites-available/icingaweb2-ssl.conf <<EOF
+<VirtualHost *:80>
+    ServerName ${ICINGA_FQDN}
+    RewriteEngine On
+    RewriteRule ^/?(.*) https://${ICINGA_FQDN}/\$1 [R=301,L]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName ${ICINGA_FQDN}
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile    /var/lib/icinga-tls/current/fullchain.pem
+    SSLCertificateKeyFile /var/lib/icinga-tls/current/privkey.pem
+
+    RedirectMatch ^/$ /icingaweb2/
+</VirtualHost>
+EOF
+
+# the default site also listens on :80 and would answer instead of the redirect
+if [[ -e /etc/apache2/sites-enabled/000-default.conf ]]; then
+  a2dissite -q 000-default
+fi
+a2ensite -q icingaweb2-ssl
+
+apachectl configtest
+# restart, not reload: a2enmod requires it
+systemctl restart apache2

@@ -6,6 +6,8 @@ echo "CUSTOM!!!"
 apt update
 apt -y install apt-transport-https wget
 apt -y install net-tools
+# JSON of the Key Vault REST API, used by icinga-tls-sync (icinga-configure.sh)
+apt -y install jq
 wget -O icinga-archive-keyring.deb "https://packages.icinga.com/icinga-archive-keyring_latest+ubuntu$(
  . /etc/os-release; echo "$VERSION_ID"
 ).deb"

@@ -18,15 +18,12 @@
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 485e70fae3c0df30f8c771b1717ac4de9fe55584 |
-| <a name="module_icinga_app"></a> [icinga\_app](#module\_icinga\_app) | ./.terraform/modules/__v4__/keycloak_entra | n/a |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [azurerm_key_vault_secret.keycloak_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.keycloak_client_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_virtual_machine_run_command.icinga_vm_bp](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_run_command) | resource |
 | [icinga2_host.hosts](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/host) | resource |
 | [icinga2_service.aks_namespaces](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |

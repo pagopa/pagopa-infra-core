@@ -14,10 +14,11 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | PAYMCLOUD-1192_packer_vm_custom_image |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | feat/entra-oidc-application |
 | <a name="module_aks_icinga_itn"></a> [aks\_icinga\_itn](#module\_aks\_icinga\_itn) | ./modules/aks_icinga | n/a |
 | <a name="module_aks_icinga_weu"></a> [aks\_icinga\_weu](#module\_aks\_icinga\_weu) | ./modules/aks_icinga | n/a |
 | <a name="module_azure_custom_image"></a> [azure\_custom\_image](#module\_azure\_custom\_image) | ./.terraform/modules/__v4__/azure_vm_custom_image | n/a |
+| <a name="module_icinga_app"></a> [icinga\_app](#module\_icinga\_app) | ./.terraform/modules/__v4__/entra_oidc_application | n/a |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 | <a name="module_vm_icinga_subnet"></a> [vm\_icinga\_subnet](#module\_vm\_icinga\_subnet) | ./.terraform/modules/__v4__/IDH/subnet | n/a |
 
@@ -25,12 +26,17 @@
 
 | Name | Type |
 |------|------|
+| [azurerm_key_vault_access_policy.icinga_vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_secret.icinga_app_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.icinga_app_client_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.icinga_vm_private_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_linux_virtual_machine.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
 | [azurerm_network_interface.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_private_dns_a_record.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_a_record) | resource |
 | [azurerm_resource_group.icinga_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
+| [azurerm_user_assigned_identity.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
 | [azurerm_virtual_machine_run_command.icinga_configure](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_run_command) | resource |
+| [azurerm_virtual_machine_run_command.icinga_theme](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_run_command) | resource |
 | [azurerm_key_vault.domain_kv](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.icinga_api_terraform_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.icinga_vm_admin_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |

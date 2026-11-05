@@ -1,0 +1,5 @@
+Module: pagopa
+Version: 1.0.0
+Description: pagoPA theme for Icinga Web
+ Login page with the pagoPA background and brand colors, tile view of the
+ Business Process module. Installed by icinga-configure.sh

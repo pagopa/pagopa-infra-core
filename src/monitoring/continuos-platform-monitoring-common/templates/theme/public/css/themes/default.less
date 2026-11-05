@@ -1,5 +1,145 @@
 /*
- * bp-tiles: tema per la vista a tile del modulo Business Process
+ * pagopa/default: tema pagoPA di Icinga Web (modulo "pagopa")
+ *
+ * 1. Pagina di login: sfondo pagoPA, form chiaro semitrasparente, colori del
+ *    brand. Il logo di Icinga è nascosto: quello pagoPA è già nello sfondo
+ * 2. Vista a tile del modulo Business Process
+ *
+ * Installato da azurerm_virtual_machine_run_command.icinga_theme (05_theme.tf)
+ * in /usr/share/icingaweb2/modules/pagopa, default in config.ini
+ * (icinga-configure.sh). Le immagini del modulo sono servite da Icinga Web in
+ * /icingaweb2/img/pagopa/
+ */
+
+/* ===========================================================================
+ * Brand pagoPA
+ * ======================================================================== */
+@pagopa-blue:       #0073E6;
+@pagopa-blue-dark:  darken(@pagopa-blue, 8%);
+@pagopa-text:       #17324D;
+@pagopa-text-muted: #5C6F82;
+@pagopa-border:     #C5D3E0;
+
+/* ===========================================================================
+ * Pagina di login
+ * Markup (Icinga Web 2.14, LoginPage.php):
+ *   #login > .login-form
+ *     .logo-wrapper > #icinga-logo
+ *     form.icinga-form           username, password, ricordami, submit
+ *     .login-buttons > form      "Login with Microsoft Entra ID" (modulo sso)
+ *     #login-footer
+ *   #social                      link social di Icinga (nascosti)
+ * ======================================================================== */
+#login {
+  /* tono dominante dello sfondo, visibile finché l'immagine non è caricata */
+  background-color: #0B2F8A;
+  background-image: url('../img/pagopa/login-bg.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  .login-form {
+    box-sizing: border-box;
+    width: 26em;
+    max-width: ~"calc(100vw - 2em)";
+    padding: 2.5em 2.5em 1.5em;
+    color: @pagopa-text;
+    text-align: left;
+    background-color: rgba(255, 255, 255, .82);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, .6);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px -12px rgba(0, 49, 102, .35);
+  }
+
+  /* logo pagoPA già nello sfondo */
+  .logo-wrapper {
+    display: none;
+  }
+
+  label,
+  .control-label,
+  .control-info {
+    color: @pagopa-text;
+  }
+
+  input[type=text],
+  input[type=password] {
+    box-sizing: border-box;
+    height: 2.75em;
+    padding: 0 .75em;
+    color: @pagopa-text;
+    background-color: #ffffff;
+    border: 1px solid @pagopa-border;
+    border-radius: 8px;
+
+    &:focus {
+      padding-bottom: 0;
+      border-color: @pagopa-blue;
+      border-radius: 8px;
+      outline: none;
+      box-shadow: 0 0 0 3px fade(@pagopa-blue, 25%);
+    }
+  }
+
+  /* pulsante principale: accesso con Entra ID */
+  input[type=submit],
+  button {
+    height: 2.75em;
+    font-weight: 600;
+    background: @pagopa-blue;
+    border-radius: 8px;
+
+    &:hover {
+      background-color: @pagopa-blue-dark;
+    }
+
+    &:focus {
+      outline-color: fade(@pagopa-blue, 40%);
+    }
+  }
+
+  /* accesso locale (username e password): secondario */
+  .icinga-form input[type=submit] {
+    color: @pagopa-blue;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px @pagopa-blue;
+
+    &:hover {
+      background-color: fade(@pagopa-blue, 8%);
+    }
+  }
+
+  .errors li {
+    border-radius: 8px;
+  }
+
+  /* link a Facebook e GitHub di Icinga, in basso a destra */
+  #social {
+    display: none;
+  }
+
+  #login-footer {
+    margin-top: 1.5em;
+    color: @pagopa-text-muted;
+    font-size: .75em;
+    text-align: center;
+
+    a {
+      color: inherit;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  #login .login-form {
+    padding: 2em 1.5em 1em;
+  }
+}
+
+/* ===========================================================================
+ * Business Process: vista a tile
  *
  * Selettori basati sul markup reale:
  *   .tiles > div.{ok|critical|...}
@@ -10,10 +150,7 @@
  * Tile a tinta unita con testo bianco: la leggibilità non dipende dal tema
  * chiaro/scuro di Icinga Web. Unico movimento continuo: anello pulsante sui
  * nodi critici non gestiti.
- *
- * Installato da azurerm_virtual_machine_run_command.icinga_vm_bp
- * (02_icinga_bp.tf) in /usr/share/icingaweb2/public/css/themes/bp-tiles.less
- */
+ * ======================================================================== */
 
 /* accento (fascia superiore e indicatore di stato) */
 @ok:       #22c55e;
