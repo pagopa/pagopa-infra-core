@@ -313,6 +313,12 @@ eventhubs_03 = [
         send   = false
         manage = false
       },
+      {
+        name   = "nodo-dei-pagamenti-observability" # observability
+        listen = true
+        send   = false
+        manage = false
+      }
       #     disabled because at the moment not used
       #      {
       #        name   = "nodo-dei-pagamenti-re-to-datastore-rx" # re->cosmos
