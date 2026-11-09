@@ -41,6 +41,26 @@
         "enabled": true,
         "oncall": false,
         "team": "infra"
+      },
+      {
+        "name": "[NDP] Activate PagoPA NDP",
+        "cron": "0 0 09 * * 1-5",
+        "runbook": "ndp/ndp-pagopa-activation.py",
+        "run_args": "--ndp-instance pagoPa --dry-run",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false,
+        "team": "infra"
+      },
+      {
+        "name": "[NDP] Activate NEXI NDP",
+        "cron": "0 0 17 * * 1-5",
+        "runbook": "ndp/ndp-pagopa-activation.py",
+        "run_args": "--ndp-instance nexi --dry-run",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false,
+        "team": "infra"
       }
     ]
   }
