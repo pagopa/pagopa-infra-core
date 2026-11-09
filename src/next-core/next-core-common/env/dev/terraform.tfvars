@@ -718,7 +718,7 @@ node_forwarder_zone_balancing_enabled = false
 node_forwarder_sku                    = "B1"
 
 dns_forwarder_vm_image_name = "pagopa-d-dns-forwarder-ubuntu2204-image-v1"
-azdo_agent_vm_image_name    = "pagopa-d-azdo-agent-ubuntu2204-image-v4"
+azdo_agent_vm_image_name    = "pagopa-d-azdo-agent-ubuntu2404-image-09112026-v3"
 
 
 # public app gateway
