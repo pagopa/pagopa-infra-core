@@ -48,8 +48,8 @@
         "runbook": "ndp/ndp-pagopa-activation.py",
         "run_args": "--ndp-instance pagoPa --dry-run",
         "worker_pool": "generic",
-        "enabled": true,
-        "oncall": false,
+        "enabled": false,
+        "oncall": true,
         "team": "infra"
       },
       {
@@ -58,8 +58,28 @@
         "runbook": "ndp/ndp-pagopa-activation.py",
         "run_args": "--ndp-instance nexi --dry-run",
         "worker_pool": "generic",
+        "enabled": false,
+        "oncall": true,
+        "team": "infra"
+      },
+      {
+        "name": "[NDP] internal switch ore 9",
+        "cron": "0 00 09 * * *",
+        "runbook": "ndp/ndp-internal-switch.sh",
+        "run_args": "input_09.json",
+        "worker_pool": "generic",
         "enabled": true,
-        "oncall": false,
+        "oncall": true,
+        "team": "infra"
+      },
+      {
+        "name": "[NDP] internal switch ore 17",
+        "cron": "0 00 17 * * *",
+        "runbook": "ndp/ndp-internal-switch.sh",
+        "run_args": "input_17.json",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": true,
         "team": "infra"
       }
     ]
