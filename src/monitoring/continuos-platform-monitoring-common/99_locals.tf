@@ -21,7 +21,7 @@ locals {
   # ---------------------------------------------------------------------------
   # Icinga VM
   # ---------------------------------------------------------------------------
-  icinga_vm_size = "Standard_D2as_v5"
+  icinga_vm_size = var.env_short == "d" ? "Standard_B2s_v2" : "Standard_D2as_v5"
 
   vnet_tools_name = "${local.product}-${local.location_short}-spoke-tools-vnet"
   vnet_tools_rg   = "${local.product}-${local.location_short}-network-hub-spoke-rg"
