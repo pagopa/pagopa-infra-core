@@ -106,6 +106,7 @@ locals {
     local.nsg_rule_library.allow_gh_runner_weu_to_postgres,
     local.nsg_rule_library.allow_gh_runner_itn_to_postgres,
     local.nsg_rule_library.allow_gh_runner_spoke_itn_to_postgres,
+    local.nsg_rule_library.allow_icinga_spoke_itn_to_postgres
     ],
     var.enabled_features.nsg_metabase ? [local.nsg_rule_library.allow_metabase_to_postgres] : [],
     var.enabled_features.data_factory_proxy ? [local.nsg_rule_library.allow_data_factory_proxy_to_postgres] : [],
@@ -124,6 +125,7 @@ locals {
     local.nsg_rule_library.allow_data_factory_to_postgres,
     local.nsg_rule_library.allow_gh_runner_itn_to_postgres,
     local.nsg_rule_library.allow_gh_runner_weu_to_postgres,
+    #local.nsg_rule_library.allow_icinga_spoke_itn_to_postgres
     ],
     var.enabled_features.nsg_metabase ? [local.nsg_rule_library.allow_metabase_to_postgres] : [],
     var.enabled_features.data_factory_proxy ? [local.nsg_rule_library.allow_data_factory_proxy_to_postgres] : [],
@@ -307,6 +309,14 @@ locals {
       source_subnet_name      = "pagopa-${var.env_short}-itn-core-spoke-tools-cae-subnet"
       source_subnet_vnet_name = "pagopa-${var.env_short}-itn-spoke-tools-vnet"
       description             = "Allow gh runner itn to access PostgreSQL"
+    }
+    allow_icinga_spoke_itn_to_postgres = {
+      name                    = "AllowIcingaSpokeItnPostgreSQL"
+      priority                = 560
+      target_service          = "postgresql"
+      source_subnet_name      = "pagopa-${var.env_short}-itn-cpm-spoke-tools-vm-icinga-v2-snet"
+      source_subnet_vnet_name = "pagopa-${var.env_short}-itn-spoke-tools-vnet"
+      description             = "Allow icinga itn to access PostgreSQL"
     }
     allow_all_to_postgres = {
       name                    = "AllowPostgreSQL"
