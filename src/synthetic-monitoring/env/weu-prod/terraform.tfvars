@@ -30,7 +30,7 @@ on_demand_polling_interval_seconds = 120
 #
 check_position_body = {
   fiscal_code   = "15376371009"
-  notice_number = "351000000000000000"
+  notice_number = "352000000000000000"
 }
 verify_payment_internal_expected_outcome = "OK"
 nexi_node_ip_postgres                    = "10.79.20.25"
