@@ -4,8 +4,16 @@ INPUT="${1:-input.json}"
 OUTPUT="${2:-output.json}"
 
 wget https://raw.githubusercontent.com/pagopa/pagopa-infra-core/refs/heads/main/src/cloudo/cloudo-core/runbooks/ndp/internal_nodo/$CLOUDO_ENVIRONMENT/$INPUT -O "$INPUT"
+wget_status=$?
+if [ $wget_status -ne 0 ]; then
+  echo "wget failed with exit code $wget_status while downloading $INPUT" >&2
+  exit $wget_status
+fi
 
-compact=$(jq -c . "$INPUT")
+if ! compact=$(jq -c . "$INPUT" 2>&1); then
+  echo "downloaded file $INPUT is not valid JSON: $compact" >&2
+  exit 1
+fi
 
 escaped=$(printf '%s' "$compact" |
   sed 's/\\/\\\\/g; s/"/\\"/g; s#://#:\\\\/\\\\/#g')
