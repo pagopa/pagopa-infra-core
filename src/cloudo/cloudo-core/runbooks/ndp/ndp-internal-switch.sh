@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
 INPUT="${1:-input.json}"
 OUTPUT="${2:-output.json}"
+
+wget https://raw.githubusercontent.com/pagopa/pagopa-infra-core/refs/heads/main/src/cloudo/cloudo-core/runbooks/ndp/internal_nodo/$CLOUDO_ENVIRONMENT/$INPUT -O "$INPUT"
 
 compact=$(jq -c . "$INPUT")
 
@@ -16,7 +16,10 @@ jq -n --arg value "$value" \
   '{properties: {format: "rawxml", value: $value}}' \
   > "$OUTPUT"
 
-az rest --method put \
-  --url "https://management.azure.com/subscriptions/26abc801-0d8f-4a6e-ac5f-8e81bcc09112/resourceGroups/pagopa-u-api-rg/providers/Microsoft.ApiManagement/service/pagopa-u-apim/policyFragments/decoupler-configuration?api-version=2022-08-01" \
+response=$(az rest --method put \
+  --url "https://management.azure.com/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/pagopa-$CLOUDO_ENVIRONMENT_SHORT-api-rg/providers/Microsoft.ApiManagement/service/pagopa-$CLOUDO_ENVIRONMENT_SHORT-apim/policyFragments/decoupler-configuration?api-version=2022-08-01" \
   --headers "If-Match=*" \
-  --body @$OUTPUT --verbose
+  --body @"$OUTPUT" --verbose 2>&1)
+status=$?
+echo "$response"
+exit $status
