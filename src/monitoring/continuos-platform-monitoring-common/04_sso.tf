@@ -6,9 +6,10 @@
 module "icinga_app" {
   source = "./.terraform/modules/__v4__/entra_oidc_application"
 
-  display_name           = "${local.project}-icinga"
-  ad_user_owners         = local.application_owners
-  authorized_group_names = [] #local.entra_groups_allowed
+  display_name                 = "${local.project}-icinga"
+  ad_user_owners               = local.application_owners
+  authorized_group_names       = [] #local.entra_groups_allowed
+  app_role_assignment_required = true
 
   redirect_uris = [
     "https://${local.icinga_fqdn}/icingaweb2/sso/oidc/redirection-endpoint"
