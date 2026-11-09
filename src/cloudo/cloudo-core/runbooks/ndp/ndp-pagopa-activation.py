@@ -5,7 +5,6 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.apimanagement import ApiManagementClient
 from azure.mgmt.apimanagement.models import NamedValueCreateContract
-import json
 from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
 import argparse
@@ -16,33 +15,42 @@ SUBSCRIPTIONS = {
   "p" : "b9fc9419-6097-45fe-9f74-ba0641c91912"
 }
 
-SUBSCRIPTION_ID = SUBSCRIPTIONS.get(os.environ.get('CLOUDO_ENVIRONMENT_SHORT'))
+SUBSCRIPTION_ID = SUBSCRIPTIONS.get(os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd'))
 
 
-APIM_RG_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT')}-api-rg"
-APIM_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT')}-apim"
+APIM_RG_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd')}-api-rg"
+APIM_NAME = f"pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd')}-apim"
 
-SWITCH_TO_NEXI = "toNexi"
-SWITCH_TO_PAGOPA = "toPagopa"
+NDP_INSTANCE_NEXI = "nexi"
+NDP_INSTANCE_PAGOPA = "pagoPA"
+SLACK_WEBHOOK_URL = "ndp-activation-slack-webhook"
 
 
 
 SWITCH = {
-  SWITCH_TO_NEXI : {
+  NDP_INSTANCE_NEXI : {
     "enable-nm3-decoupler-switch": True,
-    "enable-routing-decoupler-switch": False,
+    "enable-routing-decoupler-switch": False
   },
-  SWITCH_TO_PAGOPA : {
+  NDP_INSTANCE_PAGOPA : {
     "enable-nm3-decoupler-switch": True,
-    "enable-routing-decoupler-switch": True,
+    "enable-routing-decoupler-switch": True
   }
 
 }
 
-def build_apim_client():
+def azure_login():
   try:
     credential = DefaultAzureCredential()
-    client = ApiManagementClient(credential, SUBSCRIPTION_ID)
+    return credential
+  except Exception as e:
+    print(f"Error during login: {str(e)}")
+    exit(1)
+
+
+def build_apim_client(azure_credentials):
+  try:
+    client = ApiManagementClient(azure_credentials, SUBSCRIPTION_ID)
     return client
   except Exception as e:
     print(f"Error during login: {str(e)}")
@@ -61,12 +69,85 @@ def get_apim_named_values(client, names):
     )]
   ]
 
+# Retrieve secrets from keyvault
+def get_runbook_secrets(azure_credentials):
+    kv_uri = f"https://pagopa-{os.environ.get('CLOUDO_ENVIRONMENT_SHORT', 'd')}-itn-cloudo-kv.vault.azure.net"
+    kv_client = SecretClient(vault_url=kv_uri, credential=azure_credentials)
+    return {
+     SLACK_WEBHOOK_URL : kv_client.get_secret("ndp-activation-slack-webhook").value,
+    }
+
+
+def create_slack_message(ndp_instance: str, named_values: dict):
+  if ndp_instance == NDP_INSTANCE_PAGOPA:
+    blocks = [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": f"Attivazione NDP pagoPA in ambiente {os.environ.get('CLOUDO_ENVIRONMENT', 'dev')}",
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": f"Attivazione eseguita impostando i seguenti valori di named values: {named_values}"
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": f"L'effettiva percentuale di traffico gestita dal decoupler dipende dalle configurazioni di routing e dalle regole di traffico in vigore."
+        }
+      }
+    ]
+  else:
+    blocks = [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": f"Disattivazione NDP pagoPA",
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": f"Disattivazione eseguita impostando i seguenti valori di named values: {named_values}"
+        }
+      }
+    ]
+
+  return {"blocks": blocks}
+
+
+def send_slack_message(payload, webhook_url):
+  client = WebhookClient(webhook_url)
+  print("Slack client initialized.")
+  try:
+    response = client.send(
+      **payload
+    )
+
+    print(f"Slack API response: {response.status_code}")
+    if response.status_code == 200:
+      print(f"Success! Slack message sent ")
+
+    return
+  except SlackApiError as e:
+    print(f"Error sending Slack notification: {e.response['error']}")
+  except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+
 def update_apim_named_values(client, values: dict):
   try:
     for name, value in values.items():
       update = NamedValueCreateContract(
         display_name=name,
-        value=str(value).lower(),
+        value=value,
         secret=False
       )
       print(f"updating: {name}")
@@ -88,19 +169,30 @@ def main():
   parser.add_argument("--ndp-instance", "-n", default=None,
                       help="NDP instance to activate/deactivate (e.g., 'toNexi' or 'toPagopa')")
 
+  parser.add_argument("--dry-run", "-dr", action='store_true',
+                      help="If set, the script will only print the actions it would take without making any changes.")
+
   args = parser.parse_args()
 
   switch = args.ndp_instance
+  dry_run = args.dry_run
 
-  print(f"received switch: {switch}")
-
-  apim_client = build_apim_client()
+  print(f"received ndp instance: {switch}")
+  azure_credentials = azure_login()
+  apim_client = build_apim_client(azure_credentials)
 
   values = get_apim_named_values(apim_client, SWITCH.get(switch).keys())
   print(f"current values: {values}")
-  print(f"updating to: {SWITCH.get(switch)}")
-  update_apim_named_values(apim_client, SWITCH.get(switch))
-  print()
+
+  if dry_run:
+    print("Dry run mode enabled. No changes will be made.")
+    print(f"DRY-RUN would update to: {SWITCH.get(switch)}")
+  else:
+    print(f"updating to: {SWITCH.get(switch)}")
+    update_apim_named_values(apim_client, SWITCH.get(switch))
+    secrets = get_runbook_secrets(azure_credentials)
+    payload = create_slack_message(switch, SWITCH.get(switch))
+    send_slack_message(payload, secrets.get(SLACK_WEBHOOK_URL))
 
 if __name__ == "__main__":
   main()
