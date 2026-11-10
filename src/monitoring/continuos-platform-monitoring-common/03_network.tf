@@ -3,7 +3,7 @@ module "vm_icinga_subnet" {
 
   env               = var.env
   idh_resource_tier = "slash28_privatelink_true"
-  name              = "${local.project}-spoke-tools-vm-icinga-v2-snet"
+  name              = "${local.project}-spoke-tools-vm-icinga-snet"
   product_name      = local.prefix
 
   resource_group_name  = local.vnet_tools_rg
