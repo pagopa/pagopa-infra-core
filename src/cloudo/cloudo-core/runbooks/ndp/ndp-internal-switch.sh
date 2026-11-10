@@ -3,6 +3,12 @@
 INPUT="${1:-input.json}"
 OUTPUT="${2:-output.json}"
 
+if [[ -n "${AZURE_CLIENT_ID:-}" ]]; then
+  az login --identity --client-id "$AZURE_CLIENT_ID" > /dev/null
+else
+  az login --identity > /dev/null
+fi
+
 wget https://raw.githubusercontent.com/pagopa/pagopa-infra-core/refs/heads/main/src/cloudo/cloudo-core/runbooks/ndp/internal_nodo/$CLOUDO_ENVIRONMENT/$INPUT -O "$INPUT"
 wget_status=$?
 if [ $wget_status -ne 0 ]; then
@@ -30,4 +36,20 @@ response=$(az rest --method put \
   --body @"$OUTPUT" --verbose 2>&1)
 status=$?
 echo "$response"
+
+slack_webhook=$(az keyvault secret show  --name ndp-activation-slack-webhook --vault-name pagopa-$CLOUDO_ENVIRONMENT_SHORT-itn-cloudo-kv | jq -r .value)
+if [ "$status" -eq 0 ]; then
+  message="Cambio configurazione decoupler in ambiente $CLOUDO_ENVIRONMENT con file $INPUT"
+else
+  message="Errore durante il cambio configurazione decoupler in ambiente $CLOUDO_ENVIRONMENT con file $INPUT (exit code $status)"
+fi
+curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [
+      {
+        \"type\": \"header\",
+        \"text\": {
+          \"type\": \"plain_text\",
+          \"text\": \"$message\"
+        }
+      }]}" "$slack_webhook"
+
 exit $status
