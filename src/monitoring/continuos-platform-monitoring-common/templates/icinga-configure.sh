@@ -523,13 +523,13 @@ icingadb/protect/variables = "http_header,*pass*,*token*"
 ; Business Process view and edit, Icinga DB read-only, no Director and Kubernetes
 [Editor]
 $(role_groups "$EDITOR_GROUP_IDS")
-permissions = "module/businessprocess,businessprocess/showall,businessprocess/create,businessprocess/modify,module/icingadb"
+permissions = "module/businessprocess,businessprocess/showall,businessprocess/create,businessprocess/modify,module/icingadb,module/pagopa"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 
 ; Business Process view, Icinga DB read-only
 [Viewer]
 $(role_groups "$VIEWER_GROUP_IDS")
-permissions = "module/businessprocess,businessprocess/showall,module/icingadb"
+permissions = "module/businessprocess,businessprocess/showall,module/icingadb,module/pagopa"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 EOF
 

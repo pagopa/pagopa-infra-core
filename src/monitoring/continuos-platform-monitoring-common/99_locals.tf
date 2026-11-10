@@ -2,13 +2,12 @@ locals {
   # ---------------------------------------------------------------------------
   # General
   # ---------------------------------------------------------------------------
-  prefix               = "pagopa"
-  domain               = "cpm"
-  location_short       = "itn"
-  product              = "${local.prefix}-${var.env_short}"
-  project              = "${local.product}-${var.location_short}-${local.domain}"
-  location             = "italynorth"
-  icinga_image_version = "091126-v1"
+  prefix         = "pagopa"
+  domain         = "cpm"
+  location_short = "itn"
+  product        = "${local.prefix}-${var.env_short}"
+  project        = "${local.product}-${var.location_short}-${local.domain}"
+  location       = "italynorth"
 
   # owners of the Entra ID application of Icinga Web (06_sso.tf)
   application_owners = [
