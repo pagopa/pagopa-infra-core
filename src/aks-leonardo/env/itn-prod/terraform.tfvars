@@ -33,7 +33,7 @@ monitor_appinsights_name                    = "pagopa-p-appinsights"
 #
 aks_private_cluster_enabled  = true
 aks_alerts_enabled           = false
-aks_kubernetes_version       = "1.34.2"
+aks_kubernetes_version       = "1.35.9"
 aks_sku_tier                 = "Standard"
 aks_enable_workload_identity = true
 
@@ -49,7 +49,7 @@ aks_system_node_pool = {
   node_tags       = { node_tag_1 : "1" },
 }
 aks_user_node_pool = {
-  enabled         = true,
+  enabled         = false,
   name            = "papaksleousr",
   vm_size         = "Standard_D8ds_v5",
   os_disk_type    = "Ephemeral",
@@ -67,24 +67,24 @@ aks_user_node_pool = {
 ingress_load_balancer_ip         = "10.3.2.250"
 haproxy_ingress_load_balancer_ip = "10.3.2.252"
 ingress_replica_count            = "2"
-nginx_helm_version               = "4.14.2"
+nginx_helm_version               = "4.15.1"
 
-keda_helm_version = "2.17.2"
+keda_helm_version = "2.20.2"
 
 enable_elastic_agent = false
 non_critical_nodepool = {
   idh_tier = "Standard_D4ds_noncore",
-  min_size = 3,
+  min_size = 1,
   max_size = 3,
 }
 
 
 aks_foobar_user_node_pool_configuration = {
-  enabled         = false,
-  tier            = "Standard_D8ds_v5"
+  enabled         = true,
+  tier            = "Standard_D8ds"
   name            = "user"
   node_count_min  = 3,
-  node_count_max  = 3,
+  node_count_max  = 4,
   node_labels     = { node_name : "aks-prod01-user", node_type : "user" },
   node_taints     = [],
   node_tags       = { node_tag_2 : "2" },
