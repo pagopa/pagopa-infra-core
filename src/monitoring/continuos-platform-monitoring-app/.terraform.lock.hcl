@@ -24,7 +24,7 @@ provider "registry.terraform.io/azure/azapi" {
 
 provider "registry.terraform.io/hashicorp/azuread" {
   version     = "3.10.0"
-  constraints = "~> 3.0, ~> 3.4"
+  constraints = "~> 3.4"
   hashes = [
     "h1:u8ce8V5PpE9ge+DJXrdbgDs/h3uPGNilMzgA1PTiDM4=",
     "zh:0305d94e8cdba6c9fa868a0e6b63b59f5e85cd9745915542ac90d0411a1fcb41",

@@ -8,9 +8,9 @@ locals {
   product              = "${local.prefix}-${var.env_short}"
   project              = "${local.product}-${var.location_short}-${local.domain}"
   location             = "italynorth"
-  icinga_image_version = "v4"
+  icinga_image_version = "091126-v1"
 
-  # owners of the Entra ID application of Icinga Web (04_sso.tf)
+  # owners of the Entra ID application of Icinga Web (06_sso.tf)
   application_owners = [
     "matteo.alongi@pagopa.it",
     "marco.mari@pagopa.it",
@@ -18,10 +18,21 @@ locals {
     "fabio.felici@pagopa.it"
   ]
 
+  # Icinga Web role => display names of the Entra ID groups mapped to it.
+  # Only the (direct) members of these groups can log in with Entra ID (06_sso.tf)
+  #   Admin:  everything
+  #   Editor: Business Process view and edit, Icinga DB read-only
+  #   Viewer: Business Process view, Icinga DB read-only
+  icinga_roles = {
+    Admin  = ["pagopa-${var.env_short}-adgroup-admin"]
+    Editor = []
+    Viewer = []
+  }
+
   # ---------------------------------------------------------------------------
   # Icinga VM
   # ---------------------------------------------------------------------------
-  icinga_vm_size = var.env_short == "d" ? "Standard_B2s_v2" : "Standard_D2as_v5"
+  icinga_vm_size = var.env_short != "p" ? "Standard_B2s_v2" : "Standard_D2as_v5"
 
   vnet_tools_name = "${local.product}-${local.location_short}-spoke-tools-vnet"
   vnet_tools_rg   = "${local.product}-${local.location_short}-network-hub-spoke-rg"
@@ -37,7 +48,7 @@ locals {
   # versionless: icinga-tls-sync (icinga-configure.sh) always reads the latest version
   icinga_tls_secret_url = "${data.azurerm_key_vault.domain_kv.vault_uri}secrets/${local.icinga_tls_cert_name}"
 
-  # identifies the Icinga configuration run, see 03_vm.tf
+  # identifies the Icinga configuration run, see 05_vm.tf
   icinga_configure_hash = substr(sha256(jsonencode([
     filesha256("${path.module}/templates/icinga-configure.sh"),
     data.azurerm_key_vault_secret.icingadb_db_password.version,
@@ -45,6 +56,7 @@ locals {
     data.azurerm_key_vault_secret.icingaweb_admin_password.version,
     data.azurerm_key_vault_secret.icinga_api_terraform_password.version,
     [for k, m in local.aks_icinga : m.kubeconfig_hash],
+    local.icinga_role_groups,
   ])), 0, 8)
 
   # ---------------------------------------------------------------------------
@@ -60,7 +72,7 @@ locals {
     }
   }
 
-  # chiave di local.aks_clusters => modulo aks_icinga (03_aks_icinga.tf)
+  # chiave di local.aks_clusters => modulo aks_icinga (04_aks_icinga.tf)
   aks_icinga = {
     itn = module.aks_icinga_itn
     weu = module.aks_icinga_weu

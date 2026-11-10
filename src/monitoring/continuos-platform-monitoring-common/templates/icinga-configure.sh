@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "icinga-configure!!!"
+
 # -----------------------------------------------------------------------------
 # Icinga - configure Icinga 2, Icinga DB and Icinga Web 2
-# Runs via azurerm_virtual_machine_run_command (03_vm.tf) on top of the Packer
+# Run by terraform_data.icinga_configure (05_vm.tf) on top of the Packer
 # image built by script-custom.sh. Idempotent: re-run to apply new passwords.
 # -----------------------------------------------------------------------------
 : "${ICINGADB_DB_PASSWORD:?ICINGADB_DB_PASSWORD must be set}"
@@ -17,7 +19,7 @@ set -euo pipefail
 : "${SSO_TENANT_ID:?SSO_TENANT_ID must be set}"
 : "${SSO_CLIENT_ID:?SSO_CLIENT_ID must be set}"
 : "${SSO_CLIENT_SECRET:?SSO_CLIENT_SECRET must be set}"
-: "${SSO_ADMIN_USERS:?SSO_ADMIN_USERS must be set}"
+: "${ROLE_GROUPS?ROLE_GROUPS must be set}"
 
 # alphanumeric only: values go straight into SQL and config files
 for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
@@ -33,7 +35,27 @@ done
 
 # values go into the Icinga Web ini files (double quoted)
 [[ "$SSO_CLIENT_SECRET" =~ ^[A-Za-z0-9~._-]+$ ]] || { echo "SSO_CLIENT_SECRET contains unexpected characters" >&2; exit 1; }
-[[ "$SSO_ADMIN_USERS" =~ ^[A-Za-z0-9._@-]+(,[A-Za-z0-9._@-]+)*$ ]] || { echo "invalid SSO_ADMIN_USERS: $SSO_ADMIN_USERS" >&2; exit 1; }
+
+# Icinga Web roles: "<role>=<object id>,...;..." (Admin, Editor, Viewer), object
+# ids of the Entra ID groups mapped to each role (groups claim, sso/providers.ini)
+UUID_RE='[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}'
+ADMIN_GROUP_IDS="" EDITOR_GROUP_IDS="" VIEWER_GROUP_IDS=""
+IFS=';' read -ra role_entries <<<"$ROLE_GROUPS"
+for entry in "${role_entries[@]}"; do
+  ids="${entry#*=}"
+  [[ -z "$ids" || "$ids" =~ ^$UUID_RE(,$UUID_RE)*$ ]] || { echo "invalid group ids in ROLE_GROUPS: $entry" >&2; exit 1; }
+  case "$entry" in
+    Admin=*) ADMIN_GROUP_IDS="$ids" ;;
+    Editor=*) EDITOR_GROUP_IDS="$ids" ;;
+    Viewer=*) VIEWER_GROUP_IDS="$ids" ;;
+    *) echo "invalid ROLE_GROUPS entry: $entry" >&2; exit 1 ;;
+  esac
+done
+
+# "groups = ..." line of a role in roles.ini, nothing when no group is mapped
+role_groups() {
+  [[ -z "$1" ]] || echo "groups = \"$1\""
+}
 
 # Icinga for Kubernetes: "<key>=<cluster name> ...", kubeconfig (base64) in AKS_KUBECONFIG_<KEY>
 AKS_CLUSTERS="${AKS_CLUSTERS:-}"
@@ -463,7 +485,7 @@ write_file root:icingaweb2 0660 /etc/icingaweb2/config.ini <<EOF
 [global]
 config_resource = "icingaweb_db"
 
-; "pagopa" module, installed by azurerm_virtual_machine_run_command.icinga_theme (05_theme.tf)
+; "pagopa" module, installed by terraform_data.icinga_theme (07_theme.tf)
 [themes]
 default = "pagopa/default"
 
@@ -486,18 +508,28 @@ backend = "db"
 resource = "icingaweb_db"
 EOF
 
+# Roles of the Entra ID groups (object ids from the groups claim, map_groups in
+# sso/providers.ini). In every role the values of the variables that may hold
+# secrets are shown as *** (Bearer tokens of the AKS checks, check passwords).
+# Read-only access to Icinga DB: no icingadb/command/* permission
 write_file root:icingaweb2 0660 /etc/icingaweb2/roles.ini <<EOF
-[Administrators]
+; everything, also to the local admin user (login without Entra ID)
+[Admin]
 users = "${ICINGAWEB_ADMIN_USER}"
+$(role_groups "$ADMIN_GROUP_IDS")
 permissions = "*"
-groups = "Administrators"
-; valori mostrati come *** (token Bearer dei check AKS, password dei check)
 icingadb/protect/variables = "http_header,*pass*,*token*"
 
-; Entra ID users (preferred_username, see sso/providers.ini)
-[SSO Administrators]
-users = "${SSO_ADMIN_USERS}"
-permissions = "*"
+; Business Process view and edit, Icinga DB read-only, no Director and Kubernetes
+[Editor]
+$(role_groups "$EDITOR_GROUP_IDS")
+permissions = "module/businessprocess,businessprocess/showall,businessprocess/create,businessprocess/modify,module/icingadb"
+icingadb/protect/variables = "http_header,*pass*,*token*"
+
+; Business Process view, Icinga DB read-only
+[Viewer]
+$(role_groups "$VIEWER_GROUP_IDS")
+permissions = "module/businessprocess,businessprocess/showall,module/icingadb"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 EOF
 
@@ -546,8 +578,9 @@ password = "${DIRECTOR_API_PASSWORD}"
 EOF
 
 # "Login with Microsoft Entra ID" button on the login page, Entra ID application
-# in 04_sso.tf. offline_access gives the refresh token used to renew the
-# session when the tokens expire, groups are not mapped (no groups claim)
+# in 06_sso.tf. offline_access gives the refresh token used to renew the
+# session when the tokens expire. Groups mapped as Icinga Web groups: the groups
+# claim holds the object ids of the groups assigned to the application (roles.ini)
 # https://icinga.com/docs/icinga-sso/latest/doc/03-Configuration/
 write_file root:icingaweb2 0660 /etc/icingaweb2/modules/sso/providers.ini <<EOF
 [entra]
@@ -558,7 +591,7 @@ client_secret = "${SSO_CLIENT_SECRET}"
 scopes = "openid profile email offline_access"
 redirect_url = "https://${ICINGA_FQDN}/icingaweb2/sso/oidc/redirection-endpoint"
 username_claim = "preferred_username"
-map_groups = "n"
+map_groups = "y"
 groups_claim = "groups"
 EOF
 

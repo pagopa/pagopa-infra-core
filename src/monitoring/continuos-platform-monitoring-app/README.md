@@ -17,20 +17,20 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4.git | 485e70fae3c0df30f8c771b1717ac4de9fe55584 |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | efa14380821c386298a5632549d001f4297659e0 |
 | <a name="module_tag_config"></a> [tag\_config](#module\_tag\_config) | ../../tag_config | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [azurerm_virtual_machine_run_command.icinga_vm_bp](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_run_command) | resource |
 | [icinga2_host.hosts](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/host) | resource |
 | [icinga2_service.aks_namespaces](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |
 | [icinga2_service.services](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |
 | [terraform_data.aks_namespace_services_config](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.azure_hosts_config](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.azure_services_config](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [terraform_data.icinga_vm_bp](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [azapi_resource.this](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource) | data source |
 | [azapi_resource_action.provider](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource_action) | data source |
 | [azapi_resource_list.afd_endpoints](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource_list) | data source |
