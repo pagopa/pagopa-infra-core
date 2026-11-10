@@ -314,7 +314,7 @@ locals {
       name                    = "AllowIcingaSpokeItnPostgreSQL"
       priority                = 560
       target_service          = "postgresql"
-      source_subnet_name      = "pagopa-${var.env_short}-itn-cpm-spoke-tools-vm-icinga-v2-snet"
+      source_subnet_name      = "pagopa-${var.env_short}-itn-cpm-spoke-tools-vm-icinga-snet"
       source_subnet_vnet_name = "pagopa-${var.env_short}-itn-spoke-tools-vnet"
       description             = "Allow icinga itn to access PostgreSQL"
     }
