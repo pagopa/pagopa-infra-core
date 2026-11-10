@@ -31,5 +31,51 @@ rm -rf "$MODULE_DIR.old"
 # theme previously installed by continuos-platform-monitoring-app
 rm -f /usr/share/icingaweb2/public/css/themes/bp-tiles.less
 
+# -----------------------------------------------------------------------------
+# Titillium Web (Google Fonts), font of the theme. Downloaded here and served
+# by Apache from the public directory of Icinga Web as
+# /icingaweb2/font/pagopa/titillium-web-<weight>.woff2 (default.less), so the
+# browsers don't contact Google. Not fatal: without the files the theme falls
+# back to the system fonts, a failed download keeps the files already installed
+# -----------------------------------------------------------------------------
+FONT_DIR=/usr/share/icingaweb2/public/font/pagopa
+FONT_CSS_URL='https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap'
+FONT_WEIGHTS=4
+# Google Fonts serves woff2 only to a modern user agent
+FONT_UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'
+
+install_fonts() {
+  local css fonts weight url tmp
+  css="$(curl -sS --fail --max-time 30 --retry 3 -A "$FONT_UA" "$FONT_CSS_URL")" || return 1
+
+  # "<weight> <url>" of the "latin" subset, one @font-face per weight
+  fonts="$(awk '
+    /\/\* latin \*\// { latin = 1 }
+    latin && /font-weight:/ { weight = $2; sub(/;/, "", weight) }
+    latin && /src: url\(/ {
+      match($0, /url\([^)]+\)/)
+      print weight, substr($0, RSTART + 4, RLENGTH - 5)
+      latin = 0
+    }' <<<"$css")"
+  [[ "$(grep -cE '^[0-9]+ https://fonts\.gstatic\.com/[^ ]+\.woff2$' <<<"$fonts")" == "$FONT_WEIGHTS" ]] || return 1
+
+  install -d -m 0755 "$FONT_DIR"
+  while read -r weight url; do
+    tmp="$(mktemp "$FONT_DIR/.font.XXXXXX")"
+    if ! curl -sS --fail --max-time 30 --retry 3 -o "$tmp" "$url" || [[ "$(head -c 4 "$tmp")" != "wOF2" ]]; then
+      rm -f "$tmp"
+      return 1
+    fi
+    chmod 0644 "$tmp"
+    mv -f "$tmp" "$FONT_DIR/titillium-web-$weight.woff2"
+  done <<<"$fonts"
+}
+
+if install_fonts; then
+  echo "Titillium Web installed in $FONT_DIR"
+else
+  echo "WARNING: Titillium Web not downloaded, the theme uses the files already in $FONT_DIR or the system fonts" >&2
+fi
+
 icingacli module enable pagopa
 echo "pagopa module installed ($THEME_HASH)"
