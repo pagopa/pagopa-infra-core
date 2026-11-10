@@ -36,4 +36,15 @@ response=$(az rest --method put \
   --body @"$OUTPUT" --verbose 2>&1)
 status=$?
 echo "$response"
+
+slack_webhook=$(az keyvault secret show  --name ndp-activation-slack-webhook --vault-name pagopa-$CLOUDO_ENVIRONMENT_SHORT-itn-cloudo-kv | jq -r .value)
+curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [
+      {
+        \"type\": \"header\",
+        \"text\": {
+          \"type\": \"plain_text\",
+          \"text\": \"Cambio configurazione decoupler in ambiente $CLOUDO_ENVIRONMENT con file $INPUT\"
+        }
+      }]}" "$slack_webhook"
+
 exit $status
