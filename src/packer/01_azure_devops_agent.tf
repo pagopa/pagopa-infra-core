@@ -3,6 +3,7 @@ data "azurerm_resource_group" "resource_group" {
 }
 
 
+# DEPRECATED: Use the module "azuredevops_custom_image" instead of this module --> To be removed
 module "azdoa_custom_image" {
   source = "./.terraform/modules/__v4__/azure_devops_agent_custom_image"
 
