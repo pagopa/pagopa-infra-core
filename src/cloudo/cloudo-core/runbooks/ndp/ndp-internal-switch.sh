@@ -3,6 +3,12 @@
 INPUT="${1:-input.json}"
 OUTPUT="${2:-output.json}"
 
+if [[ -n "${AZURE_CLIENT_ID:-}" ]]; then
+  az login --identity --client-id "$AZURE_CLIENT_ID" > /dev/null
+else
+  az login --identity > /dev/null
+fi
+
 wget https://raw.githubusercontent.com/pagopa/pagopa-infra-core/refs/heads/main/src/cloudo/cloudo-core/runbooks/ndp/internal_nodo/$CLOUDO_ENVIRONMENT/$INPUT -O "$INPUT"
 wget_status=$?
 if [ $wget_status -ne 0 ]; then
