@@ -64,7 +64,7 @@
       },
       {
         "name": "[NDP] internal switch ore 9",
-        "cron": "0 00 09 * * *",
+        "cron": "0 0 09 * * 1-5",
         "runbook": "ndp/ndp-internal-switch.sh",
         "run_args": "input_09.json",
         "worker_pool": "generic",
@@ -74,7 +74,7 @@
       },
       {
         "name": "[NDP] internal switch ore 17",
-        "cron": "0 00 17 * * *",
+        "cron": "0 0 17 * * 1-5",
         "runbook": "ndp/ndp-internal-switch.sh",
         "run_args": "input_17.json",
         "worker_pool": "generic",
