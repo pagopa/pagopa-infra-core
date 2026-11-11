@@ -54,7 +54,7 @@
       },
       {
         "name": "[NDP] Daily check of NDP cache alignment and freshness",
-        "cron": "30 0 * * *",
+        "cron": "0 30 0 * * *",
         "runbook": "ndp/ndp-cache-alignment-and-freshness-check.py",
         "run_args": "--target=dev --base-url=https://api.dev.platform.pagopa.it/technical-support/ndp/api/v1",
         "worker_pool": "generic",
