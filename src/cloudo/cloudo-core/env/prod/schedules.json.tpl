@@ -58,7 +58,7 @@
         "runbook": "ndp/ndp-cache-alignment-and-freshness-check.py",
         "run_args": "--target=prod --base-url=https://api.platform.pagopa.it/technical-support/ndp/api/v1",
         "worker_pool": "generic",
-        "enabled": true,
+        "enabled": false,
         "oncall": true,
         "team": "core",
         "severity": "Sev1"
