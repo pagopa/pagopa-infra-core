@@ -81,6 +81,16 @@
         "enabled": true,
         "oncall": true,
         "team": "infra"
+      },
+      {
+        "name": "[NDP] Daily check of NDP cache alignment and freshness",
+        "cron": "30 0 * * *",
+        "runbook": "ndp/ndp-cache-alignment-and-freshness-check.py",
+        "run_args": "--target=uat --base-url=https://api.uat.platform.pagopa.it/technical-support/ndp/api/v1",
+        "worker_pool": "generic",
+        "enabled": true,
+        "oncall": false,
+        "team": "core"
       }
     ]
   }
