@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 module "cloudo" {
-  source = "git::https://github.com/pagopa/payments-ClouDO.git//src/core/iac?ref=a0d5b7a6676bce2130295a44bfdaa83d80656026" #0.29.1
+  source = "git::https://github.com/pagopa/payments-ClouDO.git//src/core/iac?ref=f56640ca1067bcc068978f0a5edb0f85365d4cb1" #0.30.0
 
   prefix                    = local.product
   product_name              = var.prefix
@@ -77,6 +77,10 @@ module "cloudo" {
     "pagopa-${var.env_short}-fdr-kv" = {
       name           = "pagopa-${var.env_short}-fdr-kv"
       resource_group = "pagopa-${var.env_short}-fdr-sec-rg"
+    }
+    "pagopa-${var.env_short}-nodo-kv" = {
+      name           = "pagopa-${var.env_short}-nodo-kv"
+      resource_group = "pagopa-${var.env_short}-nodo-sec-rg"
     }
   }
 
