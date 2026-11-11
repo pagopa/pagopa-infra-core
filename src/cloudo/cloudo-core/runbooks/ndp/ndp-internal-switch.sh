@@ -39,15 +39,15 @@ echo "$response"
 
 slack_webhook=$(az keyvault secret show  --name ndp-activation-slack-webhook --vault-name pagopa-$CLOUDO_ENVIRONMENT_SHORT-itn-cloudo-kv | jq -r .value)
 if [ "$status" -eq 0 ]; then
-  message="Cambio configurazione decoupler in ambiente $CLOUDO_ENVIRONMENT con file $INPUT"
+  message="Cambio configurazione decoupler in ambiente *$CLOUDO_ENVIRONMENT* con file https://github.com/pagopa/pagopa-infra-core/blob/main/src/cloudo/cloudo-core/runbooks/ndp/internal_nodo/$CLOUDO_ENVIRONMENT/$INPUT"
 else
   message="Errore durante il cambio configurazione decoupler in ambiente $CLOUDO_ENVIRONMENT con file $INPUT (exit code $status)"
 fi
 curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [
       {
-        \"type\": \"header\",
+        \"type\": \"section\",
         \"text\": {
-          \"type\": \"plain_text\",
+          \"type\": \"mrkdwn\",
           \"text\": \"$message\"
         }
       }]}" "$slack_webhook"
