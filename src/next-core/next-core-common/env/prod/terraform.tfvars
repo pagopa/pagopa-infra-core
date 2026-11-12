@@ -752,7 +752,7 @@ node_fw_ha_snet_cidr                  = ["10.1.157.0/24"]
 node_fw_dbg_snet_cidr                 = ["10.1.195.0/24"]
 devops_agent_zones                    = [1, 2, 3]
 devops_agent_balance_zones            = false
-azdo_agent_vm_image_name              = "pagopa-p-azdo-agent-ubuntu2204-image-v4"
+azdo_agent_vm_image_name              = "pagopa-p-azdo-agent-ubuntu2404-image-12112026-v1"
 integration_app_gateway_min_capacity  = 2
 integration_app_gateway_max_capacity  = 50
 

@@ -714,7 +714,7 @@ node_forwarder_sku                    = "P1v3"
 node_forwarder_image_tag              = "latest"
 node_fw_ha_snet_cidr                  = ["10.1.157.0/24"]
 node_fw_dbg_snet_cidr                 = ["10.1.195.0/24"]
-azdo_agent_vm_image_name              = "pagopa-u-azdo-agent-ubuntu2204-image-v3"
+azdo_agent_vm_image_name              = "pagopa-u-azdo-agent-ubuntu2404-image-10112026-v1"
 
 # public app gateway
 # app_gateway
