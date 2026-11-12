@@ -1,6 +1,9 @@
 resource "kubernetes_namespace" "keda" {
   metadata {
     name = "keda"
+    labels = {
+      domain = "core" # Icinga Business Process domain (continuos-platform-monitoring-app)
+    }
   }
 }
 

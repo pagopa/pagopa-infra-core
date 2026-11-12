@@ -21,6 +21,9 @@ resource "kubernetes_namespace" "velero_namespace" {
   count = var.enable_velero ? 1 : 0
   metadata {
     name = "velero"
+    labels = {
+      domain = "core" # Icinga Business Process domain (continuos-platform-monitoring-app)
+    }
   }
 }
 
