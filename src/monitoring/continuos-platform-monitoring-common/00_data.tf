@@ -1,0 +1,37 @@
+# -----------------------------------------------------------------------------
+# Icinga VM
+# -----------------------------------------------------------------------------
+data "azurerm_key_vault" "domain_kv" {
+  name                = "${local.project}-kv"
+  resource_group_name = "${local.project}-sec-rg"
+}
+
+data "azurerm_key_vault_secret" "icinga_vm_admin_password" {
+  name         = "icinga-vm-admin-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_key_vault_secret" "icingadb_db_password" {
+  name         = "icinga-db-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_key_vault_secret" "icingaweb_db_password" {
+  name         = "icinga-web-db-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_key_vault_secret" "icingaweb_admin_password" {
+  name         = "icinga-web-admin-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
+  name         = "icinga-api-terraform-password"
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+}
+
+data "azurerm_private_dns_zone" "internal_platform" {
+  name                = local.internal_dns_zone_name
+  resource_group_name = local.internal_dns_zone_rg
+}

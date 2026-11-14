@@ -1,0 +1,786 @@
+/*
+ * pagopa/default: tema pagoPA di Icinga Web (modulo "pagopa")
+ *
+ * 1. Applicazione: palette pagoPA scura (default) e chiara, presa dalla
+ *    Carbon Dashboard di pagoPA (tema MUI Italia), font Titillium Web, logo
+ *    pagoPA nel menu, tab e dashlet come card (radius 8px)
+ * 2. Pagina di login: sfondo pagoPA, form chiaro semitrasparente, colori del
+ *    brand. Il logo di Icinga è nascosto: quello pagoPA è già nello sfondo
+ * 3. Vista a tile del modulo Business Process (uguale nelle due modalità)
+ *
+ * Modalità scura e chiara (Icinga Web 2.14, ipl-web 0.15):
+ * - le variabili LESS di questo file sono la modalità scura, la modalità di
+ *   default di Icinga Web (nessun "default_mode" in config.ini = scuro)
+ * - il blocco "@light-mode" contiene la modalità chiara: la sua presenza nel
+ *   file abilita la scelta Scuro / Chiaro / Sistema nelle preferenze utente
+ * - ogni variabile LESS di colore usata in una regola diventa
+ *   var(--<nome>, <valore scuro>): la modalità chiara ridefinisce --<nome> in
+ *   :root. Non diventano var() i valori calcolati (fade, darken...) e quelli
+ *   non colore (ombre, gradienti): per questi il blocco chiaro ha regole proprie
+ * - le variabili --menu-*, --text-color... sono ridefinite anche dal blocco
+ *   chiaro di Icinga Web: quello di questo tema, importato dopo, le sovrascrive
+ * Riferimento: public/css/icinga/base.less di Icinga Web
+ *
+ * Installato da terraform_data.icinga_theme (07_theme.tf)
+ * in /usr/share/icingaweb2/modules/pagopa, default in config.ini
+ * (icinga-configure.sh). Le immagini del modulo sono servite da Icinga Web in
+ * /icingaweb2/img/pagopa/
+ */
+
+/* ===========================================================================
+ * Brand pagoPA, colori fissi (pagina di login, sempre chiara)
+ * ======================================================================== */
+@pagopa-blue:       #0073E6;
+@pagopa-blue-dark:  darken(@pagopa-blue, 8%);
+@pagopa-text:       #17324D;
+@pagopa-text-muted: #5C6F82;
+@pagopa-border:     #C5D3E0;
+
+/* ===========================================================================
+ * Palette dell'applicazione, modalità scura (Carbon Dashboard, mode "dark").
+ * I valori chiari sono nel blocco @light-mode in fondo a questa sezione
+ * ======================================================================== */
+@ui-bg:           #15161A; // background.default
+@ui-surface:      #252525; // background.paper: menu, tab, card
+@ui-text:         #FFFFFF; // text.primary
+@ui-text-muted:   #BBC2D6; // text.secondary
+@ui-divider:      rgba(255, 255, 255, .16);
+@ui-accent:       #3DA2FF; // primary.main
+@ui-accent-hover: #6BB8FF;
+/* testo su sfondo accent: scuro, il bianco su #3DA2FF non arriva al contrasto AA */
+@ui-on-accent:    #15161A;
+/* tinte solide (Icinga usa queste variabili anche in lighten/darken) */
+@ui-hover:        #393939; // surface + bianco 8% (action.hover)
+@ui-active:       #28343F; // surface + accent 12%
+@ui-active-hover: #293B4C; // surface + accent 18%
+@ui-input:        #2C2D31;
+@ui-input-dark:   #36383D;
+
+@ui-radius: 8px;
+
+/* ===========================================================================
+ * Font Titillium Web, scaricato sulla VM da icinga-theme.sh e servito da
+ * Apache in /icingaweb2/font/pagopa/ (URL relativo al CSS /icingaweb2/css/).
+ * Se i file mancano il browser usa i font di sistema di @font-family
+ * ======================================================================== */
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../font/pagopa/titillium-web-300.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../font/pagopa/titillium-web-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../font/pagopa/titillium-web-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../font/pagopa/titillium-web-700.woff2') format('woff2');
+}
+
+/* ===========================================================================
+ * Variabili di Icinga Web (base.less): il tema è importato per ultimo, quindi
+ * queste definizioni valgono per tutta l'interfaccia e per i moduli.
+ * Colori di stato (OK/WARNING/CRITICAL...) lasciati quelli di Icinga
+ * ======================================================================== */
+@font-family: "Titillium Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+/* Titillium Web ha un occhio piccolo: 13px invece dei 12px di Icinga */
+@font-size: 0.8125em;
+
+@icinga-blue:       @ui-accent;
+@icinga-blue-dark:  @ui-accent-hover;
+@control-color:     @ui-accent;
+
+@body-bg-color:             @ui-bg;
+@text-color:                @ui-text;
+@text-color-light:          @ui-text-muted;
+@text-color-inverted:       @ui-on-accent;
+@text-color-on-icinga-blue: @ui-on-accent;
+@link-color:                @ui-text;
+/* testo dei badge di stato */
+@badge-color:               @ui-bg;
+
+/* sfondo dei campi di input */
+@low-sat-blue:      @ui-input;
+@low-sat-blue-dark: @ui-input-dark;
+
+@gray:           #BBC2D6;
+@gray-semilight: #99A3C1;
+@gray-light:     #5A5E66;
+@gray-lighter:   #3B3C3F;
+@gray-lightest:  #2B2C2F;
+
+/* menu laterale: sezione aperta in tinta accent, pagina corrente accent pieno */
+@menu-bg-color:                     @ui-surface;
+@menu-hover-bg-color:               @ui-hover;
+@menu-search-hover-bg-color:        @ui-hover;
+@menu-active-bg-color:              @ui-active;
+@menu-active-hover-bg-color:        @ui-active-hover;
+@menu-color:                        @ui-text;
+@menu-active-color:                 @ui-accent;
+@menu-highlight-color:              @ui-accent;
+@menu-highlight-hover-bg-color:     @ui-accent-hover;
+@menu-2ndlvl-color:                 @ui-text-muted;
+@menu-2ndlvl-highlight-bg-color:    @ui-active;
+@menu-2ndlvl-active-bg-color:       @ui-accent;
+@menu-2ndlvl-active-color:          @ui-on-accent;
+@menu-2ndlvl-active-hover-bg-color: @ui-accent-hover;
+@menu-2ndlvl-active-hover-color:    @ui-on-accent;
+@menu-flyout-bg-color:              @ui-surface;
+@menu-flyout-color:                 @ui-text;
+@tab-hover-bg-color:                @ui-hover;
+
+/* ===========================================================================
+ * Applicazione (dopo il login)
+ * Markup (Icinga Web 2.14, layouts/scripts/body.phtml):
+ *   #layout
+ *     #sidebar > #header-logo-container > #header-logo, #menu
+ *     #main > #col1.container > .controls > .tabs, .content
+ *   dashboard: .dashboard.content > .container (dashlet) > h1, contenuto
+ * ======================================================================== */
+
+/* ---------- Logo pagoPA (bianco) su fascia con il gradiente di Carbon ---------- */
+#header-logo-container {
+  background-color: #0B2D6B;
+  background-image: linear-gradient(135deg, #0A1A4A 0%, #0B2D6B 55%, #0B5563 135%);
+}
+
+#header-logo,
+#mobile-menu-logo {
+  background-image: url('../img/pagopa/logo-pagopa-white.svg');
+}
+
+/* layout mobile: Icinga eredita lo sfondo del menu */
+#layout.minimal-layout #header-logo-container {
+  background-color: #0B2D6B;
+  background-image: linear-gradient(135deg, #0A1A4A 0%, #0B2D6B 55%, #0B5563 135%);
+}
+
+/* ---------- Menu laterale ---------- */
+#sidebar {
+  border-right: 1px solid @ui-divider;
+}
+
+#menu .nav-level-1 > .nav-item {
+  > a {
+    font-weight: 600;
+  }
+
+  /* barra accent a sinistra della sezione aperta */
+  &.active > a {
+    box-shadow: inset 3px 0 0 @ui-accent;
+  }
+}
+
+#menu .nav-level-2 > .nav-item > a {
+  font-weight: 400;
+}
+
+#menu input.search {
+  border-radius: @ui-radius;
+}
+
+/* ---------- Tab dei container: barra su surface, attivo sottolineato ---------- */
+.controls > .tabs {
+  background-color: @ui-surface;
+  box-shadow: inset 0 -1px 0 @ui-divider;
+}
+
+.tabs > li {
+  > a {
+    color: @ui-text-muted;
+    font-weight: 600;
+  }
+
+  &.active > a,
+  > a:focus {
+    color: @ui-accent;
+    background-color: transparent;
+    box-shadow: inset 0 -2px 0 @ui-accent;
+  }
+}
+
+/* ---------- Titoli ---------- */
+h1, h2, h3, h4, h5, h6 {
+  color: @ui-text;
+  font-weight: 700;
+}
+
+h1 {
+  border-bottom-color: @ui-divider;
+}
+
+/* ---------- Dashboard: dashlet come card su griglia ---------- */
+.dashboard.content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28em, 1fr));
+  gap: 1.5em;
+  padding: 1.5em;
+  /* Icinga affianca i dashlet con inline-block e letter-spacing negativo */
+  letter-spacing: normal;
+
+  > .container {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 0;
+    padding: 1em 1.25em !important;
+    background-color: @ui-surface;
+    border: 1px solid @ui-divider;
+    border-radius: @ui-radius;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+    transition: box-shadow .18s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
+    }
+
+    /* titolo del dashlet */
+    > h1 {
+      margin: 0 0 .75em;
+      padding-bottom: .5em;
+      font-size: 1.154em; // 15px
+      font-weight: 700;
+
+      a {
+        color: @ui-text;
+        text-decoration: none;
+
+        &:hover {
+          color: @ui-accent;
+        }
+      }
+    }
+  }
+
+  /* dashlet del Business Process (dashboard "Business Process", modulo
+     pagopa) e dashlet unico di una dashboard: tutta la larghezza, i tile
+     hanno una griglia propria */
+  > .container[data-icinga-url*="businessprocess"],
+  > .container:only-of-type {
+    /* non "grid-column: 1 / -1": less.php lo calcola come divisione (-1) */
+    grid-column-start: 1;
+    grid-column-end: -1;
+    justify-self: stretch;
+    width: 100% !important;
+    margin: 0 !important;
+    float: none !important;
+    /* almeno l'altezza visibile sotto le tab, poi cresce con i tile:
+       nessuna altezza fissa e nessuno scroll interno al dashlet */
+    height: auto !important;
+    max-height: none !important;
+    min-height: calc(100vh - 10em);
+    overflow: visible;
+  }
+}
+
+/* ---------- Pulsanti ---------- */
+.button-link,
+input[type=submit],
+button.btn-primary {
+  border-radius: @ui-radius;
+}
+
+:focus-visible {
+  outline-color: @ui-accent;
+}
+
+/* ===========================================================================
+ * Modalità chiara (Carbon Dashboard, mode "light"; design system pagoPA)
+ * Applicata da Icinga Web con la preferenza Chiaro, o Sistema con il sistema
+ * operativo in chiaro
+ * ======================================================================== */
+@light-mode: {
+  :root {
+    --ui-bg:           #F5F5F5;
+    --ui-surface:      #FFFFFF;
+    --ui-text:         #17324D;
+    --ui-text-muted:   #5C6F82;
+    --ui-divider:      #E3E7EB;
+    --ui-accent:       #0073E6;
+    --ui-accent-hover: #005CB8;
+    --ui-on-accent:    #FFFFFF;
+    --ui-hover:        #F2F6FC;
+    --ui-active:       #EBF3FD;
+    --ui-active-hover: #DDEBFB;
+    --ui-input:        #EBF3FD;
+    --ui-input-dark:   #D2E3F8;
+
+    /* variabili di Icinga Web (anche quelle del suo blocco chiaro) */
+    --icinga-blue:                       var(--ui-accent);
+    --icinga-blue-dark:                  var(--ui-accent-hover);
+    --control-color:                     var(--ui-accent);
+    --body-bg-color:                     var(--ui-bg);
+    --body-bg-color-transparent:         rgba(245, 245, 245, 0);
+    --text-color:                        var(--ui-text);
+    --text-color-light:                  var(--ui-text-muted);
+    --text-color-inverted:               var(--ui-on-accent);
+    --text-color-on-icinga-blue:         var(--ui-on-accent);
+    --link-color:                        var(--ui-text);
+    --badge-color:                       #FFFFFF;
+    --low-sat-blue:                      var(--ui-input);
+    --low-sat-blue-dark:                 var(--ui-input-dark);
+
+    --gray:           #8A99A8;
+    --gray-semilight: #A3B0BC;
+    --gray-light:     #D2D9E0;
+    --gray-lighter:   #E3E7EB;
+    --gray-lightest:  #F2F4F6;
+
+    --menu-bg-color:                     var(--ui-surface);
+    --menu-hover-bg-color:               var(--ui-hover);
+    --menu-search-hover-bg-color:        var(--ui-hover);
+    --menu-active-bg-color:              var(--ui-active);
+    --menu-active-hover-bg-color:        var(--ui-active-hover);
+    --menu-color:                        var(--ui-text);
+    --menu-active-color:                 var(--ui-accent);
+    --menu-highlight-color:              var(--ui-accent);
+    --menu-highlight-hover-bg-color:     var(--ui-accent-hover);
+    --menu-2ndlvl-color:                 var(--ui-text-muted);
+    --menu-2ndlvl-highlight-bg-color:    var(--ui-active);
+    --menu-2ndlvl-active-bg-color:       var(--ui-accent);
+    --menu-2ndlvl-active-color:          var(--ui-on-accent);
+    --menu-2ndlvl-active-hover-bg-color: var(--ui-accent-hover);
+    --menu-2ndlvl-active-hover-color:    var(--ui-on-accent);
+    --menu-flyout-bg-color:              var(--ui-surface);
+    --menu-flyout-color:                 var(--ui-text);
+    --tab-hover-bg-color:                var(--ui-hover);
+  }
+
+  /* valori non colore: gradiente e ombre del design system pagoPA */
+  #header-logo-container,
+  #layout.minimal-layout #header-logo-container {
+    background-color: #0066CC;
+    background-image: linear-gradient(135deg, #0B3EE3 0%, #0066CC 52%, #00C5CA 135%);
+  }
+
+  .dashboard.content > .container {
+    box-shadow: 0 2px 6px rgba(0, 43, 85, .06);
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 43, 85, .1);
+    }
+  }
+};
+
+/* ===========================================================================
+ * Pagina di login
+ * Markup (Icinga Web 2.14, LoginPage.php):
+ *   #login > .login-form
+ *     .logo-wrapper > #icinga-logo
+ *     form.icinga-form           username, password, ricordami, submit
+ *     .login-buttons > form      "Login with Microsoft Entra ID" (modulo sso)
+ *     #login-footer
+ *   #social                      link social di Icinga (nascosti)
+ * ======================================================================== */
+#login {
+  /* tono dominante dello sfondo, visibile finché l'immagine non è caricata */
+  background-color: #0B2F8A;
+  background-image: url('../img/pagopa/login-bg.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  .login-form {
+    box-sizing: border-box;
+    width: 26em;
+    max-width: ~"calc(100vw - 2em)";
+    padding: 2.5em 2.5em 1.5em;
+    color: @pagopa-text;
+    text-align: left;
+    background-color: rgba(255, 255, 255, .82);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, .6);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px -12px rgba(0, 49, 102, .35);
+  }
+
+  /* logo pagoPA già nello sfondo */
+  .logo-wrapper {
+    display: none;
+  }
+
+  label,
+  .control-label,
+  .control-info {
+    color: @pagopa-text;
+  }
+
+  input[type=text],
+  input[type=password] {
+    box-sizing: border-box;
+    height: 2.75em;
+    padding: 0 .75em;
+    color: @pagopa-text;
+    background-color: #ffffff;
+    border: 1px solid @pagopa-border;
+    border-radius: 8px;
+
+    &:focus {
+      padding-bottom: 0;
+      border-color: @pagopa-blue;
+      border-radius: 8px;
+      outline: none;
+      box-shadow: 0 0 0 3px fade(@pagopa-blue, 25%);
+    }
+  }
+
+  /* pulsante principale: accesso con Entra ID */
+  input[type=submit],
+  button {
+    height: 2.75em;
+    font-weight: 600;
+    background: @pagopa-blue;
+    border-radius: 8px;
+
+    &:hover {
+      background-color: @pagopa-blue-dark;
+    }
+
+    &:focus {
+      outline-color: fade(@pagopa-blue, 40%);
+    }
+  }
+
+  /* accesso locale (username e password): secondario */
+  .icinga-form input[type=submit] {
+    color: @pagopa-blue;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px @pagopa-blue;
+
+    &:hover {
+      background-color: fade(@pagopa-blue, 8%);
+    }
+  }
+
+  .errors li {
+    border-radius: 8px;
+  }
+
+  /* link a Facebook e GitHub di Icinga, in basso a destra */
+  #social {
+    display: none;
+  }
+
+  #login-footer {
+    margin-top: 1.5em;
+    color: @pagopa-text-muted;
+    font-size: .75em;
+    text-align: center;
+
+    a {
+      color: inherit;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  #login .login-form {
+    padding: 2em 1.5em 1em;
+  }
+}
+
+/* ===========================================================================
+ * Business Process: vista a tile
+ *
+ * Selettori basati sul markup reale:
+ *   .tiles > div.{ok|critical|...}
+ *     .actions          icone "mostra tile / mostra albero"
+ *     > a               titolo (link al nodo)
+ *     ul.state-badges   .item-count + .state-badge.state-*
+ *
+ * Tile a tinta unita con testo bianco: la leggibilità non dipende dal tema
+ * chiaro/scuro di Icinga Web. Unico movimento continuo: anello pulsante sui
+ * nodi critici non gestiti.
+ * ======================================================================== */
+
+/* accento (fascia superiore e indicatore di stato) */
+@ok:       #22c55e;
+@warning:  #f59e0b;
+@critical: #ef4444;
+@unknown:  #a78bfa;
+@pending:  #94a3b8;
+@missing:  #f97316;
+
+/* sfondo del tile (tinta unita, scura) */
+@ok-bg:       #0f3d2e;
+@warning-bg:  #5c3d06;
+@critical-bg: #641a1f;
+@unknown-bg:  #362766;
+@pending-bg:  #283240;
+@missing-bg:  #5c2e0c;
+
+@radius: 12px;
+@gap:    16px;
+@ease:   cubic-bezier(.2, .8, .2, 1);
+
+@keyframes bp-alert-ring {
+  0%   { box-shadow: 0 0 0 0 fade(@critical, 55%); }
+  70%  { box-shadow: 0 0 0 12px fade(@critical, 0%); }
+  100% { box-shadow: 0 0 0 0 fade(@critical, 0%); }
+}
+
+/* colori di un tile: accento + sfondo */
+.bp-tile-state(@accent, @bg) {
+  border-top-color: @accent !important;
+  background-color: @bg !important;
+
+  > a:before { background: @accent; }
+}
+
+.icinga-module.module-businessprocess {
+
+  /* ---------- Griglia ---------- */
+  .tiles {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: @gap;
+    padding: @gap;
+    margin: 0;
+  }
+
+  /* ---------- Tile ---------- */
+  .tiles > div {
+    position: relative !important;
+    isolation: isolate;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    box-sizing: border-box;
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 108px;
+    margin: 0 !important;
+    padding: 18px 18px 14px !important;
+    border: 0 !important;
+    border-top: 4px solid @pending !important;
+    border-radius: @radius !important;
+    background-color: @pending-bg !important;
+    /* leggera luce dall'alto: profondità senza perdere la tinta unita */
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 60%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .25), inset 0 0 0 1px rgba(255, 255, 255, .06);
+    opacity: 1 !important;
+    overflow: hidden;
+    transition: transform .18s @ease, box-shadow .18s @ease;
+  }
+
+  /* elimina le decorazioni (pseudo-elementi) del CSS originale */
+  .tiles > div:before,
+  .tiles > div:after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .tiles > div:hover,
+  .tiles > div:focus-within {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px -8px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .12);
+  }
+
+  /* ---------- Colori per stato ---------- */
+  .tiles > div.ok,
+  .tiles > div.up          { .bp-tile-state(@ok, @ok-bg); }
+  .tiles > div.warning     { .bp-tile-state(@warning, @warning-bg); }
+  .tiles > div.critical,
+  .tiles > div.down        { .bp-tile-state(@critical, @critical-bg); }
+  .tiles > div.unknown,
+  .tiles > div.unreachable { .bp-tile-state(@unknown, @unknown-bg); }
+  .tiles > div.pending     { .bp-tile-state(@pending, @pending-bg); }
+  .tiles > div.missing     { .bp-tile-state(@missing, @missing-bg); }
+
+  /* gestiti (ack / downtime): tratteggio sopra la tinta unita */
+  .tiles > div.handled {
+    background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .08) 0, rgba(255, 255, 255, .08) 6px, transparent 6px, transparent 12px) !important;
+  }
+
+  /* ---------- Titolo (tutto il tile è cliccabile) ---------- */
+  .tiles > div > a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding-right: 56px;
+    color: #ffffff !important;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    text-decoration: none !important;
+    overflow-wrap: anywhere;
+    opacity: 1 !important;
+  }
+
+  /* indicatore di stato prima del titolo */
+  .tiles > div > a:before {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: @pending;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .12);
+    transform: translateY(-1px);
+  }
+
+  /* area cliccabile estesa a tutto il tile, sotto azioni e contatori */
+  .tiles > div > a:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* ---------- Icone azioni, in alto a destra ---------- */
+  .tiles > div .actions {
+    position: absolute !important;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    display: flex !important;
+    gap: 4px;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: .6;
+    transition: opacity .18s @ease;
+  }
+
+  .tiles > div:hover .actions,
+  .tiles > div:focus-within .actions {
+    opacity: 1;
+  }
+
+  .tiles > div .actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    transition: background-color .18s @ease;
+  }
+
+  .tiles > div .actions a:hover {
+    background-color: rgba(255, 255, 255, .15);
+  }
+
+  .tiles > div .actions a,
+  .tiles > div .actions i {
+    color: #ffffff !important;
+    text-decoration: none !important;
+  }
+
+  /* ---------- Contatori ---------- */
+  .tiles > div .state-badges {
+    position: relative;
+    z-index: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none;
+  }
+
+  .tiles > div .state-badges ul,
+  .tiles > div .state-badges li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tiles > div .item-count {
+    color: rgba(255, 255, 255, .75) !important;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* pillola bianca con numero colorato: massimo contrasto */
+  .tiles > div .state-badges .state-badge {
+    min-width: 24px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.6;
+    text-align: center;
+    color: #334155 !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  }
+
+  .tiles > div .state-badges .state-ok       { color: #15803d !important; }
+  .tiles > div .state-badges .state-warning  { color: #a16207 !important; }
+  .tiles > div .state-badges .state-critical { color: #b91c1c !important; }
+  .tiles > div .state-badges .state-unknown  { color: #6d28d9 !important; }
+  .tiles > div .state-badges .state-pending  { color: #334155 !important; }
+
+  /* ---------- Unico movimento continuo: critici non gestiti ---------- */
+  .tiles > div.critical:not(.handled),
+  .tiles > div.down:not(.handled) {
+    animation: bp-alert-ring 2.4s ease-out infinite;
+  }
+
+  /* ---------- Accessibilità e mobile ---------- */
+  .tiles > div a:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tiles > div,
+    .tiles > div .actions,
+    .tiles > div .actions a {
+      transition: none;
+      animation: none !important;
+    }
+
+    .tiles > div:hover,
+    .tiles > div:focus-within {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .tiles {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+  }
+}
+
+/* ---------- Elenco dei Business Process (businessprocess, anche nel dashlet) ----------
+ * Ogni BP è un .dashboard-tile: .bp-link > a (radice) e .bp-root-tiles > a.badge
+ * (un quadratino per nodo di primo livello, link a ...&node=<nodo>). Il JS del
+ * modulo apre la radice al clic sul tile, ma un clic su un quadratino apriva
+ * il nodo: i quadratini restano solo indicatori di stato, il clic passa al
+ * tile e apre sempre la radice del BP */
+.icinga-module.module-businessprocess .overview-dashboard .bp-root-tiles > a {
+  pointer-events: none;
+  cursor: inherit;
+}

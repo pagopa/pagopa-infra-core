@@ -1,0 +1,45 @@
+data "azurerm_key_vault" "core" {
+  name                = local.core_key_vault_name
+  resource_group_name = local.core_key_vault_resource_group_name
+}
+
+data "azurerm_key_vault_secret" "metabase_usr" {
+  name         = "metabase-reader-login"
+  key_vault_id = data.azurerm_key_vault.core.id
+}
+
+data "azurerm_key_vault_secret" "metabase_psw" {
+  name         = "metabase-reader-password"
+  key_vault_id = data.azurerm_key_vault.core.id
+}
+
+data "azurerm_key_vault" "kv_domain" {
+  name                = local.kv_domain_name
+  resource_group_name = local.kv_domain_rg
+}
+
+data "azurerm_key_vault_secret" "icinga_vm_private_ip" {
+  name         = "icinga-vm-private-ip"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+data "azurerm_key_vault_secret" "icinga_web_admin_password" {
+  name         = "icinga-web-admin-password"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+data "azurerm_key_vault_secret" "icinga_api_terraform_password" {
+  name         = "icinga-api-terraform-password"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+# token Bearer dei servizi (bearer_token_secret in 99_locals.tf)
+data "azurerm_key_vault_secrets" "kv_domain" {
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+data "azurerm_key_vault_secret" "bearer_tokens" {
+  for_each     = local.bearer_token_secrets
+  name         = each.key
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
