@@ -1,0 +1,23 @@
+[Unit]
+Description=Icinga business process API
+After=network.target
+
+[Service]
+Type=simple
+User=bp-api
+Group=bp-api
+SupplementaryGroups=icingaweb2
+WorkingDirectory=/opt/bp-api
+EnvironmentFile=/etc/default/bp-api
+ExecStart=/opt/bp-api/venv/bin/uvicorn app.main:app --host ${BP_API_HOST} --port ${BP_API_PORT}
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/icingaweb2/modules/businessprocess/processes
+
+[Install]
+WantedBy=multi-user.target
