@@ -39,7 +39,9 @@ data "azapi_resource" "this" {
   for_each    = local.resource_names_flat
   type        = "${each.value.type}@${local.latest_stable[each.value.type]}"
   resource_id = each.value.id
+  # kind: per scegliere la variante (variants in 99_locals.tf), null se assente
   response_export_values = {
     value = local.namespace_commands_map[each.value.type].resource_properties
+    kind  = "kind"
   }
 }
