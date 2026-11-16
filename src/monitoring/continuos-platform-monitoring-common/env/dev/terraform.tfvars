@@ -1,4 +1,4 @@
 env_short            = "d"
 location_short       = "itn"
 env                  = "dev"
-icinga_image_version = "161126-v1"
+icinga_image_version = "161126-v2"
