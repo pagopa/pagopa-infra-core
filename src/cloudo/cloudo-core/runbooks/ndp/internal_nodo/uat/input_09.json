@@ -1354,7 +1354,7 @@
       "274440692",
       "4245520376"
     ],
-    "list_priority": 2
+    "list_priority": 1
   },
   {
     "node_id": "NDP004UAT",
@@ -1363,6 +1363,6 @@
     "routing": 100,
     "broker_psps": [],
     "cis": [],
-    "list_priority": 1
+    "list_priority": 2
   }
 ]
