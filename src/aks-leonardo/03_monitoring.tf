@@ -1,6 +1,9 @@
 resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = "monitoring"
+    labels = {
+      domain = "core" # Icinga Business Process domain (continuos-platform-monitoring-app)
+    }
   }
 }
 
