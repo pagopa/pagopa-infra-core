@@ -1,6 +1,9 @@
 resource "kubernetes_namespace" "ingress" {
   metadata {
     name = "ingress"
+    labels = {
+      domain = "core" # Icinga Business Process domain (continuos-platform-monitoring-app)
+    }
   }
 }
 
