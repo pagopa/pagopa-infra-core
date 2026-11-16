@@ -35,6 +35,17 @@ locals {
   # bearer_token_secret: prefisso del segreto (kv di dominio) con il token Bearer
   # dei servizi, il nome completo è <prefisso><nome risorsa>; le risorse senza
   # segreto hanno solo l'host
+  #
+  # address_format: stringa di format() applicata a resource_properties (%s),
+  # il risultato è l'address e l'http_vhost (se assente si usa il valore letto)
+  #
+  # bp_type: tipo mostrato nel titolo del tile del Business Process
+  # ("<bp_type>: <nome>"), se assente il tipo Azure
+  #
+  # variants: per i tipi con più varianti (es. Cosmos DB NoSQL / for MongoDB),
+  # kind della risorsa => configurazione che sovrascrive quella del tipo
+  # (address_format, bp_type, host_command, host_vars, services); le risorse con un kind
+  # non elencato usano la configurazione del tipo
   # ---------------------------------------------------------------------------
 
   namespace_commands_map = {
@@ -42,6 +53,7 @@ locals {
     # tranne la pagina di Azure delle web app spente
     "Microsoft.Web/sites" = {
       resource_properties = "properties.defaultHostName"
+      bp_type             = "App Service"
       host_command        = "http"
       host_vars = {
         http_ssl               = "true"
@@ -55,6 +67,7 @@ locals {
     "Microsoft.Cdn/profiles/customdomains" = {
       parent_type         = "Microsoft.Cdn/profiles"
       resource_properties = "properties.hostName"
+      bp_type             = "Front Door"
       exclude             = "\\.azureedge\\.net$" # domini residui della migrazione dal CDN classico
       host_command        = "http"
       host_vars = {
@@ -76,6 +89,7 @@ locals {
     # token del ServiceAccount icinga (continuos-platform-monitoring-common)
     "Microsoft.ContainerService/managedClusters" = {
       resource_properties = "properties.privateFQDN || properties.fqdn"
+      bp_type             = "AKS"
       bearer_token_secret = "aks-icinga-token-"
       name                = "[^.]+"
       host_command        = "tcp"
@@ -105,6 +119,7 @@ locals {
     }
     "Microsoft.DBforPostgreSQL/flexibleServers" = {
       resource_properties = "properties.fullyQualifiedDomainName"
+      bp_type             = "PostgreSQL"
       name                = "[^.]+"
       host_command        = "tcp"
       host_vars           = { tcp_port = "5432" }
@@ -115,6 +130,51 @@ locals {
             pgsql_database = "postgres"
             pgsql_username = data.azurerm_key_vault_secret.metabase_usr.value
             pgsql_password = data.azurerm_key_vault_secret.metabase_psw.value
+          }
+        }
+      }
+    }
+    # Cosmos DB: NoSQL e for MongoDB (RU) hanno lo stesso tipo, cambia il kind
+    # (GlobalDocumentDB / MongoDB). L'endpoint Mongo non è tra le proprietà:
+    # l'address si costruisce dal nome dell'account
+    "Microsoft.DocumentDB/databaseAccounts" = {
+      resource_properties = "name"
+      bp_type             = "Cosmos DB"
+      variants = {
+        # host UP se il gateway REST risponde: senza autenticazione 401 (403 se
+        # la VM non è tra le reti ammesse dal firewall)
+        GlobalDocumentDB = {
+          address_format = "%s.documents.azure.com"
+          bp_type        = "Cosmos NoSQL"
+          host_command   = "http"
+          host_vars = {
+            http_ssl    = "true"
+            http_sni    = "true"
+            http_uri    = "/"
+            http_expect = "401,403"
+          }
+        }
+        # host UP se l'endpoint Mongo (wire protocol su TLS) completa
+        # l'handshake TLS sulla 10255
+        MongoDB = {
+          address_format = "%s.mongo.cosmos.azure.com"
+          bp_type        = "Cosmos Mongo"
+          host_command   = "tcp"
+          host_vars = {
+            tcp_port = "10255"
+            tcp_ssl  = "true"
+          }
+          services = {
+            # ping + listDatabases con la read-only key, letta da ARM dal plugin
+            # con la managed identity della VM (cosmos_mongo, common); soglie in
+            # ms sul tempo della query (listDatabases), connect solo in perfdata
+            "mongo" = {
+              check_command = "cosmos_mongo"
+              vars = {
+                cosmos_mongo_warning  = "500"
+                cosmos_mongo_critical = "2000"
+              }
+            }
           }
         }
       }
@@ -216,23 +276,42 @@ locals {
     ]) : x.cd => x.host...
   }
 
+  # configurazione Icinga della risorsa: quella del tipo, sovrascritta dalla
+  # variante del kind se presente (variants)
+  resource_configs = {
+    for k, v in local.resource_names_flat : k => merge(
+      local.namespace_commands_map[v.type],
+      try(local.namespace_commands_map[v.type].variants[data.azapi_resource.this[k].output.kind], {})
+    )
+  }
+
   # risorsa arricchita con la configurazione Icinga e l'address letto da Azure
   resources_full = {
     for k, v in local.resource_names_flat : k => merge(v, {
-      host_command = try(local.namespace_commands_map[v.type].host_command, "hostalive")
-      host_vars    = try(local.namespace_commands_map[v.type].host_vars, {})
-      services     = try(local.namespace_commands_map[v.type].services, {})
+      kind         = data.azapi_resource.this[k].output.kind
+      bp_type      = try(local.resource_configs[k].bp_type, v.type)
+      host_command = try(local.resource_configs[k].host_command, "hostalive")
+      host_vars    = try(local.resource_configs[k].host_vars, {})
+      services     = try(local.resource_configs[k].services, {})
       # "" se il tipo non usa token
-      bearer_token_secret = try("${local.namespace_commands_map[v.type].bearer_token_secret}${v.name}", "")
-      property_value      = data.azapi_resource.this[k].output.value
+      bearer_token_secret = try("${local.resource_configs[k].bearer_token_secret}${v.name}", "")
+      # valore letto da Azure, formattato con address_format se presente
+      property_value = try(
+        format(local.resource_configs[k].address_format, data.azapi_resource.this[k].output.value),
+        data.azapi_resource.this[k].output.value
+      )
       # per i custom domain l'endpoint AFD, altrimenti il valore letto da Azure
-      address = try(local.afd_custom_domain_endpoints[lower(v.id)][0], data.azapi_resource.this[k].output.value)
+      address = try(
+        local.afd_custom_domain_endpoints[lower(v.id)][0],
+        format(local.resource_configs[k].address_format, data.azapi_resource.this[k].output.value),
+        data.azapi_resource.this[k].output.value
+      )
       icinga_name = try(
-        regex(local.namespace_commands_map[v.type].name, data.azapi_resource.this[k].output.value),
+        regex(local.resource_configs[k].name, data.azapi_resource.this[k].output.value),
         data.azapi_resource.this[k].output.value
       )
     })
-    if !can(regex(local.namespace_commands_map[v.type].exclude, data.azapi_resource.this[k].output.value))
+    if !can(regex(local.resource_configs[k].exclude, data.azapi_resource.this[k].output.value))
   }
 
   # ---------------------------------------------------------------------------
@@ -324,21 +403,23 @@ locals {
   bp_file     = "${local.bp_dir}/${local.bp_name}.conf"
 
   # namespace => nodo con il solo check del namespace e un titolo leggibile
-  # ("namespace ACA on WEU"): il provider icinga2 non gestisce display_name e
+  # ("AKS: ACA on WEU"): il provider icinga2 non gestisce display_name e
   # Icinga Web mostrerebbe "<servizio> on <host>"
   bp_namespaces = {
     for k, s in local.aks_namespace_services :
     replace("k8s_${k}", local.bp_sanitize, "_") => {
-      title  = "namespace ${upper(s.vars.k8s_namespace)} on ${upper(regex("^([a-z0-9]+)-namespace-", k)[0])}"
+      title  = "AKS: ${upper(s.vars.k8s_namespace)} on ${upper(regex("^([a-z0-9]+)-namespace-", k)[0])}"
       domain = replace(s.domain, local.bp_sanitize, "_")
       check  = "${local.resources_full[s.host_key].icinga_name};${s.name}"
     }
   }
 
-  # host => dominio + check ("<host>;Hoststatus" e "<host>;<servizio>")
+  # host => titolo ("<bp_type>: <nome>"), dominio e check ("<host>;Hoststatus"
+  # e "<host>;<servizio>")
   bp_hosts = {
     for k, v in local.resources_full :
     replace(v.icinga_name, local.bp_sanitize, "_") => {
+      title  = "${v.bp_type}: ${v.icinga_name}"
       domain = replace(v.domain, local.bp_sanitize, "_")
       checks = concat(
         ["${v.icinga_name};Hoststatus"],

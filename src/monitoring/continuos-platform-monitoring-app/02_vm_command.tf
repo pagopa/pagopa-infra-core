@@ -3,10 +3,18 @@ data "azurerm_virtual_machine" "icinga_vm" {
   resource_group_name = "${local.project}-icinga-rg"
 }
 
+# vmId: identifica l'istanza della VM, cambia quando la VM viene ricreata (l'id
+# ARM invece resta uguale, stesso nome e resource group)
+data "azapi_resource" "icinga_vm" {
+  type                   = "Microsoft.Compute/virtualMachines@2024-07-01"
+  resource_id            = data.azurerm_virtual_machine.icinga_vm.id
+  response_export_values = { vm_id = "properties.vmId" }
+}
 
+# riscrive il Business Process quando cambia o la VM viene ricreata
 resource "terraform_data" "icinga_vm_bp" {
   triggers_replace = [
-    data.azurerm_virtual_machine.icinga_vm.id,
+    data.azapi_resource.icinga_vm.output.vm_id,
     sha256(local.bp_content),
   ]
 

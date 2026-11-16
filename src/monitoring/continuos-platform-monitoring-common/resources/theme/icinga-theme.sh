@@ -3,10 +3,10 @@ set -euo pipefail
 
 # -----------------------------------------------------------------------------
 # Icinga Web "pagopa" module (theme pagopa/default), files from
-# templates/theme. Run by terraform_data.icinga_theme (07_theme.tf) after
+# resources/theme/files. Run by terraform_data.icinga_theme (07_theme.tf) after
 # icinga-configure.sh, which sets the theme as default.
 # The commands that write the files are added where Terraform runs, in place
-# of the "@THEME_FILES@" line (templates/run-command.sh runs the result).
+# of the "@FILES@" line (resources/run-command/run-command.sh).
 # The module is rebuilt in a staging directory and swapped, so files removed
 # from the repository are removed from the VM too
 # -----------------------------------------------------------------------------
@@ -18,7 +18,7 @@ MODULE_DIR="$MODULES_DIR/pagopa"
 STAGE="$(mktemp -d "$MODULES_DIR/.pagopa.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 
-# @THEME_FILES@
+# @FILES@
 chmod -R u=rwX,go=rX "$STAGE"
 
 rm -rf "$MODULE_DIR.old"
