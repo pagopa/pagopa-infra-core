@@ -37,6 +37,14 @@ resource "azurerm_key_vault_access_policy" "icinga_vm" {
   secret_permissions = ["Get", "List"]
 }
 
+# read-only keys of the Cosmos DB accounts, used by the check_cosmos_mongo plugin
+# (icinga-configure.sh) to authenticate to the Mongo endpoints
+resource "azurerm_role_assignment" "icinga_vm_cosmos_reader" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Cosmos DB Account Reader Role"
+  principal_id         = azurerm_user_assigned_identity.icinga.principal_id
+}
+
 resource "azurerm_linux_virtual_machine" "icinga" {
   name                            = "${local.project}-icinga-vm"
   location                        = azurerm_resource_group.icinga_rg.location
@@ -68,10 +76,11 @@ resource "azurerm_linux_virtual_machine" "icinga" {
 }
 
 # -----------------------------------------------------------------------------
-# Icinga configuration (icinga-configure.sh), run once by templates/run-command.sh
-# with a run command deleted at the end. Re-run when the script, a secret
-# version or a kubeconfig changes (local.icinga_configure_hash) or the VM is
-# replaced. Requires the Azure CLI logged in
+# Icinga configuration (resources/configure/icinga-configure.sh) with the check
+# plugins of resources/plugins, run once by resources/run-command/run-command.sh
+# with a run command deleted at the end. Re-run when the script, a plugin, a
+# secret version or a kubeconfig changes (local.icinga_configure_hash) or the VM
+# is replaced. Requires the Azure CLI logged in
 # -----------------------------------------------------------------------------
 resource "terraform_data" "icinga_configure" {
   triggers_replace = [
@@ -80,7 +89,7 @@ resource "terraform_data" "icinga_configure" {
   ]
 
   provisioner "local-exec" {
-    command = "${path.module}/templates/run-command.sh"
+    command = local.icinga_run_command
 
     environment = merge(
       {
@@ -89,7 +98,9 @@ resource "terraform_data" "icinga_configure" {
         VM_NAME         = azurerm_linux_virtual_machine.icinga.name
         LOCATION        = azurerm_linux_virtual_machine.icinga.location
         RUN_NAME        = "icinga-configure-${local.icinga_configure_hash}"
-        SCRIPT_PATH     = "${path.module}/templates/icinga-configure.sh"
+        SCRIPT_PATH     = "${local.icinga_resources_dir}/configure/icinga-configure.sh"
+        # installed by icinga-configure.sh ("@FILES@")
+        EMBED_DIR = local.icinga_plugins_dir
 
         PARAMETERS = join(" ", [
           "ICINGAWEB_ADMIN_USER", "ICINGA_FQDN", "TLS_SECRET_URL", "TLS_MSI_CLIENT_ID",

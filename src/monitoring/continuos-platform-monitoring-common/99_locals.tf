@@ -47,9 +47,15 @@ locals {
   # versionless: icinga-tls-sync (icinga-configure.sh) always reads the latest version
   icinga_tls_secret_url = "${data.azurerm_key_vault.domain_kv.vault_uri}secrets/${local.icinga_tls_cert_name}"
 
+  # scripts run on the VM and installed on it (resources/)
+  icinga_resources_dir = "${path.module}/resources"
+  icinga_plugins_dir   = "${local.icinga_resources_dir}/plugins"
+  icinga_run_command   = "${local.icinga_resources_dir}/run-command/run-command.sh"
+
   # identifies the Icinga configuration run, see 05_vm.tf
   icinga_configure_hash = substr(sha256(jsonencode([
-    filesha256("${path.module}/templates/icinga-configure.sh"),
+    filesha256("${local.icinga_resources_dir}/configure/icinga-configure.sh"),
+    { for f in sort(fileset(local.icinga_plugins_dir, "**")) : f => filesha256("${local.icinga_plugins_dir}/${f}") },
     data.azurerm_key_vault_secret.icingadb_db_password.version,
     data.azurerm_key_vault_secret.icingaweb_db_password.version,
     data.azurerm_key_vault_secret.icingaweb_admin_password.version,

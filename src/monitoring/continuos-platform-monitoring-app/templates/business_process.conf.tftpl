@@ -6,9 +6,11 @@
 #
 ###################################
 
-# Host: Hoststatus + tutti i servizi dell'host
+# Host: Hoststatus + tutti i servizi dell'host, con il titolo "<tipo>: <nome>"
+# (display 0 = non di primo livello)
 %{ for host, h in hosts ~}
 ${host} = ${join(" & ", h.checks)}
+display 0;${host};${h.title}
 %{ endfor ~}
 
 # Namespace AKS: un nodo per check, con il titolo (display 0 = non di primo livello)
