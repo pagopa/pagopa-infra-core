@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/opt/icinga-plugins/venv/bin/python3
+# Python of the plugins virtualenv, with pymongo (icinga-configure.sh)
 # usage: check_cosmos_mongo -i <resource id> -H <host> -m <MSI client id> [-w <ms>] [-c <ms>]
 # Connects to the Mongo endpoint (TLS, port 10255) with the read-only key of the
 # account, then runs ping and listDatabases. The thresholds apply to the query
@@ -45,9 +46,9 @@ warnings.filterwarnings("ignore", message="You appear to be connected to a Cosmo
 
 try:
     from pymongo import MongoClient
-    from pymongo.errors import OperationFailure, PyMongoError
+    from pymongo.errors import ConfigurationError, OperationFailure, PyMongoError
 except ImportError:
-    finish(UNKNOWN, "python3-pymongo is not installed")
+    finish(UNKNOWN, "pymongo is not installed in the plugins virtualenv")
 
 
 def cache_path(resource_id):
@@ -163,6 +164,9 @@ def main():
             # key rotated since it was cached
             key = arm_key(args.resource_id, args.client_id)
             connect_ms, query_ms, databases = round_trip(args.host, account, key)
+    except ConfigurationError as e:
+        # e.g. server version not supported by the driver: a monitoring problem
+        finish(UNKNOWN, f"{args.host}: {str(e).splitlines()[0][:300]}")
     except PyMongoError as e:
         finish(CRITICAL, f"{args.host}: {str(e).splitlines()[0][:300]}")
 

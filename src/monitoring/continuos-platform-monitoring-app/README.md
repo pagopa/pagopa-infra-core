@@ -24,6 +24,8 @@
 
 | Name | Type |
 |------|------|
+| [azurerm_cosmosdb_sql_role_assignment.icinga_read_metadata](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
+| [azurerm_cosmosdb_sql_role_definition.icinga_read_metadata](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_definition) | resource |
 | [icinga2_host.hosts](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/host) | resource |
 | [icinga2_service.aks_namespaces](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |
 | [icinga2_service.services](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |
@@ -48,6 +50,7 @@
 | [azurerm_key_vault_secrets.kv_domain](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secrets) | data source |
 | [azurerm_resources.sub_resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
 | [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) | data source |
+| [azurerm_user_assigned_identity.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
 | [azurerm_virtual_machine.icinga_vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) | data source |
 | [kubernetes_resources.namespaces_itn](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/resources) | data source |
 | [kubernetes_resources.namespaces_weu](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/resources) | data source |

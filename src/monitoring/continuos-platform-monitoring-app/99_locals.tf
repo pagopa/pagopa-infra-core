@@ -26,6 +26,9 @@ locals {
   # name: regex applicata a resource_properties, il primo match è il nome
   # dell'host Icinga (se assente si usa l'intero valore)
   #
+  # icinga_name_from: "resource" per usare il nome della risorsa Azure come nome
+  # dell'host Icinga (ha la precedenza su name)
+  #
   # parent_type: per le risorse figlie non elencabili direttamente (es. custom
   # domain), tipo del padre da cui leggerle; il dominio è quello del padre
   #
@@ -43,9 +46,11 @@ locals {
   # ("<bp_type>: <nome>"), se assente il tipo Azure
   #
   # variants: per i tipi con più varianti (es. Cosmos DB NoSQL / for MongoDB),
-  # kind della risorsa => configurazione che sovrascrive quella del tipo
-  # (address_format, bp_type, host_command, host_vars, services); le risorse con un kind
-  # non elencato usano la configurazione del tipo
+  # variante della risorsa => configurazione che sovrascrive quella del tipo
+  # (address_format, bp_type, host_command, host_vars, services). La variante è
+  # la capability API della risorsa se presente (variant_capabilities, es.
+  # EnableTable), altrimenti il kind; le risorse con una variante non elencata
+  # usano la configurazione del tipo
   # ---------------------------------------------------------------------------
 
   namespace_commands_map = {
@@ -91,9 +96,10 @@ locals {
       resource_properties = "properties.privateFQDN || properties.fqdn"
       bp_type             = "AKS"
       bearer_token_secret = "aks-icinga-token-"
-      name                = "[^.]+"
-      host_command        = "tcp"
-      host_vars           = { tcp_port = "443" }
+      # l'FQDN contiene un suffisso generato da Azure: host col nome del cluster
+      icinga_name_from = "resource"
+      host_command     = "tcp"
+      host_vars        = { tcp_port = "443" }
       services = {
         "readyz" = {
           check_command = "http"
@@ -124,25 +130,36 @@ locals {
       host_command        = "tcp"
       host_vars           = { tcp_port = "5432" }
       services = {
+        # login + percentuale di max_connections usata dai client (esclusi i
+        # processi interni); statement_timeout: il server interrompe la query
+        # dopo 5s. Una connessione per check, chiusa a fine query
         "pgsql" = {
           check_command = "pgsql"
           vars = {
-            pgsql_database = "postgres"
-            pgsql_username = data.azurerm_key_vault_secret.metabase_usr.value
-            pgsql_password = data.azurerm_key_vault_secret.metabase_psw.value
+            pgsql_database       = "postgres"
+            pgsql_username       = data.azurerm_key_vault_secret.metabase_usr.value
+            pgsql_password       = data.azurerm_key_vault_secret.metabase_psw.value
+            pgsql_options        = "options='-c statement_timeout=5000'"
+            pgsql_query          = "SELECT round(count(*) * 100.0 / current_setting('max_connections')::int, 2) FROM pg_stat_activity WHERE backend_type = 'client backend'"
+            pgsql_query_warning  = "80"
+            pgsql_query_critical = "90"
           }
         }
       }
     }
     # Cosmos DB: NoSQL e for MongoDB (RU) hanno lo stesso tipo, cambia il kind
-    # (GlobalDocumentDB / MongoDB). L'endpoint Mongo non è tra le proprietà:
-    # l'address si costruisce dal nome dell'account
+    # (GlobalDocumentDB / MongoDB); Table ha kind GlobalDocumentDB e capability
+    # EnableTable. L'endpoint non è tra le proprietà: l'address si costruisce
+    # dal nome dell'account
     "Microsoft.DocumentDB/databaseAccounts" = {
-      resource_properties = "name"
-      bp_type             = "Cosmos DB"
+      resource_properties  = "name"
+      bp_type              = "Cosmos DB"
+      variant_capabilities = ["EnableTable", "EnableGremlin", "EnableCassandra"]
       variants = {
-        # host UP se il gateway REST risponde: senza autenticazione 401 (403 se
-        # la VM non è tra le reti ammesse dal firewall)
+        # host UP se il gateway REST risponde 401 (senza autenticazione); 403 =
+        # VM non ammessa dal firewall dell'account => DOWN. GET /dbs con un
+        # token Entra della managed identity (cosmos_nosql, common), che ha solo
+        # readMetadata sull'account (03_cosmos_rbac.tf)
         GlobalDocumentDB = {
           address_format = "%s.documents.azure.com"
           bp_type        = "Cosmos NoSQL"
@@ -151,7 +168,29 @@ locals {
             http_ssl    = "true"
             http_sni    = "true"
             http_uri    = "/"
-            http_expect = "401,403"
+            http_expect = "401"
+          }
+          services = {
+            "nosql" = {
+              check_command = "cosmos_nosql"
+              vars = {
+                cosmos_nosql_warning  = "500"
+                cosmos_nosql_critical = "2000"
+              }
+            }
+          }
+        }
+        # Table: stesso gateway e stesso host check del NoSQL, senza servizi
+        # (i ruoli data-plane NoSQL non valgono per le API Table)
+        EnableTable = {
+          address_format = "%s.documents.azure.com"
+          bp_type        = "Cosmos Table"
+          host_command   = "http"
+          host_vars = {
+            http_ssl    = "true"
+            http_sni    = "true"
+            http_uri    = "/"
+            http_expect = "401"
           }
         }
         # host UP se l'endpoint Mongo (wire protocol su TLS) completa
@@ -276,12 +315,24 @@ locals {
     ]) : x.cd => x.host...
   }
 
+  # variante della risorsa: la prima capability tra le variant_capabilities del
+  # tipo, altrimenti il kind (null se assente)
+  resource_variants = {
+    for k, v in local.resource_names_flat : k => try(
+      [
+        for c in local.namespace_commands_map[v.type].variant_capabilities : c
+        if contains(coalesce(data.azapi_resource.this[k].output.capabilities, []), c)
+      ][0],
+      data.azapi_resource.this[k].output.kind
+    )
+  }
+
   # configurazione Icinga della risorsa: quella del tipo, sovrascritta dalla
-  # variante del kind se presente (variants)
+  # variante se presente (variants)
   resource_configs = {
     for k, v in local.resource_names_flat : k => merge(
       local.namespace_commands_map[v.type],
-      try(local.namespace_commands_map[v.type].variants[data.azapi_resource.this[k].output.kind], {})
+      try(local.namespace_commands_map[v.type].variants[local.resource_variants[k]], {})
     )
   }
 
@@ -289,6 +340,7 @@ locals {
   resources_full = {
     for k, v in local.resource_names_flat : k => merge(v, {
       kind         = data.azapi_resource.this[k].output.kind
+      variant      = local.resource_variants[k]
       bp_type      = try(local.resource_configs[k].bp_type, v.type)
       host_command = try(local.resource_configs[k].host_command, "hostalive")
       host_vars    = try(local.resource_configs[k].host_vars, {})
@@ -306,9 +358,11 @@ locals {
         format(local.resource_configs[k].address_format, data.azapi_resource.this[k].output.value),
         data.azapi_resource.this[k].output.value
       )
-      icinga_name = try(
-        regex(local.resource_configs[k].name, data.azapi_resource.this[k].output.value),
-        data.azapi_resource.this[k].output.value
+      icinga_name = (
+        try(local.resource_configs[k].icinga_name_from, "") == "resource" ? v.name : try(
+          regex(local.resource_configs[k].name, data.azapi_resource.this[k].output.value),
+          data.azapi_resource.this[k].output.value
+        )
       )
     })
     if !can(regex(local.resource_configs[k].exclude, data.azapi_resource.this[k].output.value))
