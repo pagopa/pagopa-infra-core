@@ -8,6 +8,8 @@ echo "icinga-configure!!!"
 # Run by terraform_data.icinga_configure (05_vm.tf) on top of the Packer
 # image built by resources/packer/script-custom.sh, with the check plugins of
 # resources/plugins. Idempotent: re-run to apply new passwords.
+# Configuration only: files, databases, users, schemas, modules and services.
+# No software is installed or downloaded here, it belongs to the image
 # -----------------------------------------------------------------------------
 : "${ICINGADB_DB_PASSWORD:?ICINGADB_DB_PASSWORD must be set}"
 : "${ICINGAWEB_DB_PASSWORD:?ICINGAWEB_DB_PASSWORD must be set}"
@@ -80,6 +82,8 @@ DIRECTOR_API_PASSWORD="$(openssl rand -hex 32)"
 KUBERNETES_DB_PASSWORD="$(openssl rand -hex 32)"
 # local only read-only database user of the check_k8s_namespace plugin
 KUBERNETES_CHECK_DB_PASSWORD="$(openssl rand -hex 32)"
+# local only database user of Icinga Reporting
+REPORTING_DB_PASSWORD="$(openssl rand -hex 32)"
 
 # write stdin to <path> with <owner:group> and <mode>
 write_file() {
@@ -91,25 +95,67 @@ write_file() {
 # -----------------------------------------------------------------------------
 # MySQL
 # -----------------------------------------------------------------------------
+# binary logs off: no replica and no point-in-time recovery here, while MySQL 8
+# keeps them for 30 days by default and Icinga for Kubernetes writes ~100 MB of
+# them every 20 minutes, filling the OS disk. MySQL is restarted only when the
+# file changes, the binary logs already written are then removed
+MYSQL_ICINGA_CNF=/etc/mysql/mysql.conf.d/zz-icinga.cnf
+MYSQL_ICINGA_CNF_CONTENT='[mysqld]
+skip-log-bin'
+if [[ "$(cat "$MYSQL_ICINGA_CNF" 2>/dev/null)" != "$MYSQL_ICINGA_CNF_CONTENT" ]]; then
+  printf '%s\n' "$MYSQL_ICINGA_CNF_CONTENT" | write_file root:root 0644 "$MYSQL_ICINGA_CNF"
+  systemctl restart mysql
+fi
+rm -f /var/lib/mysql/binlog.[0-9]* /var/lib/mysql/binlog.index
+
+# one database and one local user per component, passwords re-applied at every run
 mysql <<SQL
+-- Icinga DB: monitoring state and history, written by the icingadb daemon
+CREATE DATABASE IF NOT EXISTS icingadb;
+CREATE USER IF NOT EXISTS 'icingadb'@'localhost' IDENTIFIED BY '${ICINGADB_DB_PASSWORD}';
 ALTER USER 'icingadb'@'localhost' IDENTIFIED BY '${ICINGADB_DB_PASSWORD}';
+GRANT ALL ON icingadb.* TO 'icingadb'@'localhost';
+-- Icinga Web 2: users, preferences, local admin
 CREATE DATABASE IF NOT EXISTS icingaweb2;
 CREATE USER IF NOT EXISTS 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB_PASSWORD}';
 ALTER USER 'icingaweb2'@'localhost' IDENTIFIED BY '${ICINGAWEB_DB_PASSWORD}';
 GRANT ALL ON icingaweb2.* TO 'icingaweb2'@'localhost';
+-- Certificate Monitoring (x509 module)
+CREATE DATABASE IF NOT EXISTS x509;
+CREATE USER IF NOT EXISTS 'x509'@'localhost' IDENTIFIED BY '${X509_DB_PASSWORD}';
 ALTER USER 'x509'@'localhost' IDENTIFIED BY '${X509_DB_PASSWORD}';
+GRANT CREATE, SELECT, INSERT, UPDATE, DELETE, DROP, ALTER, CREATE VIEW, INDEX, EXECUTE ON x509.* TO 'x509'@'localhost';
+-- Icinga Director
 CREATE DATABASE IF NOT EXISTS director CHARACTER SET 'utf8mb4' COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'director'@'localhost' IDENTIFIED BY '${DIRECTOR_DB_PASSWORD}';
 ALTER USER 'director'@'localhost' IDENTIFIED BY '${DIRECTOR_DB_PASSWORD}';
 GRANT ALL ON director.* TO 'director'@'localhost';
+-- Icinga for Kubernetes: state of the AKS clusters
 CREATE DATABASE IF NOT EXISTS kubernetes CHARACTER SET 'utf8mb4' COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'kubernetes'@'localhost' IDENTIFIED BY '${KUBERNETES_DB_PASSWORD}';
 ALTER USER 'kubernetes'@'localhost' IDENTIFIED BY '${KUBERNETES_DB_PASSWORD}';
 GRANT ALL ON kubernetes.* TO 'kubernetes'@'localhost';
+-- read-only user of the check_k8s_namespace plugin
 CREATE USER IF NOT EXISTS 'kubernetes_check'@'localhost' IDENTIFIED BY '${KUBERNETES_CHECK_DB_PASSWORD}';
 ALTER USER 'kubernetes_check'@'localhost' IDENTIFIED BY '${KUBERNETES_CHECK_DB_PASSWORD}';
 GRANT SELECT ON kubernetes.* TO 'kubernetes_check'@'localhost';
+-- Icinga Reporting: reports, timeframes, schedules
+CREATE DATABASE IF NOT EXISTS reporting CHARACTER SET 'utf8mb4' COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'reporting'@'localhost' IDENTIFIED BY '${REPORTING_DB_PASSWORD}';
+ALTER USER 'reporting'@'localhost' IDENTIFIED BY '${REPORTING_DB_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, CREATE VIEW, INDEX, EXECUTE ON reporting.* TO 'reporting'@'localhost';
 SQL
+
+# import the schemas only once (empty database). Icinga Web 2 is below, Director
+# and Icinga for Kubernetes create and migrate their own
+import_schema() {
+  if [ "$(mysql -N -s -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$1'")" -eq 0 ]; then
+    mysql "$1" < "$2"
+  fi
+}
+import_schema icingadb /usr/share/icingadb/schema/mysql/schema.sql
+import_schema x509 /usr/share/icingaweb2/modules/x509/schema/mysql.schema.sql
+import_schema reporting /usr/share/icingaweb2/modules/reporting/schema/mysql.schema.sql
 
 # import the Icinga Web 2 schema only once
 if [ "$(mysql -N -s -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'icingaweb2'")" -eq 0 ]; then
@@ -264,16 +310,13 @@ object CheckCommand "k8s_namespace" {
 EOF
 
 # -----------------------------------------------------------------------------
-# Cosmos DB for MongoDB check: authenticated round trip (ping + listDatabases)
-# with the read-only key of the account, read from ARM with the managed identity
-# of the VM (Cosmos DB Account Reader Role, 05_vm.tf). Services created by Terraform
+# Cosmos DB checks, services created by Terraform:
+# - for MongoDB: authenticated round trip (ping + listDatabases) with the
+#   read-only key of the account, read from ARM with the managed identity of the
+#   VM (Cosmos DB Account Reader Role, 05_vm.tf)
+# - for NoSQL: GET /dbs with an Entra ID token of the same identity
 # -----------------------------------------------------------------------------
-# already in images built with the current resources/packer/script-custom.sh,
-# installed here on older ones
-if ! dpkg-query -W -f '${Status}' python3-pymongo 2>/dev/null | grep -q "install ok installed"; then
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pymongo
-fi
+# pymongo: virtualenv /opt/icinga-plugins/venv of the image (resources/packer/script-custom.sh)
 
 # read-only keys cache, readable by the plugin user only
 install -d -o nagios -g nagios -m 0700 /var/cache/icinga2/cosmos-check
@@ -293,6 +336,21 @@ object CheckCommand "cosmos_mongo" {
   vars.cosmos_msi_client_id = "${TLS_MSI_CLIENT_ID}"
   vars.cosmos_mongo_warning = 500
   vars.cosmos_mongo_critical = 2000
+}
+
+// Cosmos DB for NoSQL: GET /dbs on the gateway with an Entra ID token of the
+// managed identity (readMetadata only, data-plane role created by Terraform, app)
+object CheckCommand "cosmos_nosql" {
+  command = [ "/usr/local/lib/nagios/plugins/check_cosmos_nosql" ]
+  arguments = {
+    "-H" = { value = "\$address\$", required = true }
+    "-m" = { value = "\$cosmos_msi_client_id\$", required = true }
+    "-w" = "\$cosmos_nosql_warning\$"
+    "-c" = "\$cosmos_nosql_critical\$"
+  }
+  vars.cosmos_msi_client_id = "${TLS_MSI_CLIENT_ID}"
+  vars.cosmos_nosql_warning = 500
+  vars.cosmos_nosql_critical = 2000
 }
 EOF
 
@@ -318,6 +376,12 @@ database:
 redis:
   host: localhost
   port: 6380
+
+# history (state changes, notifications, downtimes, acknowledgements, comments)
+# kept 30 days, SLA data (Icinga Reporting) one year: removed by Icinga DB itself
+retention:
+  history-days: 30
+  sla-days: 365
 EOF
 
 systemctl enable icingadb
@@ -328,24 +392,6 @@ systemctl restart icingadb
 # https://icinga.com/docs/icinga-for-kubernetes/latest/doc/02-Installation/
 # The schema is imported and migrated by the daemon itself
 # -----------------------------------------------------------------------------
-# already in images built with the current script-custom.sh, installed here on older ones
-ICINGA_KUBERNETES_VERSION="0.4.0-1+ubuntu$(. /etc/os-release; echo "$VERSION_ID")"
-for pkg in icinga-kubernetes icinga-kubernetes-web; do
-  if [ "$(dpkg-query -W -f '${Version}' "$pkg" 2>/dev/null)" != "$ICINGA_KUBERNETES_VERSION" ]; then
-    apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      "icinga-kubernetes=${ICINGA_KUBERNETES_VERSION}" "icinga-kubernetes-web=${ICINGA_KUBERNETES_VERSION}"
-    break
-  fi
-done
-
-# icinga-kubernetes-web 0.4.0: HighlightDelta throws "Short name must be part of
-# long name" when a pod name does not contain its ReplicaSet name (Kubernetes
-# truncates the generated prefix to 58 chars), breaking the Deployment view.
-# The full name is shown instead. No-op once patched or fixed upstream
-sed -i "s|throw new InvalidArgumentException('Short name must be part of long name');|\$this->short = '';|" \
-  /usr/share/icingaweb2/modules/kubernetes/library/Kubernetes/Web/Widget/HighlightDelta.php
-
 write_file root:icinga-kubernetes 0640 /etc/icinga-kubernetes/config.yml <<EOF
 database:
   host: localhost
@@ -407,7 +453,9 @@ install -d -o root -g icingaweb2 -m 2770 \
   /etc/icingaweb2/modules/businessprocess \
   /etc/icingaweb2/modules/businessprocess/processes \
   /etc/icingaweb2/modules/sso \
-  /etc/icingaweb2/modules/kubernetes
+  /etc/icingaweb2/modules/kubernetes \
+  /etc/icingaweb2/modules/pdfexport \
+  /etc/icingaweb2/modules/reporting
 
 write_file root:icingaweb2 0660 /etc/icingaweb2/resources.ini <<EOF
 [icingaweb_db]
@@ -454,6 +502,16 @@ dbname = "kubernetes"
 username = "kubernetes"
 password = "${KUBERNETES_DB_PASSWORD}"
 charset = "utf8mb4"
+
+; default resource name of Icinga Reporting, no reporting/config.ini needed
+[reporting]
+type = "db"
+db = "mysql"
+host = "localhost"
+dbname = "reporting"
+username = "reporting"
+password = "${REPORTING_DB_PASSWORD}"
+charset = "utf8mb4"
 EOF
 
 write_file root:icingaweb2 0660 /etc/icingaweb2/config.ini <<EOF
@@ -495,16 +553,17 @@ $(role_groups "$ADMIN_GROUP_IDS")
 permissions = "*"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 
-; Business Process view and edit, Icinga DB read-only, no Director and Kubernetes
+; Business Process view and edit, Icinga DB read-only, reports view and edit
+; (no schedules, templates and timeframes), no Director and Kubernetes
 [Editor]
 $(role_groups "$EDITOR_GROUP_IDS")
-permissions = "module/businessprocess,businessprocess/showall,businessprocess/create,businessprocess/modify,module/icingadb,module/pagopa"
+permissions = "module/businessprocess,businessprocess/showall,businessprocess/create,businessprocess/modify,module/icingadb,module/pagopa,module/reporting,reporting/reports"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 
-; Business Process view, Icinga DB read-only
+; Business Process view, Icinga DB read-only, reports view
 [Viewer]
 $(role_groups "$VIEWER_GROUP_IDS")
-permissions = "module/businessprocess,businessprocess/showall,module/icingadb,module/pagopa"
+permissions = "module/businessprocess,businessprocess/showall,module/icingadb,module/pagopa,module/reporting"
 icingadb/protect/variables = "http_header,*pass*,*token*"
 EOF
 
@@ -570,7 +629,7 @@ map_groups = "y"
 groups_claim = "groups"
 EOF
 
-for module in icingadb businessprocess x509 director sso kubernetes; do
+for module in icingadb businessprocess x509 director sso kubernetes pdfexport reporting; do
   icingacli module enable "$module"
 done
 
