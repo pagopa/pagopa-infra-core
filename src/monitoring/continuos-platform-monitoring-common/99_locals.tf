@@ -24,7 +24,7 @@ locals {
   #   Viewer: Business Process view, Icinga DB read-only
   icinga_roles = {
     Admin  = ["pagopa-${var.env_short}-adgroup-admin"]
-    Editor = []
+    Editor = ["pagopa-${var.env_short}-adgroup-operations"]
     Viewer = []
   }
 
@@ -32,6 +32,8 @@ locals {
   # Icinga VM
   # ---------------------------------------------------------------------------
   icinga_vm_size = var.env_short != "p" ? "Standard_B2s_v2" : "Standard_D2as_v5"
+  # LUN of the Icinga data disk (06_disk.tf): /dev/disk/azure/scsi1/lun0 on the VM
+  icinga_data_disk_lun = 0
 
   vnet_tools_name = "${local.product}-${local.location_short}-spoke-tools-vnet"
   vnet_tools_rg   = "${local.product}-${local.location_short}-network-hub-spoke-rg"

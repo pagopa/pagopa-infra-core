@@ -15,7 +15,8 @@ data "azurerm_log_analytics_workspace" "core" {
 }
 
 # authenticates with the user-assigned identity, the only one of the VM.
-# After the run commands: extension operations on the same VM can't overlap
+# After the run commands, also the one of the data disk release at destroy:
+# extension operations on the same VM can't overlap
 resource "azurerm_virtual_machine_extension" "icinga_ama" {
   count = var.icinga_vm_alerts_enabled ? 1 : 0
 
@@ -38,7 +39,7 @@ resource "azurerm_virtual_machine_extension" "icinga_ama" {
 
   tags = module.tag_config.tags
 
-  depends_on = [terraform_data.icinga_configure, terraform_data.icinga_theme]
+  depends_on = [terraform_data.icinga_configure, terraform_data.icinga_theme, terraform_data.icinga_data_release]
 }
 
 # free space of "/" every minute (Perf table)

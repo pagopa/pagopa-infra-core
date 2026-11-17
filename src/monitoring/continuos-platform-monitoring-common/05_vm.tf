@@ -74,7 +74,6 @@ resource "azurerm_linux_virtual_machine" "icinga" {
 
   depends_on = [module.azure_custom_image]
 }
-
 # -----------------------------------------------------------------------------
 # Icinga configuration (resources/configure/icinga-configure.sh) with the check
 # plugins of resources/plugins, run once by resources/run-command/run-command.sh
@@ -83,8 +82,10 @@ resource "azurerm_linux_virtual_machine" "icinga" {
 # is replaced. Requires the Azure CLI logged in
 # -----------------------------------------------------------------------------
 resource "terraform_data" "icinga_configure" {
+  # the data disk (06_disk.tf) is mounted at every new attachment
   triggers_replace = [
     azurerm_linux_virtual_machine.icinga.id,
+    azurerm_virtual_machine_data_disk_attachment.icinga_data.id,
     local.icinga_configure_hash,
   ]
 
@@ -104,7 +105,7 @@ resource "terraform_data" "icinga_configure" {
 
         PARAMETERS = join(" ", [
           "ICINGAWEB_ADMIN_USER", "ICINGA_FQDN", "TLS_SECRET_URL", "TLS_MSI_CLIENT_ID",
-          "SSO_TENANT_ID", "SSO_CLIENT_ID", "ROLE_GROUPS", "AKS_CLUSTERS",
+          "SSO_TENANT_ID", "SSO_CLIENT_ID", "ROLE_GROUPS", "AKS_CLUSTERS", "DATA_DISK_LUN",
         ])
         PROTECTED_PARAMETERS = join(" ", concat([
           "SSO_CLIENT_SECRET", "ICINGADB_DB_PASSWORD", "ICINGAWEB_DB_PASSWORD",
@@ -124,6 +125,8 @@ resource "terraform_data" "icinga_configure" {
         # Icinga for Kubernetes: "<chiave>=<nome cluster>" separati da spazi, il
         # kubeconfig (base64) di ogni cluster in AKS_KUBECONFIG_<CHIAVE>
         AKS_CLUSTERS = join(" ", [for k, m in local.aks_icinga : "${k}=${m.aks_name}"])
+        # Icinga data disk (06_disk.tf): /dev/disk/azure/scsi1/lun<N>
+        DATA_DISK_LUN = local.icinga_data_disk_lun
 
         SSO_CLIENT_SECRET             = module.icinga_app.azure_client_secret
         ICINGADB_DB_PASSWORD          = data.azurerm_key_vault_secret.icingadb_db_password.value
