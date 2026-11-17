@@ -529,7 +529,7 @@ button.btn-primary {
 
 @radius: 12px;
 @gap:    16px;
-/* larghezza dei tile: un titolo "<tipo>: <nome risorsa>" su una riga */
+/* larghezza dei tile: il nome della risorsa su una riga */
 @tile-width: 440px;
 @ease:   cubic-bezier(.2, .8, .2, 1);
 
@@ -545,6 +545,16 @@ button.btn-primary {
   background-color: @bg !important;
 
   > a:before { background: @accent; }
+}
+
+/* titoli dei nodi (span di public/js/module.js) fuori dai tile, ad esempio
+   breadcrumb e albero: su una riga, "<tipo>: <nome>". Nei tile su due righe */
+.pagopa-title > br {
+  display: none;
+}
+
+.pagopa-title-type:after {
+  content: ": ";
 }
 
 .icinga-module.module-businessprocess {
@@ -619,11 +629,15 @@ button.btn-primary {
   }
 
   /* ---------- Titolo (tutto il tile è cliccabile) ---------- */
+  /* tipo e nome su due righe: a capo U+2028 nel titolo (app, 99_locals.tf),
+     reso come <br> da public/js/module.js. Pallino a sinistra, testo centrato
+     nel tile: 4px + pallino (12px) + gap (40px) a sinistra = 56px a destra,
+     lo spazio delle icone azioni */
   .tiles > div > a {
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    padding-right: 56px;
+    gap: 40px;
+    padding: 0 56px 0 4px;
     color: #ffffff !important;
     font-size: 15px;
     font-weight: 650;
@@ -635,15 +649,35 @@ button.btn-primary {
     opacity: 1 !important;
   }
 
+  /* testo del titolo (span di public/js/module.js), centrato */
+  .tiles > div > a .pagopa-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
+
+  /* tipo della risorsa (prima riga), più grande del nome e staccato da esso:
+     blocco con margine al posto del <br> che lo segue */
+  .tiles > div > a .pagopa-title-type {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .tiles > div > a .pagopa-title-type:after {
+    content: none;
+  }
+
   /* indicatore di stato prima del titolo */
   .tiles > div > a:before {
     content: "";
     flex: none;
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: @pending;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, .12);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, .12);
     transform: translateY(-1px);
   }
 

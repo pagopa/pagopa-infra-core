@@ -4,8 +4,12 @@
 # sends the free space of "/" and its heartbeat to the core Log Analytics
 # workspace, log alerts read them with the VM as scope.
 # No action group yet: alerts are only shown in Azure Monitor
+# Feature flag icinga_vm_alerts_enabled (env/<env>/terraform.tfvars): agent,
+# data collection and alerts are all created or none
 # -----------------------------------------------------------------------------
 data "azurerm_log_analytics_workspace" "core" {
+  count = var.icinga_vm_alerts_enabled ? 1 : 0
+
   name                = "${local.product}-${local.location_short}-core-law"
   resource_group_name = "${local.product}-${local.location_short}-core-monitor-rg"
 }
@@ -13,6 +17,8 @@ data "azurerm_log_analytics_workspace" "core" {
 # authenticates with the user-assigned identity, the only one of the VM.
 # After the run commands: extension operations on the same VM can't overlap
 resource "azurerm_virtual_machine_extension" "icinga_ama" {
+  count = var.icinga_vm_alerts_enabled ? 1 : 0
+
   name                       = "AzureMonitorLinuxAgent"
   virtual_machine_id         = azurerm_linux_virtual_machine.icinga.id
   publisher                  = "Microsoft.Azure.Monitor"
@@ -37,6 +43,8 @@ resource "azurerm_virtual_machine_extension" "icinga_ama" {
 
 # free space of "/" every minute (Perf table)
 resource "azurerm_monitor_data_collection_rule" "icinga_vm" {
+  count = var.icinga_vm_alerts_enabled ? 1 : 0
+
   name                = "${local.project}-icinga-vm-dcr"
   resource_group_name = azurerm_resource_group.icinga_rg.name
   location            = azurerm_resource_group.icinga_rg.location
@@ -45,7 +53,7 @@ resource "azurerm_monitor_data_collection_rule" "icinga_vm" {
   destinations {
     log_analytics {
       name                  = "core-law"
-      workspace_resource_id = data.azurerm_log_analytics_workspace.core.id
+      workspace_resource_id = data.azurerm_log_analytics_workspace.core[0].id
     }
   }
 
@@ -70,9 +78,11 @@ resource "azurerm_monitor_data_collection_rule" "icinga_vm" {
 }
 
 resource "azurerm_monitor_data_collection_rule_association" "icinga_vm" {
+  count = var.icinga_vm_alerts_enabled ? 1 : 0
+
   name                    = "${local.project}-icinga-vm-dcra"
   target_resource_id      = azurerm_linux_virtual_machine.icinga.id
-  data_collection_rule_id = azurerm_monitor_data_collection_rule.icinga_vm.id
+  data_collection_rule_id = azurerm_monitor_data_collection_rule.icinga_vm[0].id
 }
 
 locals {
@@ -84,7 +94,7 @@ locals {
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "icinga_vm_disk" {
-  for_each = local.icinga_vm_disk_alerts
+  for_each = var.icinga_vm_alerts_enabled ? local.icinga_vm_disk_alerts : {}
 
   name                = "${local.project}-icinga-vm-disk-${each.key}"
   resource_group_name = azurerm_resource_group.icinga_rg.name
@@ -120,6 +130,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "icinga_vm_disk" {
 
 # no heartbeat for 10 minutes: VM or agent down
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "icinga_vm_heartbeat" {
+  count = var.icinga_vm_alerts_enabled ? 1 : 0
+
   name                = "${local.project}-icinga-vm-heartbeat"
   resource_group_name = azurerm_resource_group.icinga_rg.name
   location            = azurerm_resource_group.icinga_rg.location
