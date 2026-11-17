@@ -23,6 +23,8 @@ echo "icinga-configure!!!"
 : "${SSO_CLIENT_ID:?SSO_CLIENT_ID must be set}"
 : "${SSO_CLIENT_SECRET:?SSO_CLIENT_SECRET must be set}"
 : "${ROLE_GROUPS?ROLE_GROUPS must be set}"
+: "${DATA_DISK_LUN:?DATA_DISK_LUN must be set}"
+[[ "$DATA_DISK_LUN" =~ ^[0-9]+$ ]] || { echo "invalid DATA_DISK_LUN: $DATA_DISK_LUN" >&2; exit 1; }
 
 # alphanumeric only: values go straight into SQL and config files
 for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
@@ -93,6 +95,88 @@ write_file() {
 }
 
 # -----------------------------------------------------------------------------
+# Icinga data disk (06_disk.tf): the state that survives the VM recreation.
+# One ext4 filesystem on the disk of the fixed LUN, mounted on DATA_MOUNT, with
+# its mysql and icinga2 directories bind mounted on /var/lib/mysql and
+# /var/lib/icinga2. First use: the data of the OS disk is moved to the disk.
+# New VM: the data of the disk is used, the directories of the image are
+# emptied. Unmounted before a detach by icinga-data-release.sh
+# -----------------------------------------------------------------------------
+DATA_DEVICE="/dev/disk/azure/scsi1/lun${DATA_DISK_LUN}"
+DATA_MOUNT=/var/lib/icinga-data
+# <directory of /var/lib>:<owner>
+DATA_DIRS="mysql:mysql icinga2:nagios"
+
+# the link of the LUN is created by udev shortly after the attach
+for _ in $(seq 60); do
+  [ -e "$DATA_DEVICE" ] && break
+  sleep 1
+done
+[ -e "$DATA_DEVICE" ] || { echo "data disk not found: $DATA_DEVICE" >&2; exit 1; }
+
+# without the disk the services don't start, instead of starting on an empty
+# directory of the OS disk and creating a new state
+for entry in mysql:/var/lib/mysql icinga2:/var/lib/icinga2; do
+  install -d -m 0755 "/etc/systemd/system/${entry%%:*}.service.d"
+  printf '[Unit]\nRequiresMountsFor=%s\n' "${entry#*:}" |
+    write_file root:root 0644 "/etc/systemd/system/${entry%%:*}.service.d/icinga-data.conf"
+done
+
+if ! mountpoint -q /var/lib/mysql || ! mountpoint -q /var/lib/icinga2; then
+  # nothing writes to the directories while they are moved
+  systemctl stop icinga-director icinga-kubernetes 'icinga-kubernetes@*' icingadb icinga2 mysql
+
+  # formatted only when blkid finds nothing (exit code 2): never a disk with data
+  rc=0
+  blkid -p "$DATA_DEVICE" >/dev/null || rc=$?
+  if [ "$rc" -eq 2 ]; then
+    mkfs.ext4 -q -F -L icinga-data "$DATA_DEVICE"
+  elif [ "$rc" -ne 0 ]; then
+    echo "blkid failed on $DATA_DEVICE (exit code $rc)" >&2
+    exit 1
+  fi
+
+  # filesystem by UUID, nofail: the VM boots also without the disk
+  DATA_UUID="$(blkid -s UUID -o value "$DATA_DEVICE")"
+  awk -v m="$DATA_MOUNT" '$2 != m && $2 != "/var/lib/mysql" && $2 != "/var/lib/icinga2"' /etc/fstab > /etc/fstab.icinga
+  {
+    echo "UUID=${DATA_UUID} ${DATA_MOUNT} ext4 defaults,nofail 0 2"
+    for entry in $DATA_DIRS; do
+      echo "${DATA_MOUNT}/${entry%%:*} /var/lib/${entry%%:*} none bind,nofail,x-systemd.requires-mounts-for=${DATA_MOUNT} 0 0"
+    done
+  } >> /etc/fstab.icinga
+  mv /etc/fstab.icinga /etc/fstab
+  systemctl daemon-reload
+
+  install -d -m 0755 "$DATA_MOUNT"
+  mountpoint -q "$DATA_MOUNT" || mount "$DATA_MOUNT"
+
+  for entry in $DATA_DIRS; do
+    src="/var/lib/${entry%%:*}" dst="${DATA_MOUNT}/${entry%%:*}"
+    mountpoint -q "$src" && continue
+    # first use: copy of the OS disk, renamed only when complete
+    if [ ! -d "$dst" ]; then
+      rm -rf "${dst}.tmp"
+      cp -a "$src" "${dst}.tmp"
+      mv "${dst}.tmp" "$dst"
+    fi
+    # hidden by the bind mount: the copy on the OS disk or the image directory
+    find "$src" -mindepth 1 -delete
+    mount "$src"
+  done
+fi
+
+# the UIDs of a new image may differ from the ones of the files on the disk
+for entry in $DATA_DIRS; do
+  owner="${entry#*:}" dst="${DATA_MOUNT}/${entry%%:*}"
+  if [ "$(stat -c %u:%g "$dst")" != "$(id -u "$owner"):$(id -g "$owner")" ]; then
+    chown -R "${owner}:${owner}" "$dst"
+  fi
+done
+
+systemctl start mysql
+
+# -----------------------------------------------------------------------------
 # MySQL
 # -----------------------------------------------------------------------------
 # binary logs off: no replica and no point-in-time recovery here, while MySQL 8
@@ -107,6 +191,13 @@ if [[ "$(cat "$MYSQL_ICINGA_CNF" 2>/dev/null)" != "$MYSQL_ICINGA_CNF_CONTENT" ]]
   systemctl restart mysql
 fi
 rm -f /var/lib/mysql/binlog.[0-9]* /var/lib/mysql/binlog.index
+
+# maintenance user of the package (logrotate, upgrades): its password is in
+# debian.cnf of the image, its user in the databases of the data disk
+DEBIAN_SYS_MAINT_PASSWORD="$(awk -F' *= *' '$1 == "password" { print $2; exit }' /etc/mysql/debian.cnf 2>/dev/null || true)"
+if [[ "$DEBIAN_SYS_MAINT_PASSWORD" =~ ^[A-Za-z0-9]+$ ]]; then
+  mysql -e "ALTER USER IF EXISTS 'debian-sys-maint'@'localhost' IDENTIFIED BY '${DEBIAN_SYS_MAINT_PASSWORD}'"
+fi
 
 # one database and one local user per component, passwords re-applied at every run
 mysql <<SQL

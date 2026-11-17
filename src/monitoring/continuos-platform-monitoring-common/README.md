@@ -31,6 +31,7 @@
 | [azurerm_key_vault_secret.icinga_app_client_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.icinga_vm_private_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_linux_virtual_machine.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_managed_disk.icinga_data](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/managed_disk) | resource |
 | [azurerm_monitor_data_collection_rule.icinga_vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_data_collection_rule) | resource |
 | [azurerm_monitor_data_collection_rule_association.icinga_vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_data_collection_rule_association) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.icinga_vm_disk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
@@ -40,8 +41,10 @@
 | [azurerm_resource_group.icinga_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_role_assignment.icinga_vm_cosmos_reader](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_user_assigned_identity.icinga](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.icinga_data](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_extension.icinga_ama](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_extension) | resource |
 | [terraform_data.icinga_configure](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [terraform_data.icinga_data_release](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.icinga_theme](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [azuread_group.icinga_roles](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |
 | [azurerm_key_vault.domain_kv](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
@@ -60,6 +63,7 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_env"></a> [env](#input\_env) | n/a | `string` | n/a | yes |
 | <a name="input_env_short"></a> [env\_short](#input\_env\_short) | n/a | `string` | n/a | yes |
+| <a name="input_icinga_data_disk_size_gb"></a> [icinga\_data\_disk\_size\_gb](#input\_icinga\_data\_disk\_size\_gb) | Size of the Icinga data disk (06\_disk.tf, /var/lib/mysql and /var/lib/icinga2): can only grow | `number` | `32` | no |
 | <a name="input_icinga_image_version"></a> [icinga\_image\_version](#input\_icinga\_image\_version) | Icinga image version | `string` | n/a | yes |
 | <a name="input_icinga_vm_alerts_enabled"></a> [icinga\_vm\_alerts\_enabled](#input\_icinga\_vm\_alerts\_enabled) | Azure Monitor alerts on the Icinga VM (disk, heartbeat) with the agent and the data collection they need (08\_monitor.tf) | `bool` | `true` | no |
 | <a name="input_k8s_kube_config_path_prefix"></a> [k8s\_kube\_config\_path\_prefix](#input\_k8s\_kube\_config\_path\_prefix) | n/a | `string` | `"~/.kube"` | no |
