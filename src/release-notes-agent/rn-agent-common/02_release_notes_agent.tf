@@ -23,7 +23,7 @@ module "rn_agent" {
   internal_dns_zone_resource_group_name = "${local.product}-vnet-rg"
 
   # General App
-  docker_image_tag = "v0.0.8"
+  docker_image_tag = "v0.0.9"
   department_name  = "Dipartimento Pagamenti"
 
   # APIM
