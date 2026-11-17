@@ -456,24 +456,30 @@ locals {
   bp_dir      = "/etc/icingaweb2/modules/businessprocess/processes"
   bp_file     = "${local.bp_dir}/${local.bp_name}.conf"
 
+  # Titoli dei nodi "<tipo><a capo><nome>": l'a capo è U+2028 (LINE SEPARATOR),
+  # il file del Business Process separa le righe solo su "\n". Il browser lo
+  # mostrerebbe come spazio, il modulo pagopa (common, theme/files/public/js)
+  # lo trasforma in <br>
+  bp_title_break = "\u2028"
+
   # namespace => nodo con il solo check del namespace e un titolo leggibile
-  # ("AKS: ACA on WEU"): il provider icinga2 non gestisce display_name e
+  # ("AKS" a capo "aca on WEU"): il provider icinga2 non gestisce display_name e
   # Icinga Web mostrerebbe "<servizio> on <host>"
   bp_namespaces = {
     for k, s in local.aks_namespace_services :
     replace("k8s_${k}", local.bp_sanitize, "_") => {
-      title  = "AKS: ${upper(s.vars.k8s_namespace)} on ${upper(regex("^([a-z0-9]+)-namespace-", k)[0])}"
+      title  = "AKS${local.bp_title_break}${s.vars.k8s_namespace} on ${upper(regex("^([a-z0-9]+)-namespace-", k)[0])}"
       domain = replace(s.domain, local.bp_sanitize, "_")
       check  = "${local.resources_full[s.host_key].icinga_name};${s.name}"
     }
   }
 
-  # host => titolo ("<bp_type>: <nome>"), dominio e check ("<host>;Hoststatus"
+  # host => titolo ("<bp_type>" a capo "<nome>"), dominio e check ("<host>;Hoststatus"
   # e "<host>;<servizio>")
   bp_hosts = {
     for k, v in local.resources_full :
     replace(v.icinga_name, local.bp_sanitize, "_") => {
-      title  = "${v.bp_type}: ${v.icinga_name}"
+      title  = "${v.bp_type}${local.bp_title_break}${v.icinga_name}"
       domain = replace(v.domain, local.bp_sanitize, "_")
       checks = concat(
         ["${v.icinga_name};Hoststatus"],

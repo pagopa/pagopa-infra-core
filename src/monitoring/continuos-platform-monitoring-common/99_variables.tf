@@ -32,3 +32,9 @@ variable "icinga_image_version" {
   type        = string
   description = "Icinga image version"
 }
+
+variable "icinga_vm_alerts_enabled" {
+  type        = bool
+  default     = true
+  description = "Azure Monitor alerts on the Icinga VM (disk, heartbeat) with the agent and the data collection they need (08_monitor.tf)"
+}
