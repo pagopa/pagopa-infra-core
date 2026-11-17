@@ -38,3 +38,9 @@ variable "icinga_vm_alerts_enabled" {
   default     = true
   description = "Azure Monitor alerts on the Icinga VM (disk, heartbeat) with the agent and the data collection they need (08_monitor.tf)"
 }
+
+variable "icinga_data_disk_size_gb" {
+  type        = number
+  default     = 32
+  description = "Size of the Icinga data disk (06_disk.tf, /var/lib/mysql and /var/lib/icinga2): can only grow"
+}
