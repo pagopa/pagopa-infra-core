@@ -795,7 +795,7 @@ app_gateway_wisp2govit_certificate_name = "wisp2-pagopa-gov-it"
 app_gateway_wfespgovit_certificate_name = "wfesp-pagopa-gov-it"
 app_gateway_checkout_certificate_name   = "checkout-pagopa-it"
 app_gateway_wallet_certificate_name     = "payment-wallet-pagopa-it"
-app_gateway_min_capacity                = 15 # 5 capacity=baseline, 8 capacity=high volume event, 15 capacity=very high volume event
+app_gateway_min_capacity                = 50 # 5 capacity=baseline, 8 capacity=high volume event, 15 capacity=very high volume event
 app_gateway_max_capacity                = 100
 app_gateway_sku_name                    = "WAF_v2"
 app_gateway_sku_tier                    = "WAF_v2"
