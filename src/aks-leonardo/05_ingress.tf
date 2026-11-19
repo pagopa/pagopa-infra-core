@@ -51,6 +51,10 @@ module "nginx_ingress" {
     {
       name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-health-probe-request-path"
       value = "/healthz"
+    },
+    {
+      name  = "controller.config.use-http2"
+      value = "false" # Must be "false" for CVE-2026-123633 ~ https://www.wiz.io/blog/nginx-http2-rce-vulnerabilities
     }
   ]
 }
