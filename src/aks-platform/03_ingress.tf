@@ -82,6 +82,10 @@ module "nginx_ingress" {
       value = "/healthz"
     },
     {
+      name  = "controller.config.use-http2"
+      value = "false" # Must be "false" for CVE-2026-123633 ~ https://www.wiz.io/blog/nginx-http2-rce-vulnerabilities
+    },
+    {
       # To overcome 1m size limit of https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#proxy-body-size
       # Setting size to 0 disables checking of client request body size
       name  = "controller.config.proxy-body-size"
