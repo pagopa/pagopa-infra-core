@@ -43,9 +43,17 @@ steps:
           # unattended-upgrades can hold the dpkg lock right after boot, so wait and retry.
           az config set extension.use_dynamic_install=yes_without_prompt
           for attempt in 1 2 3 4 5 6; do
+            # bounded wait (max ~2 min): never block the job forever on a stuck upgrade
+            waited=0
             while pgrep -x unattended-upgr > /dev/null || pgrep -x apt-get > /dev/null || pgrep -x dpkg > /dev/null; do
-              echo "Waiting for apt/dpkg lock to be released..."
+              if [ "$waited" -ge 120 ]; then
+                echo "apt/dpkg still busy after ${waited}s, trying anyway. Holders:"
+                ps -eo pid,etime,args | grep -E "unattended-upgr|apt-get|dpkg" | grep -v grep || true
+                break
+              fi
+              echo "Waiting for apt/dpkg lock to be released (${waited}s)..."
               sleep 15
+              waited=$((waited + 15))
             done
             if az extension add --name rdbms-connect && az postgres flexible-server execute --help > /dev/null 2>&1; then
               return 0
