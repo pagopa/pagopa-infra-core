@@ -67,26 +67,36 @@ steps:
           return 1
         }
 
+        # Credentials come from env vars (see "env" below), never from inline macros:
+        # macros are pasted into the script text, so bash would expand special chars ($, `, \) in passwords.
         create_user () {
-          USER=$1
-          PASS=$2
           install_rdbms_connect || exit 1
-          az postgres flexible-server execute --name ${{ parameters.DB_HOST }} --admin-user $(${{parameters.ADMIN_LOGIN_KEY}}) \
-          --admin-password '$(${{parameters.ADMIN_PWD_KEY}})' --database-name "${{ parameters.DATABASE_NAME }}" \
+          # escape single quotes for the SQL string literal
+          PASS_SQL=${READ_USER_PASSWORD//\'/\'\'}
+          az postgres flexible-server execute --name "${{ parameters.DB_HOST }}" --admin-user "$DB_ADMIN_LOGIN" \
+          --admin-password "$DB_ADMIN_PASSWORD" --database-name "${{ parameters.DATABASE_NAME }}" \
           --querytext "
-          do \$\$
+          do \$do\$
           BEGIN
-          IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$USER') THEN
-          CREATE ROLE $USER WITH LOGIN PASSWORD '$PASS';
+          IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$READ_USER_LOGIN') THEN
+          CREATE ROLE $READ_USER_LOGIN WITH LOGIN PASSWORD '$PASS_SQL';
+          ELSE
+          -- keep the password aligned with the key vault on every run
+          ALTER ROLE $READ_USER_LOGIN WITH LOGIN PASSWORD '$PASS_SQL';
           END IF;
 
-          GRANT CONNECT ON DATABASE "${{ parameters.DATABASE_NAME }}" TO $USER;
+          GRANT CONNECT ON DATABASE \"${{ parameters.DATABASE_NAME }}\" TO $READ_USER_LOGIN;
 
-          GRANT pg_read_all_data TO $USER;
+          GRANT pg_read_all_data TO $READ_USER_LOGIN;
 
           END
-          \$\$;
+          \$do\$;
           "
         }
 
-        create_user "${{ parameters.USERNAME }}" "${{ parameters.PASSWORD }}"
+        create_user
+    env:
+      READ_USER_LOGIN: ${{ parameters.USERNAME }}
+      READ_USER_PASSWORD: ${{ parameters.PASSWORD }}
+      DB_ADMIN_LOGIN: $(${{ parameters.ADMIN_LOGIN_KEY }})
+      DB_ADMIN_PASSWORD: $(${{ parameters.ADMIN_PWD_KEY }})
