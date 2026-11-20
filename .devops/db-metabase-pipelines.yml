@@ -55,14 +55,19 @@ stages:
               keyVaultName: $(METABASE_KEY_VAULT_NAME)
               secretsFilter: 'metabase-reader-login,metabase-reader-password,metabase-db-admin-login,metabase-db-admin-password'
           - script: |
-              echo "##vso[task.setvariable variable=READ_USER_PASSWORD;isOutput=true;issecret=true]$(metabase-reader-password)"
-              echo "##vso[task.setvariable variable=READ_USER_LOGIN;isOutput=true]$(metabase-reader-login)"
-              echo "##vso[task.setvariable variable=METABASE_ADMIN_LOGIN;isOutput=true]$(metabase-db-admin-login)"
-              echo "##vso[task.setvariable variable=METABASE_ADMIN_PASSWORD;isOutput=true;issecret=true]$(metabase-db-admin-password)"
+              # Values come from env vars: macros $(...) would be pasted into the script text
+              # and bash would expand special chars ($, `, \) contained in the passwords.
+              printf '##vso[task.setvariable variable=READ_USER_PASSWORD;isOutput=true;issecret=true]%s\n' "$READER_PASSWORD"
+              printf '##vso[task.setvariable variable=READ_USER_LOGIN;isOutput=true]%s\n' "$READER_LOGIN"
+              printf '##vso[task.setvariable variable=METABASE_ADMIN_LOGIN;isOutput=true]%s\n' "$DB_ADMIN_LOGIN"
+              printf '##vso[task.setvariable variable=METABASE_ADMIN_PASSWORD;isOutput=true;issecret=true]%s\n' "$DB_ADMIN_PASSWORD"
             displayName: "Set read user password as pipeline variable"
             name: credentials
             env:
-              metabase-password: $(metabase-password)
+              READER_LOGIN: $(metabase-reader-login)
+              READER_PASSWORD: $(metabase-reader-password)
+              DB_ADMIN_LOGIN: $(metabase-db-admin-login)
+              DB_ADMIN_PASSWORD: $(metabase-db-admin-password)
   - stage: create_readonly_user
     displayName: "Create readonly user"
     dependsOn: get_read_user_credentials
