@@ -187,3 +187,58 @@ stages:
               ADMIN_LOGIN_KEY: "pgres-admin-login"
               ADMIN_PWD_KEY: "pgres-admin-pwd"
               SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_dbsecurity
+        pool: $(poolImage)
+        displayName: "Create read user in dbsecurity db"
+        # dbsecurity db exists only in dev and prod
+        condition: and(succeeded(), ne('${{ parameters.env }}', 'uat'))
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-dbsecurity-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-core-kv"
+              ADMIN_LOGIN_KEY: "metabase-db-admin-login"
+              ADMIN_PWD_KEY: "metabase-db-admin-password"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_portalpa
+        pool: $(poolImage)
+        displayName: "Create read user in portalpa db"
+        # portalpa db exists only in dev and prod
+        condition: and(succeeded(), ne('${{ parameters.env }}', 'uat'))
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-portalpa-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-portalpa-kv"
+              ADMIN_LOGIN_KEY: "db-administrator-login"
+              ADMIN_PWD_KEY: "db-administrator-login-password"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_qa
+        pool: $(poolImage)
+        displayName: "Create read user in qa db"
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-qa-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-qa-kv"
+              ADMIN_LOGIN_KEY: "db-administrator-login"
+              ADMIN_PWD_KEY: "db-administrator-login-password"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
