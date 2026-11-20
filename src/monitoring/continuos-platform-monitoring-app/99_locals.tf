@@ -130,9 +130,11 @@ locals {
         "pgsql" = {
           check_command = "pgsql"
           vars = {
-            pgsql_database       = "postgres"
-            pgsql_username       = data.azurerm_key_vault_secret.metabase_usr.value
-            pgsql_password       = data.azurerm_key_vault_secret.metabase_psw.value
+            pgsql_database = "postgres"
+            pgsql_username = data.azurerm_key_vault_secret.metabase_usr.value
+            # "$" delimita le macro Icinga ($var$): va raddoppiato, altrimenti una
+            # password con due "$" viene risolta come macro e arriva vuota
+            pgsql_password       = replace(data.azurerm_key_vault_secret.metabase_psw.value, "$", "$$")
             pgsql_options        = "options='-c statement_timeout=5000'"
             pgsql_query          = "SELECT round(count(*) * 100.0 / current_setting('max_connections')::int, 2) FROM pg_stat_activity WHERE backend_type = 'client backend'"
             pgsql_query_warning  = "80"
@@ -253,6 +255,7 @@ locals {
         parent_id = r.id
         name      = r.name
         domain    = try(r.tags.domain, "notag")
+        noncrit   = try(lower(r.tags.noncrit), "") == "true"
       }
     } if can(v.parent_type)
   ]...)
@@ -262,10 +265,11 @@ locals {
     [
       for k, v in data.azurerm_resources.sub_resources : {
         for r in v.resources : "${k}-${r.name}" => {
-          name   = r.name
-          type   = r.type
-          id     = r.id
-          domain = try(r.tags.domain, "notag")
+          name    = r.name
+          type    = r.type
+          id      = r.id
+          domain  = try(r.tags.domain, "notag")
+          noncrit = try(lower(r.tags.noncrit), "") == "true"
         }
         if contains(keys(local.namespace_commands_map), r.type)
       }
@@ -273,10 +277,11 @@ locals {
     [
       for pk, p in local.parent_resources : {
         for c in data.azapi_resource_list.children[pk].output.value : "${p.type}-${p.name}/${c.name}" => {
-          name   = "${p.name}/${c.name}"
-          type   = p.type
-          id     = c.id
-          domain = p.domain
+          name    = "${p.name}/${c.name}"
+          type    = p.type
+          id      = c.id
+          domain  = p.domain
+          noncrit = p.noncrit
         }
       }
     ]
@@ -377,7 +382,9 @@ locals {
         domain     = r.domain
         azure_type = r.type
         azure_id   = r.id
-      })
+        },
+        # tag noncrit=true: downtime 18:00-09:00 (conf.d/noncrit.conf, common)
+      r.noncrit ? { noncrit = "true" } : {})
     }
   }
 
