@@ -445,11 +445,56 @@ object CheckCommand "cosmos_nosql" {
 }
 EOF
 
+# Non-critical resources: the Azure resources tagged noncrit=true (host var
+# "noncrit", set by Terraform, app) are in downtime from 18:00 to 09:00, so no
+# notification is sent for them out of working hours. Checks keep running: the
+# downtime only silences notifications and marks the objects in Icinga Web.
+# The ranges are in the local time of the icinga2 process (the VM is in UTC):
+# TZ is set on the service only, to follow the daylight saving time
+install -d -m 0755 /etc/systemd/system/icinga2.service.d
+write_file root:root 0644 /etc/systemd/system/icinga2.service.d/timezone.conf <<'EOF'
+[Service]
+Environment=TZ=Europe/Rome
+EOF
+
+write_file root:nagios 0640 /etc/icinga2/conf.d/noncrit.conf <<'EOF'
+// one range per day, like the ITL 24x7 period: the "monday - sunday" form wraps
+// around the week and is not reliable
+const NoncritOffHours = {
+  "monday" = "00:00-09:00,18:00-24:00"
+  "tuesday" = "00:00-09:00,18:00-24:00"
+  "wednesday" = "00:00-09:00,18:00-24:00"
+  "thursday" = "00:00-09:00,18:00-24:00"
+  "friday" = "00:00-09:00,18:00-24:00"
+  "saturday" = "00:00-09:00,18:00-24:00"
+  "sunday" = "00:00-09:00,18:00-24:00"
+}
+
+// the downtime is applied to the hosts and to their services: the notifications
+// of a service are not silenced by the downtime of its host
+apply ScheduledDowntime "noncrit-offhours" to Host {
+  author = "icingaadmin"
+  comment = "Non-critical resource: out of working hours (18:00-09:00)"
+  fixed = true
+  ranges = NoncritOffHours
+  assign where host.vars.noncrit == "true"
+}
+
+apply ScheduledDowntime "noncrit-offhours" to Service {
+  author = "icingaadmin"
+  comment = "Non-critical resource: out of working hours (18:00-09:00)"
+  fixed = true
+  ranges = NoncritOffHours
+  assign where host.vars.noncrit == "true"
+}
+EOF
+
 icinga2 feature enable icingadb
 
 systemctl enable --now icingadb-redis
 systemctl enable icinga2
 icinga2 daemon -C
+systemctl daemon-reload
 systemctl restart icinga2
 
 # -----------------------------------------------------------------------------
