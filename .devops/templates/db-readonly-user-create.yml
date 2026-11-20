@@ -45,10 +45,11 @@ steps:
           for attempt in 1 2 3 4 5 6; do
             # bounded wait (max ~2 min): never block the job forever on a stuck upgrade
             waited=0
-            while pgrep -x unattended-upgr > /dev/null || pgrep -x apt-get > /dev/null || pgrep -x dpkg > /dev/null; do
+            # NB: "unattended-upgrade-shutdown" is a permanent daemon, so match only the real upgrade run
+            while pgrep -f "bin/unattended-upgrade( |$)" > /dev/null || pgrep -x apt-get > /dev/null || pgrep -x dpkg > /dev/null; do
               if [ "$waited" -ge 120 ]; then
                 echo "apt/dpkg still busy after ${waited}s, trying anyway. Holders:"
-                ps -eo pid,etime,args | grep -E "unattended-upgr|apt-get|dpkg" | grep -v grep || true
+                ps -eo pid,etime,args | grep -E "bin/unattended-upgrade( |$)|apt-get|dpkg" | grep -v grep || true
                 break
               fi
               echo "Waiting for apt/dpkg lock to be released (${waited}s)..."
