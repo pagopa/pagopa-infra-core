@@ -12,12 +12,6 @@ locals {
   kv_domain_name = "${local.project}-kv"
   kv_domain_rg   = "${local.project}-sec-rg"
 
-  application_owners = [
-    "matteo.alongi@pagopa.it",
-    "marco.mari@pagopa.it",
-    "umberto.coppolabottazzi@pagopa.it",
-    "fabio.felici@pagopa.it"
-  ]
   # ---------------------------------------------------------------------------
   # Mapping tipo di risorsa Azure => configurazione Icinga
   #
