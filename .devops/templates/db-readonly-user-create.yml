@@ -38,11 +38,30 @@ steps:
       scriptLocation: inlineScript
       scriptType: bash
       inlineScript: |
+        install_rdbms_connect () {
+          # The extension installs system packages through apt: on self-hosted agents
+          # unattended-upgrades can hold the dpkg lock right after boot, so wait and retry.
+          az config set extension.use_dynamic_install=yes_without_prompt
+          for attempt in 1 2 3 4 5 6; do
+            while pgrep -x unattended-upgr > /dev/null || pgrep -x apt-get > /dev/null || pgrep -x dpkg > /dev/null; do
+              echo "Waiting for apt/dpkg lock to be released..."
+              sleep 15
+            done
+            if az extension add --name rdbms-connect && az postgres flexible-server execute --help > /dev/null 2>&1; then
+              return 0
+            fi
+            echo "rdbms-connect install failed (attempt $attempt), retrying in 30s..."
+            az extension remove --name rdbms-connect 2> /dev/null || true
+            sleep 30
+          done
+          echo "Unable to install rdbms-connect extension"
+          return 1
+        }
+
         create_user () {
           USER=$1
           PASS=$2
-          az config set extension.use_dynamic_install=yes_without_prompt
-          az extension add --name rdbms-connect
+          install_rdbms_connect || exit 1
           az postgres flexible-server execute --name ${{ parameters.DB_HOST }} --admin-user $(${{parameters.ADMIN_LOGIN_KEY}}) \
           --admin-password '$(${{parameters.ADMIN_PWD_KEY}})' --database-name "${{ parameters.DATABASE_NAME }}" \
           --querytext "
