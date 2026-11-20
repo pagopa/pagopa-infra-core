@@ -1,0 +1,66 @@
+terraform {
+  required_version = ">= 1.9.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+
+    icinga2 = {
+      source  = "Icinga/icinga2"
+      version = "~> 0.7"
+    }
+
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 2.13"
+    }
+
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.4"
+    }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.31"
+    }
+  }
+  backend "azurerm" {}
+}
+
+provider "icinga2" {
+  api_url                  = "https://${data.azurerm_key_vault_secret.icinga_vm_private_ip.value}:5665/v1"
+  api_user                 = "terraform"
+  api_password             = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
+  insecure_skip_tls_verify = true
+}
+
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+provider "kubernetes" {
+  alias       = "itn"
+  config_path = local.aks_clusters["itn"].kube_config_path
+}
+
+provider "kubernetes" {
+  alias       = "weu"
+  config_path = local.aks_clusters["weu"].kube_config_path
+}
+
+data "azurerm_subscription" "current" {}
+
+module "__v4__" {
+  # https://github.com/pagopa/terraform-azurerm-v4/releases/tag/v10.50.1
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=efa14380821c386298a5632549d001f4297659e0"
+}

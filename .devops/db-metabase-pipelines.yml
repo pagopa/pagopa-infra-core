@@ -10,8 +10,8 @@ parameters:
     type: string
     default: prod
     values:
-#      - dev
-#      - uat
+      - dev
+      - uat
       - prod
 
 variables:
@@ -55,14 +55,19 @@ stages:
               keyVaultName: $(METABASE_KEY_VAULT_NAME)
               secretsFilter: 'metabase-reader-login,metabase-reader-password,metabase-db-admin-login,metabase-db-admin-password'
           - script: |
-              echo "##vso[task.setvariable variable=READ_USER_PASSWORD;isOutput=true]$(metabase-reader-password)"
-              echo "##vso[task.setvariable variable=READ_USER_LOGIN;isOutput=true]$(metabase-reader-login)"
-              echo "##vso[task.setvariable variable=METABASE_ADMIN_LOGIN;isOutput=true]$(metabase-db-admin-login)"
-              echo "##vso[task.setvariable variable=METABASE_ADMIN_PASSWORD;isOutput=true]$(metabase-db-admin-password)"
+              # Values come from env vars: macros $(...) would be pasted into the script text
+              # and bash would expand special chars ($, `, \) contained in the passwords.
+              printf '##vso[task.setvariable variable=READ_USER_PASSWORD;isOutput=true;issecret=true]%s\n' "$READER_PASSWORD"
+              printf '##vso[task.setvariable variable=READ_USER_LOGIN;isOutput=true]%s\n' "$READER_LOGIN"
+              printf '##vso[task.setvariable variable=METABASE_ADMIN_LOGIN;isOutput=true]%s\n' "$DB_ADMIN_LOGIN"
+              printf '##vso[task.setvariable variable=METABASE_ADMIN_PASSWORD;isOutput=true;issecret=true]%s\n' "$DB_ADMIN_PASSWORD"
             displayName: "Set read user password as pipeline variable"
             name: credentials
             env:
-              metabase-password: $(metabase-password)
+              READER_LOGIN: $(metabase-reader-login)
+              READER_PASSWORD: $(metabase-reader-password)
+              DB_ADMIN_LOGIN: $(metabase-db-admin-login)
+              DB_ADMIN_PASSWORD: $(metabase-db-admin-password)
   - stage: create_readonly_user
     displayName: "Create readonly user"
     dependsOn: get_read_user_credentials
@@ -186,4 +191,59 @@ stages:
               KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-gps-kv"
               ADMIN_LOGIN_KEY: "pgres-admin-login"
               ADMIN_PWD_KEY: "pgres-admin-pwd"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_dbsecurity
+        pool: $(poolImage)
+        displayName: "Create read user in dbsecurity db"
+        # dbsecurity db exists only in dev and prod
+        condition: and(succeeded(), ne('${{ parameters.env }}', 'uat'))
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-dbsecurity-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-core-kv"
+              ADMIN_LOGIN_KEY: "metabase-db-admin-login"
+              ADMIN_PWD_KEY: "metabase-db-admin-password"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_portalpa
+        pool: $(poolImage)
+        displayName: "Create read user in portalpa db"
+        # portalpa db exists only in dev and prod
+        condition: and(succeeded(), ne('${{ parameters.env }}', 'uat'))
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-portalpa-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-portalpa-kv"
+              ADMIN_LOGIN_KEY: "db-administrator-login"
+              ADMIN_PWD_KEY: "db-administrator-login-password"
+              SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
+      - job: create_user_qa
+        pool: $(poolImage)
+        displayName: "Create read user in qa db"
+        variables:
+          READ_USER_LOGIN: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_LOGIN'] ]
+          READ_USER_PASSWORD: $[ stageDependencies.get_read_user_credentials.get_credentials.outputs['credentials.READ_USER_PASSWORD'] ]
+        steps:
+          - template: ./templates/db-readonly-user-create.yml
+            parameters:
+              DATABASE_NAME: 'postgres'
+              DB_HOST: 'pagopa-${{ variables.ENV }}-itn-qa-flexible-postgresql'
+              USERNAME: $(READ_USER_LOGIN)
+              PASSWORD: $(READ_USER_PASSWORD)
+              KEY_VAULT_NAME: "pagopa-${{ variables.ENV }}-itn-qa-kv"
+              ADMIN_LOGIN_KEY: "db-administrator-login"
+              ADMIN_PWD_KEY: "db-administrator-login-password"
               SERVICE_CONNECTION: $(AZURE_SERVICE_CONNECTION)
