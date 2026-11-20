@@ -47,11 +47,32 @@
         });
     }
 
+    // grid of the first level (domains): every tile links to a node
+    // (...&node=<domain>) and has no two-line title (hosts and AKS namespaces have
+    // it, from the second level on); the leaves (checks) link to Icinga DB
+    function markTopTiles(root) {
+        $(root).find('.tiles').addBack('.tiles').each(function () {
+            var tiles = $(this).children('div');
+            var top = tiles.length > 0 && tiles.toArray().every(function (tile) {
+                var link = $(tile).children('a').first();
+                return link.length > 0
+                    && /[?&]node=/.test(link.attr('href') || '')
+                    && link.find('.pagopa-title').length === 0;
+            });
+            $(this).toggleClass('pagopa-top-tiles', top);
+        });
+    }
+
+    function render(root) {
+        breakTitles(root);
+        markTopTiles(root);
+    }
+
     $(document).on('rendered', function (e) {
-        breakTitles(e.target);
+        render(e.target);
     });
 
     $(function () {
-        breakTitles(document.body);
+        render(document.body);
     });
 }(jQuery));
