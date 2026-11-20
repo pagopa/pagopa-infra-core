@@ -10,8 +10,8 @@ parameters:
     type: string
     default: prod
     values:
-#      - dev
-#      - uat
+      - dev
+      - uat
       - prod
 
 variables:
