@@ -824,3 +824,38 @@ button.btn-primary {
   pointer-events: none;
   cursor: inherit;
 }
+
+/* ---------- Tile di primo livello (domini) più stretti ----------
+ * Il primo livello è la griglia (.tiles) i cui tile puntano a un nodo
+ * (...&node=<dominio>) e non hanno il titolo su due righe (host e namespace sì).
+ * La classe .pagopa-top-tiles è messa dal JS del modulo (public/js/module.js):
+ * i livelli sotto restano con i tile standard */
+.icinga-module.module-businessprocess .tiles.pagopa-top-tiles {
+  /* colonne da almeno 200px che si allargano (1fr) fino a riempire tutta la
+     larghezza: i tile si adattano allo spazio disponibile */
+  grid-template-columns: repeat(auto-fit, minmax(~"min(100%, 200px)", 1fr));
+  gap: 12px;
+  padding: 12px;
+
+  > div {
+    min-height: 64px;
+    gap: 8px;
+    padding: 12px 12px 10px !important;
+  }
+
+  > div > a {
+    gap: 16px;
+    padding: 0 36px 0 2px;
+    font-size: 14px;
+  }
+
+  > div > a:before {
+    width: 10px;
+    height: 10px;
+  }
+
+  > div .actions {
+    top: 10px;
+    right: 10px;
+  }
+}
