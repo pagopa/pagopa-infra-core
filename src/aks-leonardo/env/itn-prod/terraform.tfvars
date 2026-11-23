@@ -66,7 +66,7 @@ aks_user_node_pool = {
 # This is the k8s ingress controller ip. It must be in the aks subnet range.
 ingress_load_balancer_ip         = "10.3.2.250"
 haproxy_ingress_load_balancer_ip = "10.3.2.252"
-ingress_replica_count            = "2"
+ingress_replica_count            = "6"
 nginx_helm_version               = "4.15.1"
 
 keda_helm_version = "2.20.2"
