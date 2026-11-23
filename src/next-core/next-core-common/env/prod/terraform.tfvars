@@ -325,7 +325,7 @@ eventhubs_03 = [
     name              = "nodo-dei-pagamenti-re"
     partitions        = 30
     message_retention = 7
-    consumers         = ["nodo-dei-pagamenti-pdnd", "nodo-dei-pagamenti-oper","nodo-dei-pagamenti-observability"] #, "nodo-dei-pagamenti-re-to-datastore-rx", "nodo-dei-pagamenti-re-to-tablestorage-rx"]
+    consumers         = ["nodo-dei-pagamenti-pdnd", "nodo-dei-pagamenti-oper", "nodo-dei-pagamenti-observability"] #, "nodo-dei-pagamenti-re-to-datastore-rx", "nodo-dei-pagamenti-re-to-tablestorage-rx"]
     keys = [
       {
         name   = "nodo-dei-pagamenti-SIA"
