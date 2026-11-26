@@ -16,6 +16,7 @@ echo "icinga-configure!!!"
 : "${ICINGAWEB_ADMIN_USER:?ICINGAWEB_ADMIN_USER must be set}"
 : "${ICINGAWEB_ADMIN_PASSWORD:?ICINGAWEB_ADMIN_PASSWORD must be set}"
 : "${ICINGA_API_TERRAFORM_PASSWORD:?ICINGA_API_TERRAFORM_PASSWORD must be set}"
+: "${ICINGA_API_SYNTHETIC_PASSWORD:?ICINGA_API_SYNTHETIC_PASSWORD must be set}"
 : "${ICINGA_FQDN:?ICINGA_FQDN must be set}"
 : "${TLS_SECRET_URL:?TLS_SECRET_URL must be set}"
 : "${TLS_MSI_CLIENT_ID:?TLS_MSI_CLIENT_ID must be set}"
@@ -27,7 +28,7 @@ echo "icinga-configure!!!"
 [[ "$DATA_DISK_LUN" =~ ^[0-9]+$ ]] || { echo "invalid DATA_DISK_LUN: $DATA_DISK_LUN" >&2; exit 1; }
 
 # alphanumeric only: values go straight into SQL and config files
-for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
+for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD ICINGA_API_SYNTHETIC_PASSWORD; do
   [[ "${!var}" =~ ^[A-Za-z0-9]+$ ]] || { echo "$var must be alphanumeric" >&2; exit 1; }
 done
 
@@ -307,6 +308,19 @@ write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-terraform.conf <<EOF
 object ApiUser "terraform" {
   password    = "${ICINGA_API_TERRAFORM_PASSWORD}"
   permissions = [ "objects/query/*", "objects/create/*", "objects/modify/*", "objects/delete/*", "status/query" ]
+}
+EOF
+
+# API user used by azure-synthetic-monitoring (runtime): creates its host and
+# services and publishes the check results of the synthetic tests
+write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-synthetic.conf <<EOF
+object ApiUser "synthetic" {
+  password    = "${ICINGA_API_SYNTHETIC_PASSWORD}"
+  permissions = [
+    "objects/query/Host", "objects/query/Service",
+    "objects/create/Host", "objects/create/Service",
+    "actions/process-check-result"
+  ]
 }
 EOF
 

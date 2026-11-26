@@ -48,6 +48,25 @@ def test_replaces_only_own_section(bp_dir):
     assert "t1_pay" not in text
 
 
+def test_referenced_nodes_without_blocks_are_defined_empty(bp_dir):
+    # domains written by Terraform reference t1_<domain>, with a placeholder section
+    (bp_dir / "bp.conf").write_text(
+        "pay = a & t1_pay\n"
+        "net = 1 of: b + t1_net\n"
+        "ops = c | t1_ops | h;t1_x\n"
+        "display 1;pay;pay\n"
+        "\n# begin t1 section\nt1_pay =\nt1_net =\nt1_ops =\n# end t1 section\n"
+    )
+    assert post(body={"host": "h1", "blocks": [{"domain": "pay", "name": "s"}]}).status_code == 200
+    assert (bp_dir / "bp.conf").read_text().endswith(
+        "# begin t1 section\n"
+        "t1_pay = h1;s\n"
+        "t1_net =\n"
+        "t1_ops =\n"
+        "# end t1 section\n"
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [

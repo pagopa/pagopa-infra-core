@@ -7,7 +7,7 @@ locals {
     "requirements.txt" = filebase64("${local.bp_api_dir}/requirements.txt")
   }
   bp_api_unit = filebase64("${local.bp_api_dir}/deploy/bp-api.service")
-  bp_api_env  = filebase64("${local.bp_api_dir}/deploy/bp-api.env")
+  bp_api_env  = filebase64("${local.bp_api_dir}/deploy/bp-api.conf")
 
   bp_api_hash = sha256(join("", concat(
     [for k in sort(keys(local.bp_api_files)) : "${k}:${local.bp_api_files[k]}"],
@@ -15,12 +15,18 @@ locals {
   )))
 }
 
-# Installa (idempotente) la business process API sulla VM Icinga come servizio systemd
+# Installa (idempotente) la business process API sulla VM Icinga come servizio systemd.
+# Rieseguito quando cambiano i sorgenti o la VM viene ricreata (vmId, vedi 02_vm_command.tf):
+# utente, venv e unit stanno sul disco del sistema operativo
 resource "terraform_data" "icinga_vm_bp_api" {
   triggers_replace = [
-    data.azurerm_virtual_machine.icinga_vm.id,
+    data.azapi_resource.icinga_vm.output.vm_id,
     local.bp_api_hash,
   ]
+
+  # dopo il file del BP (i permessi del file sono sistemati qui) e mai in parallelo
+  # al suo run command sulla stessa VM
+  depends_on = [terraform_data.icinga_vm_bp]
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
@@ -68,7 +74,8 @@ resource "terraform_data" "icinga_vm_bp_api" {
       chown -R root:bp-api "\$APP"
       chmod -R g+rX,o-rwx "\$APP"
 
-      [ -f /etc/default/bp-api ] || echo '$ENV_B64' | base64 -d > /etc/default/bp-api
+      # gestito da Terraform (deploy/bp-api.conf): riscritto a ogni installazione
+      echo '$ENV_B64' | base64 -d > /etc/default/bp-api
       echo '$UNIT_B64' | base64 -d > /etc/systemd/system/bp-api.service
 
       # la API scrive direttamente sul file (nessun temp file): serve il permesso di gruppo sul solo file

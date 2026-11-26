@@ -109,7 +109,7 @@ resource "terraform_data" "icinga_configure" {
         ])
         PROTECTED_PARAMETERS = join(" ", concat([
           "SSO_CLIENT_SECRET", "ICINGADB_DB_PASSWORD", "ICINGAWEB_DB_PASSWORD",
-          "ICINGAWEB_ADMIN_PASSWORD", "ICINGA_API_TERRAFORM_PASSWORD",
+          "ICINGAWEB_ADMIN_PASSWORD", "ICINGA_API_TERRAFORM_PASSWORD", "ICINGA_API_SYNTHETIC_PASSWORD",
         ], [for k in keys(local.aks_icinga) : "AKS_KUBECONFIG_${upper(k)}"]))
 
         ICINGAWEB_ADMIN_USER = "admin"
@@ -133,6 +133,7 @@ resource "terraform_data" "icinga_configure" {
         ICINGAWEB_DB_PASSWORD         = data.azurerm_key_vault_secret.icingaweb_db_password.value
         ICINGAWEB_ADMIN_PASSWORD      = data.azurerm_key_vault_secret.icingaweb_admin_password.value
         ICINGA_API_TERRAFORM_PASSWORD = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
+        ICINGA_API_SYNTHETIC_PASSWORD = data.azurerm_key_vault_secret.icinga_api_synthetic_password.value
       },
       { for k, m in local.aks_icinga : "AKS_KUBECONFIG_${upper(k)}" => base64encode(m.kubeconfig) }
     )

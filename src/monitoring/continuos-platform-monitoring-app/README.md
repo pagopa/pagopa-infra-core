@@ -33,6 +33,7 @@
 | [terraform_data.azure_hosts_config](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.azure_services_config](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.icinga_vm_bp](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [terraform_data.icinga_vm_bp_api](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [azapi_resource.icinga_vm](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource) | data source |
 | [azapi_resource.this](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource) | data source |
 | [azapi_resource_action.provider](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/resource_action) | data source |

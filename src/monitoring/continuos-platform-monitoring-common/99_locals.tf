@@ -62,6 +62,7 @@ locals {
     data.azurerm_key_vault_secret.icingaweb_db_password.version,
     data.azurerm_key_vault_secret.icingaweb_admin_password.version,
     data.azurerm_key_vault_secret.icinga_api_terraform_password.version,
+    data.azurerm_key_vault_secret.icinga_api_synthetic_password.version,
     [for k, m in local.aks_icinga : m.kubeconfig_hash],
     local.icinga_role_groups,
   ])), 0, 8)

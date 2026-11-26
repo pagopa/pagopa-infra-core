@@ -30,14 +30,17 @@ Blocks are grouped by `domain` (duplicate pairs removed, request order kept) and
 
 ## Configuration (environment)
 
-| Variable        | Default                                                |
-|-----------------|--------------------------------------------------------|
-| `BP_CONFIG_DIR` | `/etc/icingaweb2/modules/businessprocess/processes/`   |
-| `BP_API_HOST`   | `127.0.0.1`                                            |
-| `BP_API_PORT`   | `8080`                                                 |
+| Variable        | Value                                                                       |
+|-----------------|-----------------------------------------------------------------------------|
+| `BP_CONFIG_DIR` | `/etc/icingaweb2/modules/businessprocess/processes/` (default in the code)  |
+| `BP_API_HOST`   | `0.0.0.0` (`deploy/bp-api.conf`)                                            |
+| `BP_API_PORT`   | `8080` (`deploy/bp-api.conf`)                                               |
 
-The service has **no authentication**: keep it internal-only (default bind is localhost; exposing it on other
-interfaces must be network-restricted).
+The service listens on all interfaces, i.e. the private IP of the VM (reachable from the synthetic Container App
+Environment through the VNet peering) and localhost.
+
+**It has no authentication yet**: anything that can reach the private IP of the VM on port 8080 can edit the
+business process files. Network restriction (NSG) and a token are still to be added.
 
 ## Write strategy
 
@@ -49,10 +52,19 @@ The file is rewritten in place under `flock` (no temp file, since the service us
 `02_vm_command.tf` writes the same `<bp>.conf` and replaces it completely on change: **every `terraform apply`
 that changes the business process content wipes the API-written sections** until callers POST again.
 
+Every domain node written by Terraform references `synthetic_<domain>` (`local.bp_synthetic_target`): the node is
+defined by azure-synthetic-monitoring calling `POST /business-process/<bp>/block/synthetic` with the same domain
+names. The businessprocess module fails to parse the whole file on a reference to an undefined node, so:
+
+- Terraform writes the `synthetic` section with an empty node (`synthetic_<domain> =`, state EMPTY, does not affect
+  the domain) for every domain;
+- on every call the API also defines as empty every `<target>_*` node referenced outside its section but without
+  blocks in the request.
+
 ## Deployment
 
-`../03_bp_api.tf` installs it on the Icinga VM via `az vm run-command` (idempotent, re-run when sources change):
-user `bp-api` (member of `icingaweb2`), venv in `/opt/bp-api`, `/etc/default/bp-api` (created once),
+`../03_bp_api.tf` installs it on the Icinga VM via `az vm run-command` (idempotent, re-run when sources change or the VM is recreated - `vmId` - after the business process file):
+user `bp-api` (member of `icingaweb2`), venv in `/opt/bp-api`, `/etc/default/bp-api` (rewritten from `deploy/bp-api.conf`),
 systemd unit `bp-api.service` (sandboxed), `<bp>.conf` set to `root:icingaweb2 0660`.
 Requires `python3` with `venv` and PyPI access on the VM. Logs: `journalctl -u bp-api`.
 
