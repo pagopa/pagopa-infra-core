@@ -28,6 +28,12 @@ def config_dir() -> Path:
     return Path(os.environ.get("BP_CONFIG_DIR", DEFAULT_CONFIG_DIR))
 
 
+def for_log(value: str) -> str:
+    """Path parameters are logged also when invalid: escape line breaks so a
+    request cannot forge log lines (log injection)"""
+    return value.replace("\\", "\\\\").replace("\r", "\\r").replace("\n", "\\n")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -42,16 +48,18 @@ def put_block(bp: str, target: str, body: BlocksRequest) -> Response:
         if not body.blocks:
             raise ValueError("blocks must not be empty")
         for b in body.blocks:
-            bpfile.validate_value(b.domain, "domain")
+            # part of the node name "<target>_<domain>"
+            bpfile.validate_identifier(b.domain, "domain")
             bpfile.validate_value(b.name, "name")
         bpfile.update_bp_file(
             config_dir(), bp, target, body.host, [(b.domain, b.name) for b in body.blocks]
         )
     except (ValueError, bpfile.BpFileNotFound) as e:
-        logger.warning("bp=%s target=%s result=400 reason=%s", bp, target, e)
+        logger.warning("bp=%s target=%s result=400 reason=%s", for_log(bp), for_log(target), e)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.exception("bp=%s target=%s result=500", bp, target)
+        logger.exception("bp=%s target=%s result=500", for_log(bp), for_log(target))
         raise HTTPException(status_code=500, detail=f"internal error: {e}")
+    # bp and target are validated here
     logger.info("bp=%s target=%s result=200 blocks=%d", bp, target, len(body.blocks))
     return Response(status_code=200)

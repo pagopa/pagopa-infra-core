@@ -20,9 +20,17 @@ Blocks are grouped by `domain` (duplicate pairs removed, request order kept) and
 
 - First call for a target: the section is appended at the end of the file.
 - Subsequent calls: the whole section is replaced; the rest of the file is untouched.
-- `200` with empty body on success, `400` for invalid input (empty fields, `;&=#` or newlines in values,
-  `bp`/`target` outside `[A-Za-z0-9_.-]`, `<bp>.conf` not found - it is never created), `500` on internal errors
-  (e.g. corrupted markers in the file).
+- `200` with empty body on success, `400` for invalid input, `500` on internal errors (e.g. corrupted markers in
+  the file). Invalid input:
+  - `bp`, `target` and `domain` (part of the node name `<target>_<domain>`) outside `[A-Za-z0-9_.-]`;
+  - `host` and `name` outside `[A-Za-z0-9_.:-]{1,255}`: an allow-list, so no operator of the businessprocess syntax
+    (`& | + ! % ^`, escape `\`; a mixed operator breaks the parsing of the **whole** file), no `; = #`, no line
+    separator of any kind;
+  - `<bp>.conf` not found, or not a regular file directly inside `BP_CONFIG_DIR` (symlinks pointing elsewhere
+    included): it is never created.
+- The file is split into lines on `\n` only, like the businessprocess parser (Python's `splitlines` would also
+  split on ` `, used by Terraform in the node titles, `\x85`, ...).
+- Path parameters are logged with line breaks escaped (no forged log lines).
 - **Deviation from the original spec**: errors use the FastAPI format `{"detail": "..."}`,
   and malformed bodies return FastAPI's default `422`.
 

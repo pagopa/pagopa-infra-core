@@ -85,6 +85,76 @@ def test_bad_requests(bp_dir, kwargs):
     assert r.status_code == 400 or kwargs.get("bp") == ".."
 
 
+def blocks_body(host="h", domain="d", name="n"):
+    return {"body": {"host": host, "blocks": [{"domain": domain, "name": name}]}}
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        # operators of the businessprocess syntax: "Mixing operators is not allowed"
+        # would break the whole file
+        *[blocks_body(name=f"a{op}b") for op in "|+!%^&\\"],
+        blocks_body(host="h|x"),
+        # line separators seen by Python but not by the PHP parser
+        *[blocks_body(name=f"a{sep}b") for sep in [" ", " ", "\x85", "\x0b", "\x0c", "\x1c"]],
+        blocks_body(name="a # end t1 section junk"),
+        blocks_body(name="a b"),
+        blocks_body(name="x" * 256),
+        # domain is part of the node name
+        blocks_body(domain="a b"),
+        blocks_body(domain="a|b"),
+        blocks_body(domain=".."),
+    ],
+)
+def test_bp_syntax_injection_rejected(bp_dir, kwargs):
+    before = (bp_dir / "bp.conf").read_text()
+    r = post(**kwargs)
+    assert r.status_code == 400 and "detail" in r.json()
+    assert (bp_dir / "bp.conf").read_text() == before
+
+
+def test_allowed_values(bp_dir):
+    r = post(body={"host": "pagopa-d.weu:x_1", "blocks": [{"domain": "a.b-c_1", "name": "app-api-aks"}]})
+    assert r.status_code == 200
+    assert "t1_a.b-c_1 = pagopa-d.weu:x_1;app-api-aks\n" in (bp_dir / "bp.conf").read_text()
+
+
+def test_unicode_separators_in_file_are_not_lines(bp_dir):
+    # Terraform titles contain U+2028: never a line (nor a marker) for the API
+    (bp_dir / "bp.conf").write_text(
+        "display 0;n;AKS # begin t1 section x\n"
+        "dom = a & t1_dom\n"
+    )
+    assert post(body={"host": "h", "blocks": [{"domain": "dom", "name": "s"}]}).status_code == 200
+    text = (bp_dir / "bp.conf").read_text()
+    assert text.startswith("display 0;n;AKS # begin t1 section x\ndom = a & t1_dom\n")
+    assert text.count("\n# begin t1 section\n") == 1 and "t1_dom = h;s\n" in text
+
+
+def test_symlink_outside_config_dir_rejected(bp_dir, tmp_path_factory):
+    outside = tmp_path_factory.mktemp("outside") / "target.conf"
+    outside.write_text("x = y\n")
+    (bp_dir / "evil.conf").symlink_to(outside)
+    assert post(bp="evil").status_code == 400
+    assert outside.read_text() == "x = y\n"
+
+
+def test_symlink_inside_config_dir_allowed(bp_dir):
+    (bp_dir / "alias.conf").symlink_to(bp_dir / "bp.conf")
+    assert post(bp="alias").status_code == 200
+    assert "# begin t1 section" in (bp_dir / "bp.conf").read_text()
+
+
+def test_log_injection_escaped(bp_dir, caplog):
+    caplog.set_level("WARNING", logger="bp-api")
+    r = client.post("/business-process/bp%0Aresult=200%20forged/block/t1", json=BODY)
+    assert r.status_code == 400
+    messages = [rec.getMessage() for rec in caplog.records if rec.name == "bp-api"]
+    assert messages and all("\n" not in m for m in messages)
+    assert any("bp\\nresult=200 forged" in m for m in messages)
+
+
 def test_missing_file_not_created(bp_dir):
     assert post(bp="other").status_code == 400
     assert not (bp_dir / "other.conf").exists()
