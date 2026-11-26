@@ -93,9 +93,22 @@ data "azurerm_key_vault_secret" "grafana_key" {
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
 
-
 data "azurerm_cdn_frontdoor_endpoint" "checkout_cdn_endpoint" {
   name                = "${var.prefix}-${var.env_short}-weu-checkout-cdn-endpoint"
   profile_name        = "${var.prefix}-${var.env_short}-weu-checkout-cdn-profile"
   resource_group_name = "${var.prefix}-${var.env_short}-checkout-fe-rg"
+}
+
+module "secrets_cpm" {
+  source = "./.terraform/modules/__v4__/key_vault_secrets_query"
+  count  = var.icinga_enabled ? 1 : 0
+
+  resource_group = local.key_vault_cpm_rg_name
+  key_vault_name = local.key_vault_cpm_name
+
+  secrets = [
+    "icinga-api-synthetic-password",
+    "icinga-api-url",
+    "icinga-business-process-name"
+  ]
 }

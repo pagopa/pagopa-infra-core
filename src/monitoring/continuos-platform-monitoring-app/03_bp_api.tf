@@ -109,3 +109,12 @@ resource "terraform_data" "icinga_vm_bp_api" {
     EOT
   }
 }
+
+resource "azurerm_key_vault_secret" "business_process_name" {
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+  name         = "icinga-business-process-name"
+  # nome del file <bp_name>.conf, usato da synthetic nella bp-api (bp_title ha spazi)
+  value = local.bp_name
+
+  tags = module.tag_config.tags
+}

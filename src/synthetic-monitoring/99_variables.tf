@@ -137,3 +137,9 @@ variable "nexi_postgres_public_enabled" {
   default     = true
   description = "(Required) if true enables the usage of public endpoint for nexi postgres test"
 }
+
+variable "icinga_enabled" {
+  type        = bool
+  default     = false
+  description = "(Optional) if true enables the icinga monitoring"
+}

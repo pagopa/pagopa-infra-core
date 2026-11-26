@@ -8,7 +8,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} context root"
+      "description" : "pagopa ${env_name} context root",
+      "domain": "core"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -439,7 +440,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts datastore status endpoint"
+      "description" : "pagopa ${env_name} receipts datastore status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -455,7 +457,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts datastore status endpoint"
+      "description" : "pagopa ${env_name} receipts datastore status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -628,7 +631,8 @@
       "Content-Type": "application/json"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -653,7 +657,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -679,7 +684,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position via Internet"
+      "description" : "pagopa nodo ${env_name} check position via Internet",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -703,7 +709,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -727,7 +734,8 @@
       "Ocp-Apim-Subscription-Key": "${ndp_ecommerce_subscription_key}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -892,7 +900,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service via Internet"
+      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service via Internet",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {

@@ -26,3 +26,11 @@ resource "azurerm_private_dns_a_record" "icinga" {
 
   tags = module.tag_config.tags
 }
+
+resource "azurerm_key_vault_secret" "icinga_api_url" {
+  key_vault_id = data.azurerm_key_vault.domain_kv.id
+  name         = "icinga-api-url"
+  value        = local.icinga_fqdn
+
+  tags = module.tag_config.tags
+}

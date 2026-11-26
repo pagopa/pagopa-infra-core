@@ -26,6 +26,7 @@
 |------|------|
 | [azurerm_cosmosdb_sql_role_assignment.icinga_read_metadata](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_cosmosdb_sql_role_definition.icinga_read_metadata](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_definition) | resource |
+| [azurerm_key_vault_secret.business_process_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [icinga2_host.hosts](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/host) | resource |
 | [icinga2_service.aks_namespaces](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |
 | [icinga2_service.services](https://registry.terraform.io/providers/Icinga/icinga2/latest/docs/resources/service) | resource |

@@ -17,7 +17,7 @@ module "monitoring_function" {
 
   docker_settings = {
     #image_tag = "v1.11.2@sha256:a0d9821489aef256345d558915319d5aa911dd7e648a1f4c826c001eaf9a80fe"
-    image_tag = "beta-icinga-integration"
+    image_tag = "beta-icinga-integration@sha256:0cdc9cd2e65e565d4f72d0303a2c17bd0cbad32b0e8fe9877ab15e97e36fcfe7"
   }
 
   job_settings = {
