@@ -16,7 +16,8 @@ module "monitoring_function" {
   application_insights_action_group_ids = var.env_short == "p" ? [data.azurerm_monitor_action_group.infra_opsgenie[0].id] : [data.azurerm_monitor_action_group.slack.id]
 
   docker_settings = {
-    image_tag = "v1.11.2@sha256:a0d9821489aef256345d558915319d5aa911dd7e648a1f4c826c001eaf9a80fe"
+    #image_tag = "v1.11.2@sha256:a0d9821489aef256345d558915319d5aa911dd7e648a1f4c826c001eaf9a80fe"
+    image_tag = "beta-icinga-integration"
   }
 
   job_settings = {
@@ -83,4 +84,6 @@ module "monitoring_function" {
     cloudo_checkout_cdn_switch               = var.enabled_resource.cloudo_checkout_cdn_switch
     nexi_postgres_public_enabled             = var.nexi_postgres_public_enabled
   })
+
+  icinga_settings = {}
 }
