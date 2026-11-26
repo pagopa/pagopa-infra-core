@@ -163,8 +163,14 @@ def test_missing_file_not_created(bp_dir):
 def test_corrupted_file_is_500(bp_dir):
     (bp_dir / "bp.conf").write_text("# begin t1 section\nx = y\n")
     r = post()
-    assert r.status_code == 500 and "detail" in r.json()
+    # generic message: the details (paths, markers) only in the log
+    assert r.status_code == 500 and r.json() == {"detail": "internal error"}
 
 
 def test_health():
     assert client.get("/health").json() == {"status": "ok"}
+
+
+@pytest.mark.parametrize("path", ["/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect"])
+def test_docs_disabled(path):
+    assert client.get(path).status_code == 404

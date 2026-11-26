@@ -1,0 +1,5 @@
+# direct dependencies, compiled with hashes into requirements.txt:
+#   pip-compile --generate-hashes --strip-extras --no-emit-index-url requirements.in
+# versions aligned with the ones running on the Icinga VM
+fastapi==0.165.0
+uvicorn==0.54.0

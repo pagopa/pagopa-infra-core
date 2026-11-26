@@ -70,7 +70,8 @@ resource "terraform_data" "icinga_vm_bp_api" {
         echo "\$${entry#*=}" | base64 -d > "\$APP/\$rel"
       done
       [ -d "\$APP/venv" ] || python3 -m venv "\$APP/venv"
-      "\$APP/venv/bin/pip" install --quiet -r "\$APP/requirements.txt"
+      # versioni esatte con hash (requirements.txt generato da requirements.in con pip-compile)
+      "\$APP/venv/bin/pip" install --quiet --require-hashes --no-deps --only-binary :all: -r "\$APP/requirements.txt"
       chown -R root:bp-api "\$APP"
       chmod -R g+rX,o-rwx "\$APP"
 

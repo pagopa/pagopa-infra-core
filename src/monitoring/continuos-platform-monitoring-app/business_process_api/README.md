@@ -36,6 +36,9 @@ Blocks are grouped by `domain` (duplicate pairs removed, request order kept) and
 
 `GET /health` returns `{"status": "ok"}`.
 
+- `500` responses carry only `{"detail": "internal error"}`: the details are in the log.
+- No interactive docs nor OpenAPI schema (`/docs`, `/redoc`, `/openapi.json` return `404`).
+
 ## Configuration (environment)
 
 | Variable        | Value                                                                       |
@@ -74,12 +77,21 @@ names. The businessprocess module fails to parse the whole file on a reference t
 `../03_bp_api.tf` installs it on the Icinga VM via `az vm run-command` (idempotent, re-run when sources change or the VM is recreated - `vmId` - after the business process file):
 user `bp-api` (member of `icingaweb2`), venv in `/opt/bp-api`, `/etc/default/bp-api` (rewritten from `deploy/bp-api.conf`),
 systemd unit `bp-api.service` (sandboxed), `<bp>.conf` set to `root:icingaweb2 0660`.
-Requires `python3` with `venv` and PyPI access on the VM. Logs: `journalctl -u bp-api`.
+Requires `python3` with `venv` (from the image) and PyPI access on the VM. Logs: `journalctl -u bp-api`.
+
+Dependencies are pinned with hashes and installed with `pip install --require-hashes --no-deps --only-binary :all:`:
+edit only the `.in` files, then regenerate (same Python as the VM, 3.14):
+
+```
+pip install pip-tools
+pip-compile --generate-hashes --strip-extras --no-emit-index-url requirements.in
+pip-compile --generate-hashes --strip-extras --no-emit-index-url requirements-dev.in
+```
 
 ## Development
 
 ```
-python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+python3 -m venv .venv && .venv/bin/pip install --require-hashes -r requirements-dev.txt
 .venv/bin/python -m pytest
 BP_CONFIG_DIR=/tmp/bp .venv/bin/uvicorn app.main:app
 ```

@@ -11,7 +11,8 @@ DEFAULT_CONFIG_DIR = "/etc/icingaweb2/modules/businessprocess/processes/"
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("bp-api")
-app = FastAPI(title="Icinga business process API")
+# no interactive docs nor OpenAPI schema: the service is reachable on the private IP
+app = FastAPI(title="Icinga business process API", docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class Block(BaseModel):
@@ -57,9 +58,10 @@ def put_block(bp: str, target: str, body: BlocksRequest) -> Response:
     except (ValueError, bpfile.BpFileNotFound) as e:
         logger.warning("bp=%s target=%s result=400 reason=%s", for_log(bp), for_log(target), e)
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         logger.exception("bp=%s target=%s result=500", for_log(bp), for_log(target))
-        raise HTTPException(status_code=500, detail=f"internal error: {e}")
+        # details only in the log, never in the response
+        raise HTTPException(status_code=500, detail="internal error")
     # bp and target are validated here
     logger.info("bp=%s target=%s result=200 blocks=%d", bp, target, len(body.blocks))
     return Response(status_code=200)
