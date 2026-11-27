@@ -46,14 +46,25 @@ Blocks are grouped by `domain` (duplicate pairs removed, request order kept) and
 | `BP_CONFIG_DIR` | `/etc/icingaweb2/modules/businessprocess/processes/` (default in the code)  |
 | `BP_API_HOST`   | `127.0.0.1` (`deploy/bp-api.conf`)                                          |
 | `BP_API_PORT`   | `8080` (`deploy/bp-api.conf`)                                               |
+| `BP_API_TOKEN`  | Bearer token of the clients (`/etc/bp-api/token`, from the key vault)       |
 
 The service listens on localhost only. Clients reach it through the Apache reverse proxy of the Icinga VM
 (`icinga-configure.sh`), over HTTPS with the Let's Encrypt certificate of Icinga Web:
 `https://<icinga fqdn>/bp-api/<path>` is forwarded to `http://127.0.0.1:8080/<path>`, e.g.
 `POST https://<icinga fqdn>/bp-api/business-process/<bp>/block/synthetic`.
 
-**It has no authentication yet**: anything that can reach the Icinga VM on port 443 can edit the business process
-files. Network restriction (NSG or `Require ip` on the proxy) and a token are still to be added.
+## Authentication
+
+`POST /business-process/...` requires `Authorization: Bearer <token>`, compared in constant time with
+`BP_API_TOKEN`; `GET /health` is open.
+
+- `401` (with `WWW-Authenticate: Bearer`) for a missing or wrong token, checked before the body is validated;
+- `503` for every request when `BP_API_TOKEN` is not configured (fails closed).
+
+The token is the key vault secret `icinga-bp-api-token` (created by hand, e.g. `openssl rand -hex 32`), read by
+`../03_bp_api.tf` and by azure-synthetic-monitoring (`BP_API_TOKEN`). On the VM it is in `/etc/bp-api/token`
+(`root`, `0600`), a second `EnvironmentFile` of the unit, read by systemd before dropping the privileges: the service
+does not start without it. A network restriction (`Require ip` on the proxy) can still be added.
 
 ## Write strategy
 
@@ -76,8 +87,8 @@ names. The businessprocess module fails to parse the whole file on a reference t
 
 ## Deployment
 
-`../03_bp_api.tf` installs it on the Icinga VM via `az vm run-command` (idempotent, re-run when sources change or the VM is recreated - `vmId` - after the business process file):
-user `bp-api` (member of `icingaweb2`), venv in `/opt/bp-api`, `/etc/default/bp-api` (rewritten from `deploy/bp-api.conf`),
+`../03_bp_api.tf` installs it on the Icinga VM via `az vm run-command` (idempotent, re-run when sources or token change or the VM is recreated - `vmId` - after the business process file):
+user `bp-api` (member of `icingaweb2`), venv in `/opt/bp-api`, `/etc/default/bp-api` (rewritten from `deploy/bp-api.conf`), `/etc/bp-api/token` (run command protected parameter),
 systemd unit `bp-api.service` (sandboxed), `<bp>.conf` set to `root:icingaweb2 0660`.
 Requires `python3` with `venv` (from the image) and PyPI access on the VM. Logs: `journalctl -u bp-api`.
 

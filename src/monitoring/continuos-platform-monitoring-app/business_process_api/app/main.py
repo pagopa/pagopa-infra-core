@@ -1,8 +1,10 @@
+import hmac
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel
 
 from . import bpfile
@@ -35,12 +37,29 @@ def for_log(value: str) -> str:
     return value.replace("\\", "\\\\").replace("\r", "\\r").replace("\n", "\\n")
 
 
+def require_token(authorization: Optional[str] = Header(default=None)) -> None:
+    """Bearer token shared with the callers (BP_API_TOKEN, from the key vault).
+    Fails closed: without a configured token every request is refused"""
+    expected = os.environ.get("BP_API_TOKEN", "")
+    if not expected:
+        logger.error("result=503 reason=BP_API_TOKEN not configured")
+        raise HTTPException(status_code=503, detail="authentication not configured")
+    scheme, _, token = (authorization or "").partition(" ")
+    # constant time comparison
+    if scheme.lower() != "bearer" or not hmac.compare_digest(token.encode(), expected.encode()):
+        logger.warning("result=401 reason=missing or invalid token")
+        raise HTTPException(
+            status_code=401, detail="unauthorized", headers={"WWW-Authenticate": "Bearer"}
+        )
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/business-process/{bp}/block/{target}")
+# authentication checked before the body and the path parameters are used
+@app.post("/business-process/{bp}/block/{target}", dependencies=[Depends(require_token)])
 def put_block(bp: str, target: str, body: BlocksRequest) -> Response:
     try:
         bpfile.validate_identifier(bp, "bp")

@@ -22,6 +22,8 @@ resource "terraform_data" "icinga_vm_bp_api" {
   triggers_replace = [
     data.azapi_resource.icinga_vm.output.vm_id,
     local.bp_api_hash,
+    # rotazione del token: nello state del trigger finisce solo il suo hash
+    sha256(data.azurerm_key_vault_secret.bp_api_token.value),
   ]
 
   # dopo il file del BP (i permessi del file sono sistemati qui) e mai in parallelo
@@ -42,6 +44,9 @@ resource "terraform_data" "icinga_vm_bp_api" {
       UNIT_B64        = local.bp_api_unit
       ENV_B64         = local.bp_api_env
       FILES_B64       = join(" ", [for k in sort(keys(local.bp_api_files)) : "${k}=${local.bp_api_files[k]}"])
+      # passato come protected parameter del run command (variabile d'ambiente dello script sulla VM):
+      # non finisce nello script ne' nella vista del run command
+      BP_API_TOKEN = data.azurerm_key_vault_secret.bp_api_token.value
     }
 
     command = <<-EOT
@@ -79,6 +84,11 @@ resource "terraform_data" "icinga_vm_bp_api" {
       echo '$ENV_B64' | base64 -d > /etc/default/bp-api
       echo '$UNIT_B64' | base64 -d > /etc/systemd/system/bp-api.service
 
+      # token Bearer dei client (protected parameter BP_API_TOKEN), letto da systemd come root
+      [ -n "\$${BP_API_TOKEN:-}" ] || { echo "BP_API_TOKEN mancante" >&2; exit 1; }
+      install -d -m 0700 -o root -g root /etc/bp-api
+      ( umask 077; printf 'BP_API_TOKEN=%s\n' "\$BP_API_TOKEN" > /etc/bp-api/token )
+
       # la API scrive direttamente sul file (nessun temp file): serve il permesso di gruppo sul solo file
       if [ -f '$BP_FILE' ]; then
         chgrp icingaweb2 '$BP_FILE'
@@ -97,7 +107,7 @@ resource "terraform_data" "icinga_vm_bp_api" {
 
       az_run create --location "$LOCATION" \
         --async-execution false --timeout-in-seconds 900 \
-        --script "@$script" --output none
+        --script "@$script" --protected-parameters "BP_API_TOKEN=$BP_API_TOKEN" --output none
 
       az_run show --instance-view --query instanceView --output json > "$log"
       exit_code="$(az_run show --instance-view --query instanceView.exitCode --output tsv)"
@@ -108,6 +118,12 @@ resource "terraform_data" "icinga_vm_bp_api" {
       echo "$RUN_NAME completato su $VM_NAME, vedi $log"
     EOT
   }
+}
+
+# token Bearer della bp-api, condiviso con synthetic (creato a mano: openssl rand -hex 32)
+data "azurerm_key_vault_secret" "bp_api_token" {
+  name         = "icinga-bp-api-token"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
 }
 
 resource "azurerm_key_vault_secret" "business_process_name" {

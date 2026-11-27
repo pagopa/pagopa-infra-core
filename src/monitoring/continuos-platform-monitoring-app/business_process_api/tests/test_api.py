@@ -4,6 +4,8 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
+TOKEN = "test-token"
+AUTH = {"Authorization": f"Bearer {TOKEN}"}
 BODY = {
     "host": "h1",
     "blocks": [
@@ -15,6 +17,11 @@ BODY = {
 }
 
 
+@pytest.fixture(autouse=True)
+def bp_api_token(monkeypatch):
+    monkeypatch.setenv("BP_API_TOKEN", TOKEN)
+
+
 @pytest.fixture
 def bp_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("BP_CONFIG_DIR", str(tmp_path))
@@ -22,8 +29,8 @@ def bp_dir(tmp_path, monkeypatch):
     return tmp_path
 
 
-def post(target="t1", bp="bp", body=BODY):
-    return client.post(f"/business-process/{bp}/block/{target}", json=body)
+def post(target="t1", bp="bp", body=BODY, headers=AUTH):
+    return client.post(f"/business-process/{bp}/block/{target}", json=body, headers=headers)
 
 
 def test_appends_section(bp_dir):
@@ -148,7 +155,7 @@ def test_symlink_inside_config_dir_allowed(bp_dir):
 
 def test_log_injection_escaped(bp_dir, caplog):
     caplog.set_level("WARNING", logger="bp-api")
-    r = client.post("/business-process/bp%0Aresult=200%20forged/block/t1", json=BODY)
+    r = client.post("/business-process/bp%0Aresult=200%20forged/block/t1", json=BODY, headers=AUTH)
     assert r.status_code == 400
     messages = [rec.getMessage() for rec in caplog.records if rec.name == "bp-api"]
     assert messages and all("\n" not in m for m in messages)
@@ -174,3 +181,38 @@ def test_health():
 @pytest.mark.parametrize("path", ["/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect"])
 def test_docs_disabled(path):
     assert client.get(path).status_code == 404
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {},
+        {"Authorization": "Bearer wrong"},
+        {"Authorization": f"Basic {TOKEN}"},
+        {"Authorization": TOKEN},
+        {"Authorization": "Bearer "},
+    ],
+)
+def test_unauthorized(bp_dir, headers):
+    r = post(headers=headers)
+    assert r.status_code == 401
+    assert r.headers["WWW-Authenticate"] == "Bearer"
+    assert "begin t1" not in (bp_dir / "bp.conf").read_text()
+
+
+def test_unauthorized_before_body_validation(bp_dir):
+    assert post(body={"invalid": True}, headers={}).status_code == 401
+
+
+def test_bearer_scheme_case_insensitive(bp_dir):
+    assert post(headers={"Authorization": f"bearer {TOKEN}"}).status_code == 200
+
+
+def test_token_not_configured_refuses_everything(bp_dir, monkeypatch):
+    monkeypatch.delenv("BP_API_TOKEN")
+    assert post().status_code == 503
+    assert "begin t1" not in (bp_dir / "bp.conf").read_text()
+
+
+def test_health_without_token():
+    assert client.get("/health").status_code == 200

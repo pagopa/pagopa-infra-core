@@ -15,7 +15,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | PAYMCLOUD-1192-synthetic-integration |
+| <a name="module___v4__"></a> [\_\_v4\_\_](#module\_\_\_v4\_\_) | git::https://github.com/pagopa/terraform-azurerm-v4 | 37706156cd75a859d38999f0b67af6bf5a1f6b28 |
 | <a name="module_monitoring_function"></a> [monitoring\_function](#module\_monitoring\_function) | ./.terraform/modules/__v4__/monitoring_function | n/a |
 | <a name="module_secret_core"></a> [secret\_core](#module\_secret\_core) | ./.terraform/modules/__v4__/key_vault_secrets_query | n/a |
 | <a name="module_secrets_cpm"></a> [secrets\_cpm](#module\_secrets\_cpm) | ./.terraform/modules/__v4__/key_vault_secrets_query | n/a |

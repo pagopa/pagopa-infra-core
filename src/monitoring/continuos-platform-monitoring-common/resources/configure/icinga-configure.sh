@@ -312,13 +312,16 @@ object ApiUser "terraform" {
 EOF
 
 # API user used by azure-synthetic-monitoring (runtime): creates its host and
-# services and publishes the check results of the synthetic tests
+# services, updates and deletes its services (only those with
+# vars.managed_by = synthetic) and publishes the check results of the synthetic tests
 write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-synthetic.conf <<EOF
 object ApiUser "synthetic" {
   password    = "${ICINGA_API_SYNTHETIC_PASSWORD}"
   permissions = [
     "objects/query/Host", "objects/query/Service",
     "objects/create/Host", "objects/create/Service",
+    { permission = "objects/modify/Service", filter = {{ service.vars.managed_by == "synthetic" }} },
+    { permission = "objects/delete/Service", filter = {{ service.vars.managed_by == "synthetic" }} },
     "actions/process-check-result"
   ]
 }

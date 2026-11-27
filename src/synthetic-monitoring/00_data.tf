@@ -109,6 +109,7 @@ module "secrets_cpm" {
   secrets = [
     "icinga-api-synthetic-password",
     "icinga-api-url",
-    "icinga-business-process-name"
+    "icinga-business-process-name",
+    "icinga-bp-api-token"
   ]
 }

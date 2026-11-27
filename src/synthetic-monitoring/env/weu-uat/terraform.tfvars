@@ -35,3 +35,5 @@ nexi_ndp_host_postgres                   = "test.nexi.ndp.pagopa.it"
 nexi_ndphost_header                      = "nodo-p-uat.nexigroup.com"
 
 synthetic_alerts_enabled = false
+
+icinga_enabled = true

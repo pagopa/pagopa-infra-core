@@ -45,6 +45,6 @@ data "azurerm_subscription" "current" {}
 data "azurerm_client_config" "current" {}
 
 module "__v4__" {
-  # v10.16.3
-  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=PAYMCLOUD-1192-synthetic-integration"
+  # https://github.com/pagopa/terraform-azurerm-v4/tree/v10.55.0
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4?ref=37706156cd75a859d38999f0b67af6bf5a1f6b28"
 }

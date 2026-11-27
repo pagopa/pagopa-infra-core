@@ -9,6 +9,9 @@ Group=bp-api
 SupplementaryGroups=icingaweb2
 WorkingDirectory=/opt/bp-api
 EnvironmentFile=/etc/default/bp-api
+# BP_API_TOKEN (key vault secret icinga-bp-api-token), root 0600: read by systemd before dropping the privileges.
+# mandatory: the service does not start without it
+EnvironmentFile=/etc/bp-api/token
 ExecStart=/opt/bp-api/venv/bin/uvicorn app.main:app --host ${BP_API_HOST} --port ${BP_API_PORT}
 Restart=on-failure
 RestartSec=5
