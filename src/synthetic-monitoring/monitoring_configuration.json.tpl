@@ -1156,7 +1156,7 @@
       "method": "GET",
       "expectedCodes": ["200"],
       "tags": {
-        "description": "pagopa ${env_name} checkout public endpoint",
+        "description": "pagopa ${env_name} checkout public endpoint"
       },
       "durationLimit": 10000,
       "alertConfiguration": {
