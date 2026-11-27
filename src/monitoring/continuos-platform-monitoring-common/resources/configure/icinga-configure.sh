@@ -949,9 +949,13 @@ systemctl start icinga-tls-sync.service
 systemctl enable --now icinga-tls-sync.timer
 
 # -----------------------------------------------------------------------------
-# Apache: HTTPS for Icinga Web, certificate of icinga-tls-sync
+# Apache: HTTPS for Icinga Web, certificate of icinga-tls-sync. Reverse proxy,
+# with the same certificate, for the Icinga API (/v1/, port 5665) and the
+# business process API (/bp-api/, port 8080, listening on localhost only):
+# clients such as azure-synthetic-monitoring verify the Let's Encrypt
+# certificate with the system CAs, without the Icinga CA nor the VM hostname
 # -----------------------------------------------------------------------------
-a2enmod -q ssl rewrite headers
+a2enmod -q ssl rewrite headers proxy proxy_http
 
 write_file root:root 0644 /etc/apache2/sites-available/icingaweb2-ssl.conf <<EOF
 <VirtualHost *:80>
@@ -969,6 +973,21 @@ write_file root:root 0644 /etc/apache2/sites-available/icingaweb2-ssl.conf <<EOF
     SSLCertificateKeyFile /var/lib/icinga-tls/current/privkey.pem
 
     RedirectMatch ^/$ /icingaweb2/
+
+    ProxyRequests     Off
+    ProxyTimeout      30
+    # the Icinga API is reached on loopback: its certificate is verified against
+    # the Icinga CA, not its name (issued for the VM short hostname, not 127.0.0.1)
+    SSLProxyEngine        on
+    SSLProxyVerify        require
+    SSLProxyCACertificateFile /var/lib/icinga2/certs/ca.crt
+    SSLProxyCheckPeerName off
+
+    # authentication of both APIs unchanged: the Authorization header is forwarded
+    ProxyPass        /v1/ https://127.0.0.1:5665/v1/
+    ProxyPassReverse /v1/ https://127.0.0.1:5665/v1/
+    ProxyPass        /bp-api/ http://127.0.0.1:8080/
+    ProxyPassReverse /bp-api/ http://127.0.0.1:8080/
 </VirtualHost>
 EOF
 

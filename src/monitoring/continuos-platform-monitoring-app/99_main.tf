@@ -31,10 +31,9 @@ terraform {
 }
 
 provider "icinga2" {
-  api_url                  = "https://${data.azurerm_key_vault_secret.icinga_vm_private_ip.value}:5665/v1"
-  api_user                 = "terraform"
-  api_password             = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
-  insecure_skip_tls_verify = true
+  api_url      = "https://${data.azurerm_key_vault_secret.icinga_api_url.value}/v1"
+  api_user     = "terraform"
+  api_password = data.azurerm_key_vault_secret.icinga_api_terraform_password.value
 }
 
 provider "azurerm" {

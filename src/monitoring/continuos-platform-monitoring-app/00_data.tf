@@ -18,8 +18,8 @@ data "azurerm_key_vault" "kv_domain" {
   resource_group_name = local.kv_domain_rg
 }
 
-data "azurerm_key_vault_secret" "icinga_vm_private_ip" {
-  name         = "icinga-vm-private-ip"
+data "azurerm_key_vault_secret" "icinga_api_url" {
+  name         = "icinga-api-url"
   key_vault_id = data.azurerm_key_vault.kv_domain.id
 }
 

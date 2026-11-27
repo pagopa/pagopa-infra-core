@@ -44,14 +44,16 @@ Blocks are grouped by `domain` (duplicate pairs removed, request order kept) and
 | Variable        | Value                                                                       |
 |-----------------|-----------------------------------------------------------------------------|
 | `BP_CONFIG_DIR` | `/etc/icingaweb2/modules/businessprocess/processes/` (default in the code)  |
-| `BP_API_HOST`   | `0.0.0.0` (`deploy/bp-api.conf`)                                            |
+| `BP_API_HOST`   | `127.0.0.1` (`deploy/bp-api.conf`)                                          |
 | `BP_API_PORT`   | `8080` (`deploy/bp-api.conf`)                                               |
 
-The service listens on all interfaces, i.e. the private IP of the VM (reachable from the synthetic Container App
-Environment through the VNet peering) and localhost.
+The service listens on localhost only. Clients reach it through the Apache reverse proxy of the Icinga VM
+(`icinga-configure.sh`), over HTTPS with the Let's Encrypt certificate of Icinga Web:
+`https://<icinga fqdn>/bp-api/<path>` is forwarded to `http://127.0.0.1:8080/<path>`, e.g.
+`POST https://<icinga fqdn>/bp-api/business-process/<bp>/block/synthetic`.
 
-**It has no authentication yet**: anything that can reach the private IP of the VM on port 8080 can edit the
-business process files. Network restriction (NSG) and a token are still to be added.
+**It has no authentication yet**: anything that can reach the Icinga VM on port 443 can edit the business process
+files. Network restriction (NSG or `Require ip` on the proxy) and a token are still to be added.
 
 ## Write strategy
 

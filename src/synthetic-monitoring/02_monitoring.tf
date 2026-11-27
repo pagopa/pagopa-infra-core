@@ -85,5 +85,11 @@ module "monitoring_function" {
     nexi_postgres_public_enabled             = var.nexi_postgres_public_enabled
   })
 
-  icinga_settings = {}
+  icinga_settings = {
+    enabled    = var.icinga_enabled
+    api_url    = var.icinga_enabled ? "https://${module.secrets_cpm[0].values["icinga-api-url"].value}" : null
+    password   = var.icinga_enabled ? module.secrets_cpm[0].values["icinga-api-synthetic-password"].value : null
+    bp_api_url = var.icinga_enabled ? "https://${module.secrets_cpm[0].values["icinga-api-url"].value}/bp-api" : null
+    bp_name    = var.icinga_enabled ? module.secrets_cpm[0].values["icinga-business-process-name"].value : null
+  }
 }
