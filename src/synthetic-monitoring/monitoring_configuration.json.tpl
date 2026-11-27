@@ -8,7 +8,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} context root"
+      "description" : "pagopa ${env_name} context root",
+      "domain": "core"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -27,7 +28,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa ${env_name} context root"
+      "description" : "pagopa ${env_name} context root",
+      "domain": "core"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -43,7 +45,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm calculator status endpoint"
+      "description" : "pagopa ${env_name} afm calculator status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -59,7 +62,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm calculator status endpoint"
+      "description" : "pagopa ${env_name} afm calculator status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -76,7 +80,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm marketplace status endpoint"
+      "description" : "pagopa ${env_name} afm marketplace status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -92,7 +97,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm marketplace status endpoint"
+      "description" : "pagopa ${env_name} afm marketplace status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -109,7 +115,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm utils status endpoint"
+      "description" : "pagopa ${env_name} afm utils status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -125,7 +132,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} afm utils status endpoint"
+      "description" : "pagopa ${env_name} afm utils status endpoint",
+      "domain": "afm"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -142,7 +150,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} apiconfig status endpoint"
+      "description" : "pagopa ${env_name} apiconfig status endpoint",
+      "domain": "apiconfig"
     },
     "durationLimit" : 20000,
     "alertConfiguration" : {
@@ -158,7 +167,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} apiconfig status endpoint"
+      "description" : "pagopa ${env_name} apiconfig status endpoint",
+      "domain": "apiconfig"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -175,7 +185,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} authorizer status endpoint"
+      "description" : "pagopa ${env_name} authorizer status endpoint",
+      "domain": "shared"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -191,7 +202,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} authorizer status endpoint"
+      "description" : "pagopa ${env_name} authorizer status endpoint",
+      "domain": "shared"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -207,7 +219,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents status endpoint"
+      "description" : "pagopa ${env_name} bizevents status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -223,7 +236,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents status endpoint"
+      "description" : "pagopa ${env_name} bizevents status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -240,7 +254,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents negative status endpoint"
+      "description" : "pagopa ${env_name} bizevents negative status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -256,7 +271,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents negative status endpoint"
+      "description" : "pagopa ${env_name} bizevents negative status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -273,7 +289,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents datastore status endpoint"
+      "description" : "pagopa ${env_name} bizevents datastore status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -289,7 +306,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} bizevents datastore status endpoint"
+      "description" : "pagopa ${env_name} bizevents datastore status endpoint",
+      "domain": "bizevents"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -306,7 +324,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} selfcare status endpoint"
+      "description" : "pagopa ${env_name} selfcare status endpoint",
+      "domain": "selfcare"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -324,7 +343,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} fdr status endpoint"
+      "description" : "pagopa ${env_name} fdr status endpoint",
+      "domain": "fdr"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -341,7 +361,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} fdr status endpoint"
+      "description" : "pagopa ${env_name} fdr status endpoint",
+      "domain": "fdr"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -358,7 +379,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd status endpoint"
+      "description" : "pagopa ${env_name} gpd status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -374,7 +396,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd status endpoint"
+      "description" : "pagopa ${env_name} gpd status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -391,7 +414,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd payments status endpoint"
+      "description" : "pagopa ${env_name} gpd payments status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -407,7 +431,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd payments status endpoint"
+      "description" : "pagopa ${env_name} gpd payments status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -423,7 +448,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd payments pull status endpoint"
+      "description" : "pagopa ${env_name} gpd payments pull status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -439,7 +465,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts datastore status endpoint"
+      "description" : "pagopa ${env_name} receipts datastore status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -455,7 +482,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts datastore status endpoint"
+      "description" : "pagopa ${env_name} receipts datastore status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -472,7 +500,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts generator status endpoint"
+      "description" : "pagopa ${env_name} receipts generator status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -488,7 +517,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts generator status endpoint"
+      "description" : "pagopa ${env_name} receipts generator status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -505,7 +535,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts notifier status endpoint"
+      "description" : "pagopa ${env_name} receipts notifier status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -521,7 +552,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts notifier status endpoint"
+      "description" : "pagopa ${env_name} receipts notifier status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -538,7 +570,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts status endpoint"
+      "description" : "pagopa ${env_name} receipts status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -554,7 +587,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} receipts status endpoint"
+      "description" : "pagopa ${env_name} receipts status endpoint",
+      "domain": "receipts"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -570,7 +604,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} gpd-analysis status endpoint"
+      "description" : "pagopa ${env_name} gpd-analysis status endpoint",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -587,7 +622,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} payopt status endpoint"
+      "description" : "pagopa ${env_name} payopt status endpoint",
+      "domain": "payopt"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -604,7 +640,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} payment-options status endpoint"
+      "description" : "pagopa ${env_name} payment-options status endpoint",
+      "domain": "payopt"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -628,7 +665,8 @@
       "Content-Type": "application/json"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -653,7 +691,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -679,7 +718,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position via Internet"
+      "description" : "pagopa nodo ${env_name} check position via Internet",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -703,7 +743,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -727,7 +768,8 @@
       "Ocp-Apim-Subscription-Key": "${ndp_ecommerce_subscription_key}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} check position"
+      "description" : "pagopa nodo ${env_name} check position",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -759,7 +801,8 @@
       "Content-Type": "application/xml"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -791,7 +834,8 @@
       "Content-Type": "application/xml"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -824,7 +868,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -858,7 +903,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -892,7 +938,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service via Internet"
+      "description" : "pagopa nodo ${env_name} verify payment notice using GPD service via Internet",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -925,7 +972,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -958,7 +1006,8 @@
       "Host": "${api_dot_env_name}.platform.pagopa.it"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -992,7 +1041,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service"
+      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -1027,7 +1077,8 @@
       "Host": "${nexi_ndp_host_postgres}"
     },
     "tags" : {
-      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service via Internet"
+      "description" : "pagopa nodo ${env_name} verify payment notice using partner's service via Internet",
+      "domain": "nodo"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -1045,7 +1096,8 @@
     "expectedBody": {"name":"debezium-connector-postgres","connector":{"state":"RUNNING"},"tasks":[{"state":"RUNNING"}]},
     "bodyCompareStrategy": "contains",
     "tags" : {
-      "description" : "pagopa gpd debezium-connector-postgres ${env_name} status monitor"
+      "description" : "pagopa gpd debezium-connector-postgres ${env_name} status monitor",
+      "domain": "gps"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -1065,7 +1117,8 @@
       "method": "GET",
       "expectedCodes": ["200"],
       "tags": {
-        "description": "pagopa ${env_name} shared status endpoint"
+        "description": "pagopa ${env_name} shared status endpoint",
+        "domain": "shared"
       },
       "durationLimit": 10000,
       "alertConfiguration": {
@@ -1082,7 +1135,8 @@
       "method": "GET",
       "expectedCodes": ["200"],
       "tags": {
-        "description": "pagopa ${env_name} checkout cdn endpoint"
+        "description": "pagopa ${env_name} checkout cdn endpoint",
+        "domain": "checkout"
       },
       "durationLimit": 10000,
       "alertConfiguration": {
@@ -1121,7 +1175,8 @@
       },
       "expectedCodes": ["200"],
       "tags": {
-        "description": "pagopa ${env_name} checkout appgw endpoint"
+        "description": "pagopa ${env_name} checkout appgw endpoint",
+        "domain": "checkout"
       },
       "durationLimit": 10000,
       "alertConfiguration": {
@@ -1137,7 +1192,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} eCommerce jwt issuer certificate status endpoint"
+      "description" : "pagopa ${env_name} eCommerce jwt issuer certificate status endpoint",
+      "domain": "ecommerce"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {
@@ -1157,7 +1213,8 @@
     "method" : "GET",
     "expectedCodes" : ["200"],
     "tags" : {
-      "description" : "pagopa ${env_name} payment wallet jwt issuer certificate status endpoint"
+      "description" : "pagopa ${env_name} payment wallet jwt issuer certificate status endpoint",
+      "domain": "pay-wallet"
     },
     "durationLimit" : 10000,
     "alertConfiguration" : {

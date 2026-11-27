@@ -16,6 +16,7 @@ echo "icinga-configure!!!"
 : "${ICINGAWEB_ADMIN_USER:?ICINGAWEB_ADMIN_USER must be set}"
 : "${ICINGAWEB_ADMIN_PASSWORD:?ICINGAWEB_ADMIN_PASSWORD must be set}"
 : "${ICINGA_API_TERRAFORM_PASSWORD:?ICINGA_API_TERRAFORM_PASSWORD must be set}"
+: "${ICINGA_API_SYNTHETIC_PASSWORD:?ICINGA_API_SYNTHETIC_PASSWORD must be set}"
 : "${ICINGA_FQDN:?ICINGA_FQDN must be set}"
 : "${TLS_SECRET_URL:?TLS_SECRET_URL must be set}"
 : "${TLS_MSI_CLIENT_ID:?TLS_MSI_CLIENT_ID must be set}"
@@ -27,7 +28,7 @@ echo "icinga-configure!!!"
 [[ "$DATA_DISK_LUN" =~ ^[0-9]+$ ]] || { echo "invalid DATA_DISK_LUN: $DATA_DISK_LUN" >&2; exit 1; }
 
 # alphanumeric only: values go straight into SQL and config files
-for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD; do
+for var in ICINGADB_DB_PASSWORD ICINGAWEB_DB_PASSWORD ICINGAWEB_ADMIN_USER ICINGAWEB_ADMIN_PASSWORD ICINGA_API_TERRAFORM_PASSWORD ICINGA_API_SYNTHETIC_PASSWORD; do
   [[ "${!var}" =~ ^[A-Za-z0-9]+$ ]] || { echo "$var must be alphanumeric" >&2; exit 1; }
 done
 
@@ -307,6 +308,22 @@ write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-terraform.conf <<EOF
 object ApiUser "terraform" {
   password    = "${ICINGA_API_TERRAFORM_PASSWORD}"
   permissions = [ "objects/query/*", "objects/create/*", "objects/modify/*", "objects/delete/*", "status/query" ]
+}
+EOF
+
+# API user used by azure-synthetic-monitoring (runtime): creates its host and
+# services, updates and deletes its services (only those with
+# vars.managed_by = synthetic) and publishes the check results of the synthetic tests
+write_file root:nagios 0640 /etc/icinga2/conf.d/api-user-synthetic.conf <<EOF
+object ApiUser "synthetic" {
+  password    = "${ICINGA_API_SYNTHETIC_PASSWORD}"
+  permissions = [
+    "objects/query/Host", "objects/query/Service",
+    "objects/create/Host", "objects/create/Service",
+    { permission = "objects/modify/Service", filter = {{ service.vars.managed_by == "synthetic" }} },
+    { permission = "objects/delete/Service", filter = {{ service.vars.managed_by == "synthetic" }} },
+    "actions/process-check-result"
+  ]
 }
 EOF
 
@@ -935,9 +952,13 @@ systemctl start icinga-tls-sync.service
 systemctl enable --now icinga-tls-sync.timer
 
 # -----------------------------------------------------------------------------
-# Apache: HTTPS for Icinga Web, certificate of icinga-tls-sync
+# Apache: HTTPS for Icinga Web, certificate of icinga-tls-sync. Reverse proxy,
+# with the same certificate, for the Icinga API (/v1/, port 5665) and the
+# business process API (/bp-api/, port 8080, listening on localhost only):
+# clients such as azure-synthetic-monitoring verify the Let's Encrypt
+# certificate with the system CAs, without the Icinga CA nor the VM hostname
 # -----------------------------------------------------------------------------
-a2enmod -q ssl rewrite headers
+a2enmod -q ssl rewrite headers proxy proxy_http
 
 write_file root:root 0644 /etc/apache2/sites-available/icingaweb2-ssl.conf <<EOF
 <VirtualHost *:80>
@@ -955,6 +976,21 @@ write_file root:root 0644 /etc/apache2/sites-available/icingaweb2-ssl.conf <<EOF
     SSLCertificateKeyFile /var/lib/icinga-tls/current/privkey.pem
 
     RedirectMatch ^/$ /icingaweb2/
+
+    ProxyRequests     Off
+    ProxyTimeout      30
+    # the Icinga API is reached on loopback: its certificate is verified against
+    # the Icinga CA, not its name (issued for the VM short hostname, not 127.0.0.1)
+    SSLProxyEngine        on
+    SSLProxyVerify        require
+    SSLProxyCACertificateFile /var/lib/icinga2/certs/ca.crt
+    SSLProxyCheckPeerName off
+
+    # authentication of both APIs unchanged: the Authorization header is forwarded
+    ProxyPass        /v1/ https://127.0.0.1:5665/v1/
+    ProxyPassReverse /v1/ https://127.0.0.1:5665/v1/
+    ProxyPass        /bp-api/ http://127.0.0.1:8080/
+    ProxyPassReverse /bp-api/ http://127.0.0.1:8080/
 </VirtualHost>
 EOF
 

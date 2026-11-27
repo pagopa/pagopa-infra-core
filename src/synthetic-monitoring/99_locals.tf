@@ -27,4 +27,7 @@ locals {
   key_vault_name    = "pagopa-${var.env_short}-kv"
   key_vault_rg_name = "pagopa-${var.env_short}-sec-rg"
 
+  key_vault_cpm_name    = "pagopa-${var.env_short}-itn-cpm-kv"
+  key_vault_cpm_rg_name = "pagopa-${var.env_short}-itn-cpm-sec-rg"
+
 }

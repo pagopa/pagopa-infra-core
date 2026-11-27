@@ -1,0 +1,6 @@
+# dev/test dependencies, compiled with hashes into requirements-dev.txt (same pins as requirements.txt):
+#   pip-compile --generate-hashes --strip-extras --no-emit-index-url requirements-dev.in
+-c requirements.txt
+-r requirements.in
+pytest
+httpx

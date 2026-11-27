@@ -457,6 +457,12 @@ locals {
   bp_dir      = "/etc/icingaweb2/modules/businessprocess/processes"
   bp_file     = "${local.bp_dir}/${local.bp_name}.conf"
 
+  # target usato da azure-synthetic-monitoring con la bp-api: ogni dominio
+  # richiama il nodo "<target>_<dominio>", definito a runtime da synthetic nella
+  # sezione "# begin <target> section". Finché synthetic non lo scrive (dopo ogni
+  # apply che riscrive il file, o se il dominio non ha test) il figlio risulta mancante
+  bp_synthetic_target = "synthetic"
+
   # Titoli dei nodi "<tipo><a capo><nome>": l'a capo è U+2028 (LINE SEPARATOR),
   # il file del Business Process separa le righe solo su "\n". Il browser lo
   # mostrerebbe come spazio, il modulo pagopa (common, theme/files/public/js)
@@ -503,5 +509,6 @@ locals {
     hosts      = local.bp_hosts
     namespaces = local.bp_namespaces
     domains    = local.bp_domains
+    synthetic  = local.bp_synthetic_target
   })
 }

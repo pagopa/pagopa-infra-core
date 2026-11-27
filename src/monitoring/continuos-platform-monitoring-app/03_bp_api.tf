@@ -1,0 +1,136 @@
+locals {
+  bp_api_dir = "${path.module}/business_process_api"
+  bp_api_files = {
+    "app/__init__.py"  = filebase64("${local.bp_api_dir}/app/__init__.py")
+    "app/bpfile.py"    = filebase64("${local.bp_api_dir}/app/bpfile.py")
+    "app/main.py"      = filebase64("${local.bp_api_dir}/app/main.py")
+    "requirements.txt" = filebase64("${local.bp_api_dir}/requirements.txt")
+  }
+  bp_api_unit = filebase64("${local.bp_api_dir}/deploy/bp-api.service")
+  bp_api_env  = filebase64("${local.bp_api_dir}/deploy/bp-api.conf")
+
+  bp_api_hash = sha256(join("", concat(
+    [for k in sort(keys(local.bp_api_files)) : "${k}:${local.bp_api_files[k]}"],
+    [local.bp_api_unit, local.bp_api_env, local.bp_file],
+  )))
+}
+
+# Installa (idempotente) la business process API sulla VM Icinga come servizio systemd.
+# Rieseguito quando cambiano i sorgenti o la VM viene ricreata (vmId, vedi 02_vm_command.tf):
+# utente, venv e unit stanno sul disco del sistema operativo
+resource "terraform_data" "icinga_vm_bp_api" {
+  triggers_replace = [
+    data.azapi_resource.icinga_vm.output.vm_id,
+    local.bp_api_hash,
+    # rotazione del token: nello state del trigger finisce solo il suo hash
+    sha256(data.azurerm_key_vault_secret.bp_api_token.value),
+  ]
+
+  # dopo il file del BP (i permessi del file sono sistemati qui) e mai in parallelo
+  # al suo run command sulla stessa VM
+  depends_on = [terraform_data.icinga_vm_bp]
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+
+    environment = {
+      SUBSCRIPTION_ID = data.azurerm_subscription.current.subscription_id
+      RESOURCE_GROUP  = data.azurerm_virtual_machine.icinga_vm.resource_group_name
+      VM_NAME         = data.azurerm_virtual_machine.icinga_vm.name
+      LOCATION        = data.azurerm_virtual_machine.icinga_vm.location
+      RUN_NAME        = "${local.project}-icinga-vm-bp-api"
+      BP_FILE         = local.bp_file
+      BP_API_HASH     = local.bp_api_hash
+      UNIT_B64        = local.bp_api_unit
+      ENV_B64         = local.bp_api_env
+      FILES_B64       = join(" ", [for k in sort(keys(local.bp_api_files)) : "${k}=${local.bp_api_files[k]}"])
+      # passato come protected parameter del run command (variabile d'ambiente dello script sulla VM):
+      # non finisce nello script ne' nella vista del run command
+      BP_API_TOKEN = data.azurerm_key_vault_secret.bp_api_token.value
+    }
+
+    command = <<-EOT
+      set -euo pipefail
+      script="$(mktemp)"
+      log="$${TMPDIR:-/tmp}/$VM_NAME-$RUN_NAME.log"
+      az_run() {
+        az vm run-command "$@" --subscription "$SUBSCRIPTION_ID" \
+          --resource-group "$RESOURCE_GROUP" --vm-name "$VM_NAME" --name "$RUN_NAME"
+      }
+
+      cat > "$script" <<SCRIPT
+      #!/usr/bin/env bash
+      set -euo pipefail
+      APP=/opt/bp-api
+      command -v python3 >/dev/null || { echo "python3 mancante sulla VM" >&2; exit 1; }
+      python3 -m venv --help >/dev/null 2>&1 || { echo "modulo python3 venv mancante sulla VM" >&2; exit 1; }
+
+      id bp-api >/dev/null 2>&1 || useradd --system --home-dir "\$APP" --shell /usr/sbin/nologin bp-api
+      usermod -aG icingaweb2 bp-api
+
+      mkdir -p "\$APP/app"
+      for entry in $FILES_B64; do
+        rel="\$${entry%%=*}"
+        mkdir -p "\$APP/\$(dirname "\$rel")"
+        echo "\$${entry#*=}" | base64 -d > "\$APP/\$rel"
+      done
+      [ -d "\$APP/venv" ] || python3 -m venv "\$APP/venv"
+      # versioni esatte con hash (requirements.txt generato da requirements.in con pip-compile)
+      "\$APP/venv/bin/pip" install --quiet --require-hashes --no-deps --only-binary :all: -r "\$APP/requirements.txt"
+      chown -R root:bp-api "\$APP"
+      chmod -R g+rX,o-rwx "\$APP"
+
+      # gestito da Terraform (deploy/bp-api.conf): riscritto a ogni installazione
+      echo '$ENV_B64' | base64 -d > /etc/default/bp-api
+      echo '$UNIT_B64' | base64 -d > /etc/systemd/system/bp-api.service
+
+      # token Bearer dei client (protected parameter BP_API_TOKEN), letto da systemd come root
+      [ -n "\$${BP_API_TOKEN:-}" ] || { echo "BP_API_TOKEN mancante" >&2; exit 1; }
+      install -d -m 0700 -o root -g root /etc/bp-api
+      ( umask 077; printf 'BP_API_TOKEN=%s\n' "\$BP_API_TOKEN" > /etc/bp-api/token )
+
+      # la API scrive direttamente sul file (nessun temp file): serve il permesso di gruppo sul solo file
+      if [ -f '$BP_FILE' ]; then
+        chgrp icingaweb2 '$BP_FILE'
+        chmod 0660 '$BP_FILE'
+      fi
+
+      systemctl daemon-reload
+      systemctl enable bp-api.service
+      systemctl restart bp-api.service
+      sleep 3
+      systemctl is-active --quiet bp-api.service
+      echo "bp-api installed (sha256 $BP_API_HASH)"
+      SCRIPT
+
+      trap 'rm -f "$script"; az_run delete --yes --output none || echo "WARNING: cancellare a mano il run command $RUN_NAME su $VM_NAME" >&2' EXIT
+
+      az_run create --location "$LOCATION" \
+        --async-execution false --timeout-in-seconds 900 \
+        --script "@$script" --protected-parameters "BP_API_TOKEN=$BP_API_TOKEN" --output none
+
+      az_run show --instance-view --query instanceView --output json > "$log"
+      exit_code="$(az_run show --instance-view --query instanceView.exitCode --output tsv)"
+      if [[ "$exit_code" != "0" ]]; then
+        echo "$RUN_NAME fallito su $VM_NAME (exit code $exit_code), vedi $log" >&2
+        exit 1
+      fi
+      echo "$RUN_NAME completato su $VM_NAME, vedi $log"
+    EOT
+  }
+}
+
+# token Bearer della bp-api, condiviso con synthetic (creato a mano: openssl rand -hex 32)
+data "azurerm_key_vault_secret" "bp_api_token" {
+  name         = "icinga-bp-api-token"
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+}
+
+resource "azurerm_key_vault_secret" "business_process_name" {
+  key_vault_id = data.azurerm_key_vault.kv_domain.id
+  name         = "icinga-business-process-name"
+  # nome del file <bp_name>.conf, usato da synthetic nella bp-api (bp_title ha spazi)
+  value = local.bp_name
+
+  tags = module.tag_config.tags
+}

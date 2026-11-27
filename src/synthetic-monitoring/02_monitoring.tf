@@ -16,7 +16,8 @@ module "monitoring_function" {
   application_insights_action_group_ids = var.env_short == "p" ? [data.azurerm_monitor_action_group.infra_opsgenie[0].id] : [data.azurerm_monitor_action_group.slack.id]
 
   docker_settings = {
-    image_tag = "v1.11.2@sha256:a0d9821489aef256345d558915319d5aa911dd7e648a1f4c826c001eaf9a80fe"
+    #image_tag = "v1.11.2@sha256:a0d9821489aef256345d558915319d5aa911dd7e648a1f4c826c001eaf9a80fe"
+    image_tag = "beta-icinga-integration@sha256:8cba436b06a657b1424142168494cf71670725375ff0f30594a5b5706a1ace7a"
   }
 
   job_settings = {
@@ -83,4 +84,13 @@ module "monitoring_function" {
     cloudo_checkout_cdn_switch               = var.enabled_resource.cloudo_checkout_cdn_switch
     nexi_postgres_public_enabled             = var.nexi_postgres_public_enabled
   })
+
+  icinga_settings = {
+    enabled      = var.icinga_enabled
+    api_url      = var.icinga_enabled ? "https://${module.secrets_cpm[0].values["icinga-api-url"].value}" : null
+    password     = var.icinga_enabled ? module.secrets_cpm[0].values["icinga-api-synthetic-password"].value : null
+    bp_api_url   = var.icinga_enabled ? "https://${module.secrets_cpm[0].values["icinga-api-url"].value}/bp-api" : null
+    bp_name      = var.icinga_enabled ? module.secrets_cpm[0].values["icinga-business-process-name"].value : null
+    bp_api_token = var.icinga_enabled ? module.secrets_cpm[0].values["icinga-bp-api-token"].value : null
+  }
 }

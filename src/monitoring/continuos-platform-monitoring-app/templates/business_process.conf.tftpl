@@ -19,8 +19,18 @@ ${node} = ${n.check}
 display 0;${node};${n.title}
 %{ endfor ~}
 
-# Domini: primo livello del Business Process
+# Domini: primo livello del Business Process. ${synthetic}_<dominio> è definito
+# a runtime da azure-synthetic-monitoring tramite la bp-api
 %{ for domain, hosts in domains ~}
-${domain} = ${join(" & ", hosts)}
+${domain} = ${join(" & ", concat(hosts, ["${synthetic}_${domain}"]))}
 display 1;${domain};${domain}
 %{ endfor ~}
+
+# Nodi di synthetic vuoti (stato EMPTY, non influiscono sul dominio): il modulo
+# businessprocess non accetta riferimenti a nodi non definiti. La bp-api sostituisce
+# l'intera sezione e mantiene vuoti i nodi richiamati senza blocchi
+# begin ${synthetic} section
+%{ for domain, hosts in domains ~}
+${synthetic}_${domain} =
+%{ endfor ~}
+# end ${synthetic} section
